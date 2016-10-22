@@ -41,3 +41,7 @@ Still under development. This writes a fast-spectrum molten salt reactor input f
 
 ###corewriter.pl
 From Dr. Chvala. This writes an archetypal DMSR core with whatever parameters you want.
+
+#Contact Info
+Gavin Ridley
+gavin.keith.ridley@gmail.com

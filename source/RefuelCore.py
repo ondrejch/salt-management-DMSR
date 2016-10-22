@@ -3,6 +3,66 @@ if __name__ == '__main__':
 
 debug=False
 reallydebug=False
+import getpass
+
+#-------------------------------------------------------------#
+# A nice little helper function for reading output            #
+#-------------------------------------------------------------#
+def grabproperty(direc, props, debug=False):                                                                                                    
+    """Grabs a property from the directory containing pickle files.                                                                
+        direc --- the directory to look in                                                                                         
+        props --- a list of properties, or single value to grab. must be in a list though.                                         
+
+        output
+        ---                                                                                                                        
+        a list of lists. first item is always a list of integers describing the day.                                               
+        second through final items are the properties specified in props                                                           
+        ---                                                                                                                        
+        currently supported props to grab:                                                                                         
+        betaEff, convratio, upperfluorineexcess, lowerfluorineexcess, Doligezexcess, keff"""                                       
+    import os
+    import pickle
+    import numpy as np                                                                                                             
+    if type(props) != list:
+        raise ValueError("arg props must be a list, even if length one")                                                           
+    #construct lists to hold data in
+    proplist=[]
+    proplist.append([]) #room for the daylist                                                                                      
+    for prop in props:
+        proplist.append([])                                                                                                        
+    ls = os.listdir(direc)                                                                                                         
+    days=[]
+    for file in ls:
+        nums=[char for char in file if char.isdigit()] #pull out list of numbers                                                   
+        numstring="".join(nums) #put em together
+        day=int(numstring)
+        days.append(day)
+    days.sort() #put em in order
+    proplist[0]=days
+    if debug:
+        print days
+    for dayval in days:                                                                                                            
+        fh=open("{0}/inputday{1}.dat".format(direc, dayval), 'r')                                                                  
+        p=pickle.load(fh)
+        if debug:
+            print "adding data for day {0}".format(dayval)
+        for i, prop in enumerate(props):
+            if prop=='convratio': 
+                proplist[i+1].append(p.convratio)
+            elif prop=='betaEff':
+                proplist[i+1].append(p.betaEff)                                                                                    
+            elif prop=='upperfluorineexcess':                                                                                      
+                proplist[i+1].append(p.CalcExcessFluorine())                                                                       
+            elif prop=='lowerfluorineexcess':                                                                                      
+                proplist[i+1].append(p.CalcExcessFluorine(estimate='lower'))                                                       
+            elif prop=='Doligezexcess':                                                                                            
+                proplist[i+1].append(p.CalcExcessFluorine(use_X_Doligez=True))
+            else:                                                                                                                  
+                raise Exception("Property {0} not supported.".format(prop))                                                        
+        fh.close()
+    return proplist
+
+
 
 #------------------------------------------------------------------#
 #   Here are some functions needed for numerically zeroing curves  #
@@ -237,7 +297,7 @@ class RefuelorAbsorberFit(object):
                 	(A*(b*E**((Q*t)/vcore)*Q + N235init*Q*totalsigmathermal235 - Q*R235*totalsigmathermal235 +
                 	E**((Q*t)/vcore)*Q*R235*totalsigmathermal235 + N238init*Q*totalsigmathermal238 - Q*R235*totalsigmathermal238 +
                 	E**((Q*t)/vcore)*Q*R235*totalsigmathermal238 + P*totalsigmathermal235*vcore - E**((Q*t)/vcore)*P*totalsigmathermal235*vcore)) )
-
+                #for some reason, the absorber curve is not fitting. maybe it is too stiff, but the Refuel curve apparently still works quite well.
                 elif self.fittype=='Absorber':
                         # Fun fact: this function has a discontinuity at Q=0. I deal with that by doing this:
                         if type(Q)==np.float64:
@@ -331,7 +391,7 @@ class RefuelorAbsorberFit(object):
                  ydata=np.array(ydata)
                  #self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,p0=(1.,20.,20.),  bounds=((0.0,0.0,0.0), (1.5,1e3,1e3)),max_nfev=5000000, xtol=1e-13, ftol=1e-13, gtol=1e-13,x_scale=1e3, jac='3-point', method='dogbox')
 
-                 self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,(1.,.0001,200.), maxfev=5000000,diag=(np.abs(1./xdata.mean()),np.abs(1./ydata.mean())), xtol=1e-14, ftol=1e-14 )
+                 self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,(.01,.001,2000.), maxfev=5000000,diag=(np.abs(1./xdata.mean()),np.abs(1./ydata.mean())), xtol=1e-14, ftol=1e-14 )
 
                  #also grab two data points that can be used in finding a zero to this function numerically later
                  self.guesses=xdata[:2]
@@ -675,12 +735,15 @@ class SerpentInputFile(object):
         self.salt_fraction=salt_fraction
         self.pitch=pitch
         self.initial_enrichment=initial_enrichment
+        # this variable is used for knowing where to look for max flux in the moderator
+        self.holeradius = np.sqrt(salt_fraction * pitch **2 *np.sqrt(3) / 2./ np.pi)
 
         #initially no extra burnup is assigned to the file, or burnup settings
         self.RefuelRate=None
         self.AbsorberAdditionRate=None
         self.OffGasRate=None
         self.BurnTime=None
+        self.maxdamageflux=None
         self.PowerNormalization=''
         self.directory='.' #default directory to run and store data in
         #initially there is no reprocessing
@@ -693,6 +756,7 @@ class SerpentInputFile(object):
         #output variables
         self.kefflist=[]
         self.convratiolist=[]
+        self.betalist=[]
         self.convratio=None
         self.betaEff=None
 
@@ -747,7 +811,9 @@ set declib "sss_endfb7.dec"\n\n'''
 
         #now the perl script has to write the core.
         #this is NOT the final input file to serpent. merely a template to get isotopics and geometry from the core writer. This avoids reproduction of work.
-        print subprocess.call(['perl', 'corewriter.pl']) #print is there so that the print()'s in the perl script get printed
+        mywd=os.getcwd()
+        installd=mywd.split("salt-management-DMSR",1)[0]
+        print subprocess.call(['perl', '{0}salt-management-DMSR/source/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
 
         #now initialize the list of materials that are present in the input file. This is a list of objects of the SerpentMaterial class that is defined at the top of this file.
         self.materials=[]
@@ -876,15 +942,26 @@ set declib "sss_endfb7.dec"\n\n'''
                 print mat.atomdensity
         self.AddMaterial(SerpentMaterial('empty', volume=volume, materialname="Umetal"))
         #this next line may be a bit convoluted, but just adds the material. -1 is because it is the last thing on the list at that moment.
-        #self.materials[-1].isotopic_content={'92235':enrichment, '92238':(1-enrichment)}
+        self.materials[-1].isotopic_content={'92235':enrichment, '92238':(1-enrichment)}
+        self.materials[-1].massdensity=19.1
+        self.materials[-1].atomdensity=19.1/ 238.029 *.602214086 #atoms / cm-b self.materials[-1].density=19.1/ 238.02891*.602214086 #atoms / cm-b
+        self.materials[-1].density=19.1 / 238.029 *.602214086 #.density is the part that actually gets printed in the serpent input file
+        self.materials[-1].SetAsBurnable()
+
+        if debug:
+                print self.materials[-1]
+        return None
+
+    def AddZirconiumMetal(self, volume):
+        """ Nearly the same as AddUraniumMetal. Just see above."""
+
+        self.AddMaterial(SerpentMaterial('empty', volume=volume, materialname="Zrmetal"))
         self.materials[-1].isotopic_content={'40090':.5145,'40091':.1122,'40092':.1715,'40094':.1738,'40096':.028}
         self.materials[-1].massdensity=6.52
         self.materials[-1].atomdensity=6.52/ 91.224*.602214086 #atoms / cm-b self.materials[-1].density=19.1/ 238.02891*.602214086 #atoms / cm-b
         self.materials[-1].density=6.52/ 91.224*.602214086 #.density is the part that actually gets printed in the serpent input file
         self.materials[-1].SetAsBurnable()
-
-        if debug:
-                print self.materials[-1]
+        return None
 
     def AddRefuelMaterial(self,enrichment,volume):
         """Replicates the material named "fuel" in the input file with the name "refuel", and then changes enrichment.
@@ -1041,7 +1118,7 @@ set declib "sss_endfb7.dec"\n\n'''
             del self.ratioflows[delindex]
         self.ratioflows.append( (mat1, mat2, elements, flows) )
 
-    def CalcExcessFluorine(self,estimate='upper', debugmode=False, returnzvaldict=False, use_X_Doligez=False, printoxstates=False, printfexcess=True):
+    def CalcExcessFluorine(self,estimate='upper', debugmode=False, returnzvaldict=False, use_X_Doligez=False, printoxstates=False, printfexcess=False):
         """Calculates the excess of fluorine atoms in the core in the current state, assuming that all elements are in their most common oxidation states. 
 
         This defaults to estimate="upper" because a reducing environment is MUCH preferable to an oxidizing one, where like half of these compounds
@@ -1110,15 +1187,14 @@ set declib "sss_endfb7.dec"\n\n'''
         #now it's time to construct a map from element z values to oxidation states
         noblegases=[2,10,18,36, 54, 86]
         halogens=[9, 17, 35, 53, 85]
-        chalcogens=[8,16, 34, 52, 84]
-        nitrogengroup=[7, 15, 33, 51, 83]
-        carbongroup=[6, 14, 32, 50, 82]
-        borongroup=[5, 13, 31, 49, 81]
+        chalcogens=[8,16, 84] #Se and Te not included. they are likely acutally noble from Engel et al
+        nitrogengroup=[7, 15, 33, 83] #Sb is likely noble, from Engel
+        carbongroup=[6, 14, 82] # Ge and Sn noble, from Engel
+        borongroup=[5, 13, 31, 81] #indium is likely noble
         alkaline=[4, 12, 20, 38, 56, 88]
         alkali=[1, 3, 11, 19, 37, 55, 87]
         lanthanides=range(57, 72)
-        #X. Doligez says Nb, Mo, Tc, and Ru take a 0 state
-        noblemetals=[41, 42, 43, 44]
+        noblemetals=[41, 42, 43, 44, 45, 46, 47, 48, 50, 51, 49] #all reported as noble by Engel et al, 49 from Doligez tho
 
         #let's begin:
         z_to_oxidation_num_map={}
@@ -1144,7 +1220,9 @@ set declib "sss_endfb7.dec"\n\n'''
             z_to_oxidation_num_map[str(z)]=0
 
         #now some of the less standard oxidation states should be added:
-        z_to_oxidation_num_map['47']=1 #Ag is always +1
+        z_to_oxidation_num_map['32']=0 #Ge is noble
+        z_to_oxidation_num_map['33']=0 #As
+        z_to_oxidation_num_map['34']=0 #Se
         z_to_oxidation_num_map['40']=4 #Zr is usually +4
         z_to_oxidation_num_map['30']=2 #Zn is almost always +2
         z_to_oxidation_num_map['92']=4 #uranium should hopefully be in the +4 oxidation state, primarily
@@ -1157,14 +1235,10 @@ set declib "sss_endfb7.dec"\n\n'''
         #interestingly enough, from the purge gas samples, it looks like Sr tended to take no oxidation at times.
         #this is evidenced by the fact that about 17% of Sr-89 left through purge gas. Sr will be treated at +2 regardless.
 
-        #THESE ARE UNSURE OXIDATION STATES. MAYBE AN AVERAGE WOULD BE GOOD.
-        #many have been picked based on most common oxidation state
-        #--------------------------------------------------------------
-
-        #actinides seem to take on oxidation states with decent certainty
+        # all transuranics are likely trifluorides, according to Engel et al
         z_to_oxidation_num_map['91']=4 #https://en.wikipedia.org/wiki/Protactinium
         z_to_oxidation_num_map['90']=4 #https://en.wikipedia.org/wiki/Thorium
-        z_to_oxidation_num_map['93']=5 #https://en.wikipedia.org/wiki/Neptunium
+        z_to_oxidation_num_map['93']=3 #https://en.wikipedia.org/wiki/Neptunium
         z_to_oxidation_num_map['94']=3 #taken from the wikipedia page... ctrl-F "most common oxidation"
         z_to_oxidation_num_map['95']=3 #    ^^^
         z_to_oxidation_num_map['96']=3 #  ^^^
@@ -1176,15 +1250,15 @@ set declib "sss_endfb7.dec"\n\n'''
         #protactinium can even make weird stuff like an effective Pa2F9..
         # and yes, Pa2F9 can exist in the molten salt temp range
         if estimate=='upper':
+            #this is the estimate that is likely best to have. 
+            # a more reducing salt, in general, seems to minimize corrosion.
             #lower possible oxidation numbers should go here.
             #this results in an upper estimate on excess fluorine.
 
        	    #looks like Cd almost always in the +2 state
             #rhodium info from its wiki page.
             #looks like copper can be either +1 or +2
-            z_to_oxidation_num_map['48']=2 #cadmium
-            z_to_oxidation_num_map['45']=4 #rhodium
-            z_to_oxidation_num_map['29']=1 #copper
+            z_to_oxidation_num_map['29']=2 #copper
             z_to_oxidation_num_map['24']=2 #chromium
             z_to_oxidation_num_map['25']=2 #manganese
             z_to_oxidation_num_map['26']=2 #iron
@@ -1193,15 +1267,12 @@ set declib "sss_endfb7.dec"\n\n'''
             z_to_oxidation_num_map['23']=3 #vanadium
             #looks like scandium is pretty much guaranteed to be in the +3 state
             z_to_oxidation_num_map['21']=3 #scandium
-            z_to_oxidation_num_map['46']=2 #palladium
             #again, looks like we can basically guarantee Ni to be +2 state
             z_to_oxidation_num_map['28']=2 #nickel
 
         elif estimate=='lower':
             #upper possible oxidation states go here
 
-            z_to_oxidation_num_map['48']=2 #cadmium
-            z_to_oxidation_num_map['45']=6 #rhodium
             z_to_oxidation_num_map['29']=2 #copper
             #note: CrF5 apparently boils at 117 deg C. problem?
             #      CrF4 boils at 400 deg C
@@ -1368,15 +1439,25 @@ module load serpent
                     raise Exception("for material {0}, no attr".format(mat.materialname))
             #now add isotopes
             for iso in mat.isotopic_content.keys():
+                if iso=='1001':
+                    #There is a need to avoid tritium in input files. sigh.
+                    #http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619
+                    continue
                 inputfiletext.append('{0}{1}  {2}\n'.format(iso,mat.xstemplib,mat.isotopic_content[iso]))
             if mat.materialname=="mod":
                 inputfiletext.append('therm grmod 950 grj2.18t grj2.20t\n')
             inputfiletext.append("\n")
-        #inputfiletext.append("mat dummy 1 burn 1 vol 1.0 %dummy material because Jaakko says so\n")
-        #inputfiletext.append("40094.03c 1.0\n\n")
+        inputfiletext.append("mat dummy 0.0 burn 1 vol 1 \n")
+        inputfiletext.append("92235.09c 0.0\n\n")
         inputfiletext.append("set bc 1\n\n")
         inputfiletext.append("set pop {0} {1} {2} 1\n\n".format(self.num_particles,self.num_cycles,self.num_skipped_cycles))
         inputfiletext.append("set gcu -1\n\n") #turn off group constant generation to run faster
+
+        #add a tiny detector right in the part of the moderator with highest fast flux
+        #used for integrating damage flux in moderator
+        inputfiletext.append("ene graphitedamaging 1 .05 15\n") #all flux that hurts graphite ( >50 keV)
+        inputfiletext.append("det 1\nde graphitedamaging\ndx {0} {1} 1\ndy -1 1 1\ndz -1 1 1\n\n".format(self.holeradius+1., self.holeradius+2.))
+
         if usebumodethree:
             inputfiletext.append("set bumode 1\n\n")
         inputfiletext.append(self.xslibfiles)
@@ -1387,10 +1468,39 @@ module load serpent
         if self.BurnTime!=None:
             #make some text for reprocessing stuff if there is reprocessing
             if self.volumetricflows!=[] or self.ratioflows!=[]:
+                # Serpent 2 is tricky, tricky, tricky when it comes to reprocessing.
+                # The depletion matrix is usually a single entity, BUT, if there are a few top materials, then
+                # a single dummy flow can be used to lump the whole depletion equations into one matrix.
+                # this ensures that CRAM stays working, because if one of the materials gets its own top depletion matrix,
+                # you actually find that it has quite a few positive real eigenvalues.
+                #thus, a dummy flows into the topmost materials must be made.
+                topmaterials=[]
+                #yes my algorithm for finding this is sloppy and inefficient, but it works.
+                for mat1, mat2, elements, flows in self.ratioflows:
+                    if mat1 not in topmaterials:
+                        topmaterials.append(mat1)
+                    if mat2 in topmaterials:
+                        topmaterials.remove(mat2)
+                for mat1, mat2, flow in self.volumetricflows:
+                    if mat1 not in topmaterials:
+                        topmaterials.append(mat1)
+                    if mat2 in topmaterials:
+                        topmaterials.remove(mat2)
+                for mat1, mat2, elements, flows in self.ratioflows:
+                    if mat2 in topmaterials:
+                        topmaterials.remove(mat2)
+                for mat1, mat2, flow in self.volumetricflows:
+                    if mat2 in topmaterials:
+                        topmaterials.remove(mat2)
+
+                #print "topmost materials in reprocessing scheme (ones who get dummy flow in):"
+                #print topmaterials
+
                 reprotext='pro myrepro\n'
                 #turn off predictor corrector if continuoues reprocessing is used
                 inputfiletext.append('set pcc 0\n\n')
                 flowindex=0 #used for labeling mass flows
+                inputfiletext.append('mflow dummyfl\nall 0.0\n\n')
                 if self.volumetricflows!=[]:
                     reproschemetext=''
                     for flow in self.volumetricflows:
@@ -1420,7 +1530,10 @@ module load serpent
                         reproschemetext+='rc {0} {1} flow{2} 1\n'.format(mat1, mat2, flowindex)
                         flowindex+=1
                         inputfiletext.append('\n')
-                reproschemetext = 'rep myrepro\n' + reproschemetext
+                dummytext=''
+                for topmat in topmaterials:
+                    dummytext += 'rc dummy {0} dummyfl 1\n'.format(topmat)
+                reproschemetext = 'rep myrepro\n' +dummytext + reproschemetext
                 inputfiletext.append(reproschemetext+'\n')
             else:
                 reprotext=''
@@ -1469,7 +1582,7 @@ module load serpent
         Returns:
             a string with job status if getstatus=True, otherwise None
         """
-        username='gridley'
+        username=getpass.getuser()
         if not self.submitted_once:
             raise Exception("an attempt was never made to submit this job. why check the status?")
         qstat=subprocess.Popen(['qstat', '-a'],stdout=subprocess.PIPE)
@@ -1484,8 +1597,9 @@ module load serpent
                     return status
                 else:
                     return False
-        #never found the job? Then it is done. (or failed)
-        #if needed, capability could be added in this function to check if the *_res.m file is present. This indicates that serpent exited without errors.
+
+        #Now, check for the *_res.m file in the directory of interest. If it is not present, this indicates that the
+        # serpent calculation failed.
         if self.inputfilename+'_res.m' not in os.listdir(self.directory):
             print subprocess.call(['tail',self.inputfilename+'serpentoutput.txt','-n','30'])
             raise Exception("Serpent did not exit normally.Printed above should be the error.")
@@ -1542,7 +1656,7 @@ module load serpent
             allconvs -- bool. returns all encountered statements in output of conversion ratio if true."""
         if not self.submitted_once:
             raise Exception("The job has not been submitted yet.")
-        if self.convratiolist==[]:
+        if self.betalist==[]:
             with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
                 for line in resultfile.readlines():
                     if line=='':
@@ -1551,18 +1665,18 @@ module load serpent
                     if line==[]:
                         continue
                     elif line[0]=='ADJ_MEULEKAMP_BETA_EFF':
-                        self.convratiolist.append(float(line[6]))
-                if self.convratiolist==[]:
+                        self.betalist.append(float(line[6]))
+                if self.betalist==[]:
                     raise Exception("No beta eff values were found. Check serpent output for errors.")
                 if allconvs:
-                    return self.convratiolist
+                    return self.betalist
                 else:
-                    return self.convratiolist[-1]
+                    return self.betalist[-1]
         else:
             if allconvs:
-                return self.convratiolist
+                return self.betalist
             else:
-                return self.convratiolist[-1]
+                return self.betalist[-1]
 
     def ReadConvRatio(self, allconvs=False):
         """Works just like ReadKeff, but instead gets the conversion ratio.
@@ -1594,6 +1708,19 @@ module load serpent
                 return self.convratiolist
             else:
                 return self.convratiolist[-1]
+
+    def GetMaxDamageFlux(self):
+        """Reads in detector output for measuring max damage flux.
+        Max fast flux in the moderator is right near the central channel in the middle of the core.
+        the detector is just 1 cm past the first channel in +x direction, then making a 1cm^3 cube.
+        Flux returned is > 50 keV (determined to be bad for graphite)"""
+        with open('{0}_det0.m'.format(self.inputfilename), 'r') as detfile:
+            for line in detfile:
+                if len(line.split())==12:
+                    measurement= line.split()[10]
+                    break
+        self.maxdamageflux = float(measurement)
+        return measurement
 
     def GetFuelEnrichment(self):
         """ Returns the current enrichment of the fuel.

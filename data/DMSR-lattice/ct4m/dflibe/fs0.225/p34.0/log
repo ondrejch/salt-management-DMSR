@@ -1,0 +1,29 @@
+using default requested amount of memory, None 
+/ct4m/dflibe/case1/fs0.225/p34.0/enr0.012097/9006000500100flibe	 1/0.225/34.0/0.012097/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt flibe, case 1, salt fraction 0.225, pitch 34.0, U235 0.012097, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 34.0, hole radius 8.46760431583834
+Holes punched: 109
+Core temp 626.85 C, salt density -1 g/cm3
+0
+The use of uranium metal, for now, is assumed to be composed solely of U235 and U238.
+Starting the refuelling simulation at Sun Oct 23 13:31:25 2016
+First input file is being refuelled at 0.0127337041659 ccm/s.
+no U metal addition because there isn't depletion yet
+there is a shortage of fluorine in the core. letting burn step happen without U metal addition.
+803769.necluster.engr.utk.edu
+
+803772.necluster.engr.utk.edu
+
+803773.necluster.engr.utk.edu
+
+803774.necluster.engr.utk.edu
+
+803775.necluster.engr.utk.edu
+
+803776.necluster.engr.utk.edu
+

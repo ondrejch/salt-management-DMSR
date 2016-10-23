@@ -1,5 +1,5 @@
 import sys
-sys.path.append('..')
+sys.path.append('../../../../../../source')
 from RefuelCore import SerpentMaterial,SerpentInputFile, RefuelorAbsorberFit, inversequadraticinterp, secant
 import time #for pauses
 import numpy as np
@@ -19,7 +19,7 @@ reallydebug=False
 #-------------------------------------------#
 
 #make a serpent input file for an arbitrary MSR core
-inputfile=SerpentInputFile(core_size="4m", salt_type="dflibe", case=1, salt_fraction=0.225, pitch=34.0, initial_enrichment=.012097, num_nodes=1, PPN=48, queue='super', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
+inputfile=SerpentInputFile(core_size="4m", salt_type="dflibe", case=1, salt_fraction=0.225, pitch=34.0, initial_enrichment=.012097, num_nodes=15, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
 
 #change the input name from MSRs2
 inputfile.SetInputFileName('FLiBe4mcore')
@@ -284,7 +284,7 @@ while burnttime<maxburntime:
                         file.SetConstantVolumeFlow('fuel','excessfueltank',refuelrates_to_try[i]+absorberaddition_rates_to_try[i]) #displace some fuel from the core when adding stuff
                         file.SetRatioFlow('fuel','offgastank',['Xe','Kr','Ar','Ne','He','Ra'],.02)
                         file.ChangeKcodeSettings(10000,500,100) #these get run at lower resolution, but with more cases
-                        file.num_nodes=1
+                        file.num_nodes=3
                         file.SetInputFileName('Flibetest{0}'.format(i))
                         file.SubmitJob()
 

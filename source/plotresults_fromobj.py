@@ -8,11 +8,12 @@ from matplotlib import rc
 import numpy as np
 import argparse
 import os
+import pickle
 
 parser = argparse.ArgumentParser(description='plot the results of refuelmsr.py using object data')
 parser.add_argument('inputdirs', metavar='f', type=str, nargs='+', help='name of the inputfileslog directory')
 args=parser.parse_args()
-inputdirs=args.logfile[0]
+inputdirs=args.inputdirs
 originaldir=os.getcwd()
 
 nafkfdensity=4.326
@@ -47,6 +48,9 @@ for logfilename in inputdirs:
         density=flibedensity
     elif 'nafkf' in logfilename:
         density=nafkfdensity
+    else:
+        raise Exception("Error with the logfilename. No density avail.")
+
     day=0 #used for recording depletion time data
     os.chdir(logfilename)
     ls=os.listdir('.')
@@ -60,9 +64,13 @@ for logfilename in inputdirs:
     #now we want to grab fluorine excess calculations for each step
     kefflist=[]
     daylist=[]
+    # --- these are all mass flows: ---
     refuelrates=[]
     absorberrates=[]
     Umetalrates=[]
+    u235rates=[] #mass flow of u235 in, derived from refuelrate
+    u238rates=[]
+
     for dayval in days:
         fh=open("inputday{0}.dat".format(dayval), 'r')
         p=pickle.load(fh)
@@ -70,28 +78,36 @@ for logfilename in inputdirs:
         daylist.append(day)
 
 
-        if day==0:
+        if float(dayval)==0.0:
             #record the startup load mass, and enrichment
             for mat in p.materials:
                 if mat.materialname=='fuel':
-                vol=mat.volume
-                #loop through isotopes for the isotopic data
-                startupmass=vol*density
-                #all have units of mass
-                startupuranium235=mat.isotopic_content['92235']/adenstomoldens*vol*u235mass
-                startupuranium238=mat.isotopic_content['92238']/adenstomoldens*vol*u238mass
+                    vol=mat.volume
+                    #loop through isotopes for the isotopic data
+                    startupmass=vol*density
+                    #all have units of mass
+                    startupuranium235=mat.isotopic_content['92235']/adenstomoldens*vol*u235mass
+                    startupuranium238=mat.isotopic_content['92238']/adenstomoldens*vol*u238mass
 
         #now all the flow rates must be read in and recorded
-        for mat1, mat2, ratioflow in self.volumetricflows:
+        for mat1, mat2, ratioflow in p.volumetricflows:
             #this is the refuel rate. only the lambda value in the
             # depletion matrix is known so you have to grab the mat
             # volume too
             for index, mat in enumerate(p.materials):
                 if mat.materialname==mat1:
                     vol1=mat.volume
+                if mat.materialname=='refuel':
+                    #it says atomfrac, but really this is an atom density in a/cmb
+                    refuelu235atomfrac=mat.isotopic_content['92235']
+                    refuelu238atomfrac=mat.isotopic_content['92238']
 
             if mat1=='refuel' and mat2=='fuel':
                 refuelrates.append(ratioflow*vol1) #[ratioflow]=s^-1, [vol1]=cm^3
+                #now record the flowrate of u235 and u238 for uranium usage measurement
+                u235rates.append(refuelu235atomfrac/adenstomoldens*vol1*u235mass *ratioflow)
+                u238rates.append(refuelu238atomfrac/adenstomoldens*vol1*u238mass * ratioflow)
+
             elif mat1=='Umetal' and mat2=='fuel':
                 Umetalrates.append(ratioflow*vol1)
             elif mat1=='absorbertank' and mat2=='fuel':
@@ -99,17 +115,19 @@ for logfilename in inputdirs:
 
         #absolute day value is not stored, only the incremental time the
         # file was burnt. So, increment.
-        day+=sum(p.BurnTime)
+        for s in p.BurnTime:
+            day+=float(s)
         fh.close()
 
 
 
-    else:
-        raise Exception("Error with the logfilename. No density avail.")
 
+    # --- convert all flows to kg per day ---
     refuelrates=np.array(refuelrates)*density*3600.*24./1000.
     absorberrates=np.array(absorberrates) *GdF3density * 3600. *24./1000.
     Umetalrates=np.array(Umetalrates) *Udensity *3600.*24./1000.
+    u235rates=np.array(u235rates)*3600.*24./1000.
+    u238rates=np.array(u238rates)*3600.*24./1000.
 
     ax1.plot(daylist, kefflist)
     ax2.plot(daylist, refuelrates, label='')
@@ -121,9 +139,9 @@ for logfilename in inputdirs:
     print "-----------------------------------------------"
     print "Core startup salt load mass:"
     print startupmass
-    print "U235 startup mass:"
+    print "U235 startup mass (kg):"
     print startupuranium235
-    print "U238 startup mass:"
+    print "U238 startup mass (kg):"
     print startupuranium238
     print "Total mass of 20\% enriched fuel:"
     print np.trapz(refuelrates, x=daylist)
@@ -131,9 +149,13 @@ for logfilename in inputdirs:
     print np.trapz(absorberrates, x=daylist)
     print "Total depleted uranium used:"
     print np.trapz(Umetalrates, x=daylist)
-    print "Total mass U235 added:"
-
+    print "Total mass U235 added (kg):"
+    print np.trapz(u235rates, x=daylist)
     print "Total mass U238 added:"
-    
+    print np.trapz(u238rates, x=daylist)
+    print "------------------------------------------------\n\n\n"
+
+    #backing up
+    os.chdir(originaldir)
 plt.show()
 

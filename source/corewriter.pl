@@ -605,7 +605,7 @@ sub SaltNaFKF4UF4 {
   if($case == 2 or $case == 3 or $case == 4 or $case == 7 or $case == 8 or $case == 9){
     $saltdens = &getsaltexpand($saltdens);
   } 
-  my $atomicmassK = 39.0983;
+  my $atomicmassK = 39.0983013479247;
   my $fNaFmole = 0.505;
   my $fKFmole  = 0.215;
   my $fUF4mole = 0.28;      # molar fraction of UF4 in the salt

@@ -5,6 +5,62 @@ debug=False
 reallydebug=False
 import getpass
 
+#----------------------------------------------------#
+# This function is useful for grabbing refuelrates,
+# absorber rates, and Umetal rates from previous runs.
+# This comes into play when you want to burn a core more
+# from a previous run.
+#----------------------------------------------------#
+def getadditionrates(logfile):
+    """ This function will grab refuel rates, U metal addition rates, and refuel rates , days, and keff from a
+    logfile from refuelmsr.py. Useful for continuing depletion if some job fails on a computing cluster.
+    Input
+    ---
+         logfile - a text file usually from a command like : python refuelmsr.py > log
+    Output
+    ---
+        tuple containing kefflist, daylist, refuelrates, Umetalrates, absorberrates. in that order.
+    """
+        
+    #now look through the log file and find the last place where results have been reported
+    lastresultline=0
+    nextline=''
+    with open(logfile, 'r') as f:
+        for line in f:
+            if "----------Keff and burn time at day" in line:
+                nextline='daylist'
+            elif nextline=='daylist':
+                daylist=line
+                nextline='kefflist'
+            elif nextline=='kefflist':
+                kefflist=line
+                nextline='refuellabel'
+            elif nextline=='refuellabel':
+                nextline='refuellist'
+            elif nextline=='refuellist':
+                refuelrates=line
+                nextline='absorberlabel'
+            elif nextline=='absorberlabel':
+                nextline='absorberlist'
+            elif nextline=='absorberlist' and '[' in line:
+                absorberrates=line
+                nextline='Umetallabel'
+            elif nextline=='Umetallabel':
+                nextline='Umetallist'
+            elif nextline=='Umetallist' and '[' in line:
+                Umetalrates=line
+
+    #how to convert string to literal?
+    # ah, using the "ast" library
+    import ast
+    daylist=ast.literal_eval(daylist)
+    kefflist=ast.literal_eval(kefflist)
+    refuelrates=ast.literal_eval(refuelrates)
+    absorberrates=ast.literal_eval(absorberrates)
+    Umetalrates=ast.literal_eval(Umetalrates)
+
+    return daylist, kefflist, refuelrates, absorberrates, Umetalrates
+
 #-------------------------------------------------------------#
 # A nice little helper function for reading output            #
 #-------------------------------------------------------------#
@@ -725,7 +781,7 @@ class SerpentInputFile(object):
             num_nodes -- number of nodes to run the input file on. integer.
             PPN -- processors per node. integer.
             pmem -- requested memory per processor.
-            queue -- torque queue to run on. string. e.g. "gen5" or "super"
+           queue -- torque queue to run on. string. e.g. "gen5" or "super"
             tempK -- defaults to 900. Temperature of the fuel salt by default.
         """
         #assign core writer parameters to the object instance
@@ -1656,23 +1712,18 @@ module load serpent
             allconvs -- bool. returns all encountered statements in output of conversion ratio if true."""
         if not self.submitted_once:
             raise Exception("The job has not been submitted yet.")
-        if self.betalist==[]:
-            with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
-                for line in resultfile.readlines():
-                    if line=='':
-                        continue
-                    line=line.split()
-                    if line==[]:
-                        continue
-                    elif line[0]=='ADJ_MEULEKAMP_BETA_EFF':
-                        self.betalist.append(float(line[6]))
-                if self.betalist==[]:
-                    raise Exception("No beta eff values were found. Check serpent output for errors.")
-                if allconvs:
-                    return self.betalist
-                else:
-                    return self.betalist[-1]
-        else:
+
+        with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
+            for line in resultfile.readlines():
+                if line=='':
+                    continue
+                line=line.split()
+                if line==[]:
+                    continue
+                elif line[0]=='ADJ_MEULEKAMP_BETA_EFF':
+                    self.betalist.append(float(line[6]))
+            if self.betalist==[]:
+                raise Exception("No beta eff values were found. Check serpent output for errors.")
             if allconvs:
                 return self.betalist
             else:

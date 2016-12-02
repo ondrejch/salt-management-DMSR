@@ -11,7 +11,7 @@ import getpass
 # This comes into play when you want to burn a core more
 # from a previous run.
 #----------------------------------------------------#
-def getadditionrates(logfile):
+def getadditionrates(logfile, nochem=False):
     """ This function will grab refuel rates, U metal addition rates, and refuel rates , days, and keff from a
     logfile from refuelmsr.py. Useful for continuing depletion if some job fails on a computing cluster.
     Input
@@ -44,11 +44,13 @@ def getadditionrates(logfile):
                 nextline='absorberlist'
             elif nextline=='absorberlist' and '[' in line:
                 absorberrates=line
-                nextline='Umetallabel'
-            elif nextline=='Umetallabel':
-                nextline='Umetallist'
-            elif nextline=='Umetallist' and '[' in line:
-                Umetalrates=line
+                if not nochem:
+                    nextline='Umetallabel'
+            elif not nochem:
+                if nextline=='Umetallabel':
+                    nextline='Umetallist'
+                elif nextline=='Umetallist' and '[' in line:
+                    Umetalrates=line
 
     #how to convert string to literal?
     # ah, using the "ast" library
@@ -57,7 +59,10 @@ def getadditionrates(logfile):
     kefflist=ast.literal_eval(kefflist)
     refuelrates=ast.literal_eval(refuelrates)
     absorberrates=ast.literal_eval(absorberrates)
-    Umetalrates=ast.literal_eval(Umetalrates)
+    if not nochem:
+        Umetalrates=ast.literal_eval(Umetalrates)
+    else:
+        Umetalrates=None
 
     return daylist, kefflist, refuelrates, absorberrates, Umetalrates
 
@@ -512,7 +517,7 @@ class SerpentMaterial(object):
     @staticmethod
     def available_salts():
         """Prints built-in available salt types. It is recommended that output from the core writer is used using "serpentoutput" """
-        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty'
+        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPu'
         print 'serpent output material from "set printm 1" can be used by:'
         print 'SerpentMaterial("serpentoutput",materialname="fuel",materialfile="<material output file>")'                                                                                          
                                                                                                       
@@ -594,6 +599,61 @@ class SerpentMaterial(object):
             if self.massdensity != 7.1:
                 raise Exception("If you changed the mass density of GdF3, be sure to change it in RGd in refuelmsr.py too")
             self.tempK=None
+
+        elif salt_type=='WGPuF3':
+            # weapons grade plutonium fluoride!
+            if materialname==None:
+                self.materialname='WGPuF3'
+
+            #atomic masses (amu)
+            masspu239=239.0521636
+            masspu240=240.0538138
+            massga69=68.9255735
+            massga71=70.92470258
+
+            #Natural abundance of gallium
+            abundga69=0.60108
+            abundga71=0.39892
+
+            #first, mass fractions of the metal components
+            wfpu239=.93
+            wfpu240=.06
+            wfga=.01
+
+            #total moles of material per gram
+            summoles=wfpu239/masspu239+wfpu240/masspu240+wfga/(abundga69*massga96+abundga71*massga71)
+            gamoles=wfga/(abundga69*massga96+abundga71*massga71) #moles of ga per gram
+
+            #then atom fractions are found:
+            afpu239=wfpu239/masspu239/summoles
+            afpu240=wfpu240/masspu240/summoles
+            afga69=gamoles*abundga69/massga69/summoles
+            afga71=gamoles*abundga71/massga71/summoles
+
+            # Then for every mole of material per gram, there must be three
+            # moles of fluorine. theyre all trifluoride. Atom fractions are
+            # not normalized here. Serpent does that automatically.
+            aff19 = 3*summoles
+
+            # Now, how can density be approximated? It doesn't change
+            # linearly with mixing, but we'll approximate as such.
+            densitygaf3=4.47 #g/ccm from chemicalbook.com
+            densitypuf3=9.33 #g/ccm according to Yaws "thermophysical properties of chemicals and hydrocarbons"
+
+            #let's just suppose that densities mix linearly with atom fraction
+            conver=.602214086 #cm^2 per barn times atoms per mol
+            self.massdensity=densitypuf3-(gamoles/summoles)*(densitypuf3-densitygaf3)
+            self.atomdensity=self.massdensity*summoles*conver #atoms / cmb
+            self.density=self.atomdensity #the thing getting printed to serpent
+
+            #aaannndddd some isotopics
+            self.isotopic_content['94239']=wfpu239/masspu239
+            self.isotopic_content['94240']=wfpu240/masspu240
+            self.isotopic_content['31069']=gamoles*abundga69
+            self.isotopic_content['31071']=gamoles*abundga69
+            self.isotopic_content['9019'] =summoles*3
+
+
         elif salt_type=='serpentoutput':
             if materialname==None or materialfile==None:
                 raise Exception("A material file and material name in that file must be specified in order to read in serpent material data as a salt.")
@@ -1174,7 +1234,7 @@ set declib "sss_endfb7.dec"\n\n'''
             del self.ratioflows[delindex]
         self.ratioflows.append( (mat1, mat2, elements, flows) )
 
-    def CalcExcessFluorine(self,estimate='upper', debugmode=False, returnzvaldict=False, use_X_Doligez=False, printoxstates=False, printfexcess=False):
+    def CalcExcessFluorine(self,estimate='upper', debugmode=False, returnzvaldict=False, use_X_Doligez=False, printoxstates=False, printfexcess=False,ret_z2charge=False):
         """Calculates the excess of fluorine atoms in the core in the current state, assuming that all elements are in their most common oxidation states. 
 
         This defaults to estimate="upper" because a reducing environment is MUCH preferable to an oxidizing one, where like half of these compounds
@@ -1393,6 +1453,10 @@ set declib "sss_endfb7.dec"\n\n'''
         for z in zvals_moles.keys():
             if z not in z_to_oxidation_num_map.keys():
                 raise Exception("Add a standard oxidation state for Z={0}".format(z))
+
+        #sometimes you want that z to charge map, so return it if specified
+        if ret_z2charge:
+            return z_to_oxidation_num_map
 
         #Now if we loop through all the moles of each element, and multiply by charge, and sum, we should come out with net moles of charge
         # if the elements all take on their expected oxidation states.
@@ -1852,3 +1916,109 @@ module load serpent
             self.materials[indx]=SerpentMaterial('serpentoutput',materialname=matname,materialfile=bumatfilename,volume=matvol, directory=self.directory)
             self.materials[indx].SetTemp(mattemp)
             self.materials[indx].SetAsBurnable()
+
+class MSBR(SerpentInputFile):
+    """This class is just like the DMSR core, except it will use a very, lovely python-oriented core-writer instead."""
+
+    default_num_nodes='4'
+    default_queue='corei7'
+    default_pmem=None
+    default_PPN='8'
+    
+    def __init__(self, core_size=None,salt_type=None,case=None,salt_fraction=None, pitch=None, initial_enrichment=None, num_nodes=None, PPN=None, pmem=None, queue=None, tempK=900):
+        """Initialization. Returns a SerpentInputFile object.
+
+        Arguments:
+            None
+
+        Keyword args:
+           
+
+
+            num_nodes -- number of nodes to run the input file on. integer.
+            PPN -- processors per node. integer.
+            pmem -- requested memory per processor.
+           queue -- torque queue to run on. string. e.g. "gen5" or "super"
+            tempK -- defaults to 900. Temperature of the fuel salt by default.
+        """
+        #assign core writer parameters to the object instance
+        self.core_size=core_size
+        self.salt_type=salt_type
+        self.case=case
+        self.salt_fraction=salt_fraction
+        self.pitch=pitch
+        self.initial_enrichment=initial_enrichment
+        # this variable is used for knowing where to look for max flux in the moderator
+        self.holeradius = np.sqrt(salt_fraction * pitch **2 *np.sqrt(3) / 2./ np.pi)
+
+        #initially no extra burnup is assigned to the file, or burnup settings
+        self.RefuelRate=None
+        self.AbsorberAdditionRate=None
+        self.OffGasRate=None
+        self.BurnTime=None
+        self.maxdamageflux=None
+        self.PowerNormalization=''
+        self.directory='.' #default directory to run and store data in
+        #initially there is no reprocessing
+        self.volumetricflows=[]  #the variable "flows" holds all mass flow info.
+        self.ratioflows=[]
+        
+        #this is a variable that tells if an attempt has been made to submit the job
+        self.submitted_once=False
+        
+        #output variables
+        self.kefflist=[]
+        self.convratiolist=[]
+        self.betalist=[]
+        self.convratio=None
+        self.betaEff=None
+
+        self.xslibfiles='''set acelib "sss_endfb7u.xsdata"
+set nfylib "sss_endfb7.nfy"
+set declib "sss_endfb7.dec"\n\n'''
+        #assign default qsub settings if none were specified. else assign the specified settings.
+        if num_nodes!=None:
+            self.num_nodes=num_nodes
+        else:
+            #num_nodes refers to the function argument. self.num_nodes is the instance variable being assigned.
+            self.num_nodes=SerpentInputFile.default_num_nodes
+            print "using default number of nodes for qsub script, {0} nodes".format(SerpentInputFile.default_num_nodes)
+        if PPN!=None:
+            self.PPN=PPN
+        else:
+            self.PPN=SerpentInputFile.default_PPN
+            print "using the default number of PPN for qsub, {0} PPN".format(SerpentInputFile.default_PPN)
+        if pmem!=None:
+            self.pmem=pmem
+        else:
+            self.pmem=SerpentInputFile.default_pmem
+            print "using default requested amount of memory, {0} ".format(SerpentInputFile.default_pmem)
+        if queue!=None:
+            self.queue=queue
+        else:
+            self.queue=SerpentInputFile.default_queue
+            print "using default queue, {0}".format(SerpentInputFile.default_queue)
+
+
+        #The name of the input file being used should be, by default, 'MSRs2'. This should be able to be changed if necessary.
+        self.inputfilename='MSRs2'
+        self.geometry_name='MSRs2_geom.inp'
+        
+        #There should be a default temperature of the molten salt. By default it will be 900 K.
+        self.tempK=tempK
+
+        #Going to need some default kcode settings.
+        self.num_particles=6000
+        self.num_cycles=500
+        self.num_skipped_cycles=100
+        
+        #The serpent input file has to be run eventually. There will be a boolean attached to this object that shows whether the serpent job
+        #has finished running on the cluster yet.
+        self.job_done=False
+
+        #default to using TMP interpolation
+        self.tmp_or_tms='tmp'
+
+        #write the geometry file:
+        #gfile=open(self.geometry_name, 'w')
+        #gfile.write(

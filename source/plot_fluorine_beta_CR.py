@@ -51,12 +51,19 @@ ax2.set_ylabel("Excess F creation rate (mol/day)")
 
 
 for logfilename in logfiles:
+    if 'flibe' in logfilename:
+        salt='flibe'
+    elif 'nafkf' in logfilename:
+        salt='nafkf'
+
     os.chdir(logfilename)
     ls=os.listdir('.')
     days=[]
     for file in ls:
         nums=[char for char in file if char.isdigit()] #pull out list of numbers
         numstring="".join(nums) #put em together
+        if numstring=='':
+            raise Exception("no number for day value at {}".format(file))
         day=int(numstring)
         days.append(day)
     days.sort() #put em in order
@@ -66,6 +73,7 @@ for logfilename in logfiles:
     excess_F_moles_doligez=[]
     convratios=[]
     betaEffs=[]
+    print days
     for dayval in days:
         fh=open("inputday{0}.dat".format(dayval), 'r')
         p=pickle.load(fh)
@@ -104,6 +112,8 @@ for logfilename in logfiles:
 
     #Conversion ratio plot
     ax3.plot(days, convratios)
+    print "conv ratio avg for {}:".format(salt)
+    print float(sum(convratios)) /  float(len(convratios))
 
     #delayed neutron fraction plot
     ax4.plot(days, betaEffs)

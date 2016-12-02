@@ -30,6 +30,16 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':20})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
+
+#construct plotting legends:
+lgnd=[]
+for d in inputdirs:
+    if 'flibe' in d:
+        lgnd.append('FLiBe')
+    elif 'nafkf' in d:
+        lgnd.append('NaFKF')
+
+#construct plots with titles
 fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True)
 ax1.set_title("$k_{eff}$ vs. time")
 ax1.set_ylim([.9, 1.1])
@@ -38,6 +48,12 @@ ax2.set_title("Refuel rate vs. time")
 ax1.set_ylabel('$k_{eff}$')
 ax2.set_ylabel('Refuel rate ($\\frac{kg}{day}$)')
 ax3.set_ylabel('Addition rate ($\\frac{kg}{day}$)')
+ax3.set_xlabel('Time (days)')
+
+fig2, ax4 = plt.subplots(1)
+ax4.set_title('In-core enrichment vs. time')
+ax4.set_xlabel('Time (days)')
+ax4.set_ylabel('Enrichment')
 
 
 for logfilename in inputdirs:
@@ -61,9 +77,11 @@ for logfilename in inputdirs:
         day=int(numstring)
         days.append(day)
     days.sort() #put em in order
+
     #now we want to grab fluorine excess calculations for each step
     kefflist=[]
-    daylist=[]
+    daylist=days
+    enrichments=[]
     # --- these are all mass flows: ---
     refuelrates=[]
     absorberrates=[]
@@ -75,7 +93,6 @@ for logfilename in inputdirs:
         fh=open("inputday{0}.dat".format(dayval), 'r')
         p=pickle.load(fh)
         kefflist.append(p.kefflist[-1])
-        daylist.append(day)
 
 
         if float(dayval)==0.0:
@@ -84,10 +101,16 @@ for logfilename in inputdirs:
                 if mat.materialname=='fuel':
                     vol=mat.volume
                     #loop through isotopes for the isotopic data
-                    startupmass=vol*density
+                    startupmass=vol*density / 1000.0
                     #all have units of mass
-                    startupuranium235=mat.isotopic_content['92235']/adenstomoldens*vol*u235mass
-                    startupuranium238=mat.isotopic_content['92238']/adenstomoldens*vol*u238mass
+                    startupuranium235=mat.isotopic_content['92235']/adenstomoldens*vol*u235mass / 1000.0
+                    startupuranium238=mat.isotopic_content['92238']/adenstomoldens*vol*u238mass / 1000.0
+
+        #grab enrichment
+        for index, mat in enumerate(p.materials):
+            if mat.materialname=='fuel':
+                #need to record enrichment
+                enrichments.append(mat.isotopic_content['92235']/(mat.isotopic_content['92235']+mat.isotopic_content['92238']))
 
         #now all the flow rates must be read in and recorded
         for mat1, mat2, ratioflow in p.volumetricflows:
@@ -128,11 +151,13 @@ for logfilename in inputdirs:
     Umetalrates=np.array(Umetalrates) *Udensity *3600.*24./1000.
     u235rates=np.array(u235rates)*3600.*24./1000.
     u238rates=np.array(u238rates)*3600.*24./1000.
+    daylist=np.array(daylist)
 
     ax1.plot(daylist, kefflist)
     ax2.plot(daylist, refuelrates, label='')
     ax3.plot(daylist, absorberrates, label='')
-    
+    ax4.plot(daylist, enrichments)
+
     #total 20% enriched fuel added
     print "total material utilization results for core in:"
     print logfilename
@@ -157,5 +182,9 @@ for logfilename in inputdirs:
 
     #backing up
     os.chdir(originaldir)
+
+
+ax1.legend(lgnd, prop={'size':18}, loc=0)
+ax4.legend(lgnd, prop={'size':18}, loc=0)
 plt.show()
 

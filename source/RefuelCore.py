@@ -517,7 +517,7 @@ class SerpentMaterial(object):
     @staticmethod
     def available_salts():
         """Prints built-in available salt types. It is recommended that output from the core writer is used using "serpentoutput" """
-        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPu'
+        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPuF3'
         print 'serpent output material from "set printm 1" can be used by:'
         print 'SerpentMaterial("serpentoutput",materialname="fuel",materialfile="<material output file>")'                                                                                          
                                                                                                       
@@ -621,8 +621,8 @@ class SerpentMaterial(object):
             wfga=.01
 
             #total moles of material per gram
-            summoles=wfpu239/masspu239+wfpu240/masspu240+wfga/(abundga69*massga96+abundga71*massga71)
-            gamoles=wfga/(abundga69*massga96+abundga71*massga71) #moles of ga per gram
+            summoles=wfpu239/masspu239+wfpu240/masspu240+wfga/(abundga69*massga69+abundga71*massga71)
+            gamoles=wfga/(abundga69*massga69+abundga71*massga71) #moles of ga per gram
 
             #then atom fractions are found:
             afpu239=wfpu239/masspu239/summoles
@@ -806,7 +806,7 @@ class SerpentMaterial(object):
             This would print out the material in a very readable form."""
         ret_string=""
         burnabletext= 'Yes' if self.burn else 'No'
-        ret_string+="Material name: {0}\nAtom Density: {1}\nMass Density: {2}\nTemperature: {3}\nBurnable: {4}".format(self.materialname, self.atomdensity, self.massdensity, self.tempK, burnabletext)
+        ret_string+="Material name: {0}\nAtom Density: {1}\nMass Density: {2}\nTemperature: {3}\nBurnable: {4}\nVolume: {5}".format(self.materialname, self.atomdensity, self.massdensity, self.tempK, burnabletext, self.volume)
         ret_string+="\n ----------- Isotopics: --------------\n"
         for iso in self.isotopic_content.keys():
             ret_string+="{0}   |   {1}\n".format(iso, self.isotopic_content[iso])

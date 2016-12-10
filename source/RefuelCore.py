@@ -758,7 +758,7 @@ class SerpentMaterial(object):
             self.density=0.0
             self.tempK=None
             if self.volume==None:
-                print "Warning: empty materials are usually holding tanks for mass flows. Please specify a volume. Continuing anyways."
+                #print "Warning: Please specify a volume."
         else:
             raise Exception(" An invalid salt type was chosen. Check SerpentMaterial.available_salts() for choices.")
         #make a density variable that is for printing to the serpent input file

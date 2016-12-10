@@ -76,9 +76,9 @@ def mix(mat1,mat2,frac1):
     #now make that final isotopic dictionary!
     mat3.isotopic_content=dict.fromkeys(isokeys3, 0.0) #init
     for zaid in iso1.keys():
-        mat3.isotopic_content[zaid] += iso1[zaid] *frac1
+        mat3.isotopic_content[zaid] += iso1[zaid] *frac1 *mat1.atomdensity
     for zaid in iso2.keys():
-        mat3.isotopic_content[zaid] += iso2[zaid] *(1.0-frac1)
+        mat3.isotopic_content[zaid] += iso2[zaid] *(1.0-frac1) *mat2.atomdensity
 
     #  --- output checking ---
     sum3=0.0

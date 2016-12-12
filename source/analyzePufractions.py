@@ -35,15 +35,13 @@ rc('text', usetex=True)
 lgnd=[]
 for d in inputdirs:
     if 'flibe' in d:
-        lgnd.append('FLiBe Pu')
         lgnd.append('FLiBe XF$_3$')
     elif 'nafkf' in d:
-        lgnd.append('NaFKF Pu')
         lgnd.append('NaFKF XF$_3$')
 lgnd.append('Trifluoride solubility limit')
 
 fig, ax1 = plt.subplots(1)
-ax1.set_title('Trifluoride and plutonium atom fraction over time')
+ax1.set_title('Trifluoride atom fraction over time')
 ax1.set_ylabel('Atom fraction')
 ax1.set_xlabel('Time (days)')
 
@@ -60,8 +58,12 @@ for logfilename in inputdirs:
     for file in ls:
         nums=[char for char in file if char.isdigit()] #pull out list of numbers
         numstring="".join(nums) #put em together
-        day=int(numstring)
-        days.append(day)
+
+        try:
+            day=int(numstring)
+            days.append(day)
+        except ValueError:
+            pass
     days.sort() #put em in order
 
     #initialize result lists for this input directory
@@ -83,6 +85,7 @@ for logfilename in inputdirs:
                 if z2charge[z]==3:
                     trifluorides.append(z)
 
+
         #initial values
         totaltrifluoride=0.0
         totalplutonium=0.0
@@ -91,31 +94,13 @@ for logfilename in inputdirs:
         for mat in p.materials:
             #this could be changed to something else if desired
             if mat.materialname=='fuel':
-                for isotope in mat.isotopic_content.keys():
-
-                    #get z value
-                    if len(isotope)==5:
-                        z=isotope[0:2]
-                    elif len(isotope)==4:
-                        z=isotope[0]
-                    else:
-                        raise Exception("z {} not known".format(isotope))
-
-                    #increment its atom density to whatever groups it belongs
-                    totalADENS += mat.isotopic_content[isotope]
-                    if z in trifluorides:
-                        totaltrifluoride += mat.isotopic_content[isotope]
-                    if z == '94':
-                        totalplutonium += mat.isotopic_content[isotope]
-                #leave the for loop in the material search
-                break
-
-        pu_frac.append(totalplutonium/totalADENS)
-        trifluoride_frac.append(totaltrifluoride/totalADENS)
+                tffrac=mat.GetTrifluorideFraction()
+        trifluoride_frac.append(tffrac)
+        
         fh.close
 
     #now plot the data and go back
-    ax1.semilogy(days, pu_frac, days, trifluoride_frac)
+    ax1.semilogy(days, trifluoride_frac)
     os.chdir(originaldir)
 # now finally, show the trifluoride solubility limit on the plot
 print "warning, assuming temperature of salt to be 900 K."

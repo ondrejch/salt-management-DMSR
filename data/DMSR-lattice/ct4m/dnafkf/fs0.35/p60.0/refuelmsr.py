@@ -19,7 +19,7 @@ reallydebug=False
 #-------------------------------------------#
 
 #make a serpent input file for an arbitrary MSR core
-inputfile=SerpentInputFile(core_size="4m", salt_type="dnafkf", case=1, salt_fraction=0.35, pitch=60.0, initial_enrichment=.027063, num_nodes=1, PPN=48, queue='super', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
+inputfile=SerpentInputFile(core_size="4m", salt_type="dnafkf", case=1, salt_fraction=0.35, pitch=60.0, initial_enrichment=.027063, num_nodes=10, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
 
 #change the input name from MSRs2
 inputfile.SetInputFileName('nafkf4mcore')
@@ -256,6 +256,13 @@ while burnttime<maxburntime:
                 absorbertestrhos.append( (keff-1.)/keff )
                 attempted_absorber_rates.append(absorberadditionrate)
                 absorber_sigmas.append(relerror)
+        elif refuelrate == 0.0 and absorberadditionrate==0.0:
+                absorbertestrhos.append( (keff-1.)/keff )
+                attempted_absorber_rates.append(absorberadditionrate)
+                absorber_sigmas.append(relerror)
+                refueltestrhos.append( (keff-1.)/keff )
+                attempted_refuel_rates.append( refuelrate )
+                refuel_sigmas.append(relerror)
         else:
                 print absorberadditionrate,refuelrate
                 raise Exception("absorber addition rate or refuel rate took on an unreasonable value")
@@ -284,7 +291,7 @@ while burnttime<maxburntime:
                         file.SetConstantVolumeFlow('fuel','excessfueltank',refuelrates_to_try[i]+absorberaddition_rates_to_try[i]) #displace some fuel from the core when adding stuff
                         file.SetRatioFlow('fuel','offgastank',['Xe','Kr','Ar','Ne','He','Ra'],.02)
                         file.ChangeKcodeSettings(10000,500,100) #these get run at lower resolution, but with more cases
-                        file.num_nodes=1
+                        file.num_nodes=3
                         file.SetInputFileName('nafkftest{0}'.format(i))
                         file.SubmitJob()
 
@@ -301,10 +308,10 @@ while burnttime<maxburntime:
                 #if absorber data was measured, only record that. and vice-versa.
                 if absorberadditionrate!=0.0:
                         for file in testinputfiles:
-                                keff, sigma = file.ReadKeff(returnrelerror=True)
-                                rho = (keff - 1) /keff
-                                absorbertestrhos.append(rho)
-                                absorber_sigmas.append(sigma)
+                               keff, sigma = file.ReadKeff(returnrelerror=True)
+                               rho = (keff - 1) /keff
+                               absorbertestrhos.append(rho)
+                               absorber_sigmas.append(sigma)
                         attempted_absorber_rates.extend(absorberaddition_rates_to_try)
 
                         # attempted_refuel_rates.extend(refuelrates_to_try)
@@ -315,6 +322,9 @@ while burnttime<maxburntime:
                         myfit=RefuelorAbsorberFit(inputfile, fittype="Absorber")
                         myfit.fitcurve(attempted_absorber_rates, absorbertestrhos, printparams=debug)
                         absorberadditionrate=myfit.guessfunctionzero()
+                        #sometimes, an addition rate of zero is needed, so this is checked.
+                        if iternum==3:
+                                absorberadditionrate=0.0
                         #absorberparams, absorberp_cov = curve_fit(absorber_fit , attempted_absorber_rates, absorbertestrhos, sigma=absorber_sigmas, p0=(1,-1e6,-1))
                         #aa,ab,ac=tuple(absorberparams) #these are the ones for the absorber curve
                         #absorberadditionrate=FindRefuelCurveZero(aa,ab,ac, 0)
@@ -327,7 +337,7 @@ while burnttime<maxburntime:
                         print attempted_absorber_rates
                         print "resulting reactivities are:"
                         print absorbertestrhos
-                elif refuelrate!=0.0:
+                elif refuelrate!=0.0 or (refuelrate==0.0 and absorberadditionrate==0.0):
                         for file in testinputfiles:
                                 keff, sigma = file.ReadKeff(returnrelerror=True)
                                 rho = (keff - 1) /keff
@@ -338,6 +348,8 @@ while burnttime<maxburntime:
                         myfit.fitcurve(attempted_refuel_rates, refueltestrhos, printparams=debug)
                         refuelrate=myfit.guessfunctionzero()
                         # if the zero to the curve was unrealistic, more data should be collected
+                        if iternum==3:
+                                refuelrate=0.0
                         if np.isnan(refuelrate):
                                 refuelrate= 1.5* initialguessrefuelrate
                         elif refuelrate > 50:

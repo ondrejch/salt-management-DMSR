@@ -256,6 +256,14 @@ while burnttime<maxburntime:
                 absorbertestrhos.append( (keff-1.)/keff )
                 attempted_absorber_rates.append(absorberadditionrate)
                 absorber_sigmas.append(relerror)
+        elif refuelrate == 0.0 and absorberadditionrate==0.0:
+                absorbertestrhos.append( (keff-1.)/keff )
+                attempted_absorber_rates.append(absorberadditionrate)
+                absorber_sigmas.append(relerror)
+                refueltestrhos.append( (keff-1.)/keff )
+                attempted_refuel_rates.append( refuelrate )
+                refuel_sigmas.append(relerror)
+
         else:
                 print absorberadditionrate,refuelrate
                 raise Exception("absorber addition rate or refuel rate took on an unreasonable value")
@@ -312,14 +320,19 @@ while burnttime<maxburntime:
                         # myfit.fitcurve(attempted_refuel_rates, refueltestrhos, refuel_sigmas, printparams=debug)
                         # refuelrate=myfit.guessfunctionzero()
 
-                        myfit=RefuelorAbsorberFit(inputfile, fittype="Absorber")
+                        myfit=RefuelorAbsorberFit(inputfile, fittype="Refuel")
                         myfit.fitcurve(attempted_absorber_rates, absorbertestrhos, printparams=debug)
                         absorberadditionrate=myfit.guessfunctionzero()
+
+                        #sometimes, nothing at all should be added! so this is checked.
+                        if iternum==3:
+                                absorberadditionrate=0.0
+
                         #absorberparams, absorberp_cov = curve_fit(absorber_fit , attempted_absorber_rates, absorbertestrhos, sigma=absorber_sigmas, p0=(1,-1e6,-1))
                         #aa,ab,ac=tuple(absorberparams) #these are the ones for the absorber curve
                         #absorberadditionrate=FindRefuelCurveZero(aa,ab,ac, 0)
                         if np.isnan(absorberadditionrate):
-                                absorberadditionrate = .5 * initialguessrefuelrate #just give it some valid value to collect more data
+                                absorberadditionrate = (np.random.random_sample(1)[0]-.5) * initialguessrefuelrate #just give it some valid value to collect more data
                         refuelrate=0.0
                         print "------------Iteration {0} at {1} days---------------".format(iternum, burnttime)
                         print "currently attempting to add burnable absorber.\n Absorber addition rate is {0} ccm/s.".format(absorberadditionrate)
@@ -327,7 +340,7 @@ while burnttime<maxburntime:
                         print attempted_absorber_rates
                         print "resulting reactivities are:"
                         print absorbertestrhos
-                elif refuelrate!=0.0:
+                elif refuelrate!=0.0 or (refuelrate==0.0 and absorberadditionrate==0.0):
                         for file in testinputfiles:
                                 keff, sigma = file.ReadKeff(returnrelerror=True)
                                 rho = (keff - 1) /keff
@@ -338,8 +351,11 @@ while burnttime<maxburntime:
                         myfit.fitcurve(attempted_refuel_rates, refueltestrhos, printparams=debug)
                         refuelrate=myfit.guessfunctionzero()
                         # if the zero to the curve was unrealistic, more data should be collected
+                        #sometimes, nothing at all should be added. so, this is checked.
+                        if iternum==3:
+                                refuelrate=0.0
                         if np.isnan(refuelrate):
-                                refuelrate= 1.5* initialguessrefuelrate
+                                refuelrate= (np.random.random_sample(1)[0]-.5)* initialguessrefuelrate
                         elif refuelrate > 50:
                                 refuelrate=np.random.random_sample(1)[0] * 30
                         absorberadditionrate=0.0

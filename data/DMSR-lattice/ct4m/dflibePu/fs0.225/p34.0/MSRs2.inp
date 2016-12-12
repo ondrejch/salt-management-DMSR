@@ -1,0 +1,87 @@
+% --- MSR core, 0.225, 0.01, 34.0, 8.46760431583834
+set title "MSR"
+
+%% --- MSR Geomery:
+include "MSRs2_geom.inp"
+
+% 72 % LiF - 16 % BeF2 - 12 % UF4 salt: 
+
+mat fuel -3.3530000000 tmp  900.00 vol 16326492.8354819 rgb 1 1 255
+  3006.09c  -0.0000033870   %  Li
+  3007.09c  -0.0790082003   %  Li
+  9019.09c  -0.4516814383   %  F
+ 92235.09c  -0.0044116579   %  U
+ 92238.09c  -0.4423414219   %  U
+ 4009.09c  -0.0225538945   %  Be
+
+
+% --- Graphite: nuclear graphite density
+
+mat mod  -1.8 tmp 950 rgb 200 200 1 moder grmod 6000
+6000.09c 0.99999800 % graphite 950 K
+5010.09c 0.00000040 % boron impurity eq.
+5011.09c 0.00000160 
+therm grmod 950 grj2.18t grj2.20t
+
+% Hastelloy-N, weight composition, Haynes reference: 8.86g/cm3
+% 71%Ni, 7%Cr, 16%Mo, 5%Fe, 1%Si, 0.8%Mn, 0.08%C, 0.2%Co, 0.35%Cu, 0.50%W, 0.35%Al+Ti
+mat tank -8.86 tmp 900 rgb 250 100 100
+ 28058.09c  -0.4721201092   %  Ni
+ 28060.09c  -0.1818598208   %  Ni
+ 28061.09c  -0.0079053205   %  Ni
+ 28062.09c  -0.0252056210   %  Ni
+ 28064.09c  -0.0064191286   %  Ni
+ 42100.09c  -0.0154080000   %  Mo
+ 42092.09c  -0.0237440000   %  Mo
+ 42094.09c  -0.0148000000   %  Mo
+ 42095.09c  -0.0254720000   %  Mo
+ 42096.09c  -0.0266880000   %  Mo
+ 42097.09c  -0.0152800000   %  Mo
+ 42098.09c  -0.0386080000   %  Mo
+ 24050.09c  -0.0030415000   %  Cr
+ 24052.09c  -0.0586523000   %  Cr
+ 24053.09c  -0.0066507000   %  Cr
+ 24054.09c  -0.0016555000   %  Cr
+ 26054.09c  -0.0029225000   %  Fe
+ 26056.09c  -0.0458770000   %  Fe
+ 26057.09c  -0.0010595000   %  Fe
+ 26058.09c  -0.0001410000   %  Fe
+ 14028.09c  -0.0092229700   %  Si
+ 14029.09c  -0.0004683200   %  Si
+ 14030.09c  -0.0003087200   %  Si
+ 25055.09c  -0.0080000000   %  Mn
+ 74182.09c  -0.0013250000   %  W
+ 74183.09c  -0.0007155000   %  W
+ 74184.09c  -0.0015320000   %  W
+ 74186.09c  -0.0014215000   %  W
+ 29063.09c  -0.0024209500   %  Cu
+ 29065.09c  -0.0010790500   %  Cu
+
+%% --- Data Libraries
+set acelib "sss_endfb7u.xsdata"
+set nfylib "sss_endfb7.nfy"
+set declib "sss_endfb7.dec"
+%% --- Black Boundary:
+set bc 1
+
+%% --- Neutron population and criticality cycles:
+set pop 6000 500 100 1
+
+%% --- Plot options:
+plot 1 1000 1000
+plot 2 1000 1000
+plot 3 1000 1000
+mesh 1 1000 1000
+mesh 2 1000 1000
+mesh 3 1000 1000
+
+%% --- Get reaction rates:
+set arr 2 0
+
+%% --- Energy grid:
+ene groupE 1 1E-11 6.25e-7 0.05 20 
+det mydet dv 5.211744
+de groupE
+dx -233 233 500
+dy -233 233 500
+dz -3 3 1

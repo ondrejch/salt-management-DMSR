@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -V
-#PBS -q super
-#PBS -l nodes=1:ppn=48
+#PBS -q gen5
+#PBS -l nodes=10:ppn=8
 
 
 #### Executable Line
@@ -10,4 +10,4 @@ cd ${PBS_O_WORKDIR}
 module load mpi
 module load serpent
 
-sss2 -omp 48 ./nafkf4mcore | tee ./nafkf4mcoreserpentoutput.txt
+mpirun -npernode 1 sss2 -omp 8 ./nafkf4mcore | tee ./nafkf4mcoreserpentoutput.txt

@@ -1,0 +1,99 @@
+Job Id: 817922.necluster.engr.utk.edu
+    Job_Name = badmt38.sh
+    Job_Owner = gridley@necluster.engr.utk.edu
+    job_state = R
+    queue = gen5
+    server = necluster.engr.utk.edu
+    Checkpoint = u
+    ctime = Tue Nov 22 15:26:31 2016
+    Error_Path = necluster.engr.utk.edu:/home/gridley/salt-management-DMSR/dat
+	a/DMSR-lattice/ct4m/dflibe/fs0.225/p34.0/nochemistry/mtpointertest/tes
+	t2/test2/anotherone/asdf38/badmt38.sh.e817922
+    exec_host = node38/0+node38/1+node38/2+node38/3+node38/4+node38/5+node38/6
+	+node38/7
+    exec_port = 15003+15003+15003+15003+15003+15003+15003+15003
+    Hold_Types = n
+    Join_Path = n
+    Keep_Files = n
+    Mail_Points = a
+    mtime = Tue Nov 22 15:50:13 2016
+    Output_Path = necluster.engr.utk.edu:/home/gridley/salt-management-DMSR/da
+	ta/DMSR-lattice/ct4m/dflibe/fs0.225/p34.0/nochemistry/mtpointertest/te
+	st2/test2/anotherone/asdf38/badmt38.sh.o817922
+    Priority = 0
+    qtime = Tue Nov 22 15:26:31 2016
+    Rerunable = True
+    Resource_List.nodect = 1
+    Resource_List.nodes = 1:ppn=8
+    Resource_List.walltime = 720:00:00
+    session_id = 19900
+    Variable_List = PBS_O_QUEUE=gen5,PBS_O_HOME=/home/gridley,
+	PBS_O_LOGNAME=gridley,
+	PBS_O_PATH=/home/gridley/salt-management-DMSR/source/corewriter.pl:/u
+	sr/lib64/qt-3.3/bin:/usr/maui/maui-3.3.1/bin:/opt/torque/torque-4.2.10
+	/bin:/usr/lib64/ccache:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sb
+	in:/home/gridley/.local/bin:/home/gridley/bin,
+	PBS_O_MAIL=/var/spool/mail/gridley,PBS_O_SHELL=/bin/bash,
+	PBS_O_LANG=en_US.UTF-8,
+	PBS_O_WORKDIR=/home/gridley/salt-management-DMSR/data/DMSR-lattice/ct
+	4m/dflibe/fs0.225/p34.0/nochemistry/mtpointertest/test2/test2/anothero
+	ne/asdf38,PBS_O_HOST=necluster.engr.utk.edu,
+	PBS_O_SERVER=necluster.engr.utk.edu,
+	MANPATH=/opt/torque/torque-4.2.10/man:,XDG_SESSION_ID=41842,
+	HOSTNAME=necluster.engr.utk.edu,SHELL=/bin/bash,TERM=xterm-256color,
+	HISTSIZE=1000,SSH_CLIENT=10.129.12.159 44120 22,
+	QTDIR=/usr/lib64/qt-3.3,QTINC=/usr/lib64/qt-3.3/include,
+	SSH_TTY=/dev/pts/21,USER=gridley,
+	LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=
+	40;33;01:cd=40;33;01:or=40;31;01:mi=01;05;37;41:su=37;41:sg=30;43:ca=3
+	0;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc
+	=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.l
+	zma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:
+	*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo
+	=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz
+	=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.s
+	ar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:
+	*.7z=01;31:*.rz=01;31:*.cab=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35
+	:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;
+	35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz
+	=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.
+	m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35
+	:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;
+	35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=0
+	1;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=0
+	1;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=01;36:*.au=01;36:*.flac
+	=01;36:*.m4a=01;36:*.mid=01;36:*.midi=01;36:*.mka=01;36:*.mp3=01;36:*.
+	mpc=01;36:*.ogg=01;36:*.ra=01;36:*.wav=01;36:*.oga=01;36:*.opus=01;36:
+	*.spx=01;36:*.xspf=01;36:,
+	LD_LIBRARY_PATH=/opt/torque/torque-4.2.10/lib:,
+	SSH_AUTH_SOCK=/tmp/ssh-VglB0kzNYc/agent.1281,
+	PATH=/home/gridley/salt-management-DMSR/source/corewriter.pl:/usr/lib
+	64/qt-3.3/bin:/usr/maui/maui-3.3.1/bin:/opt/torque/torque-4.2.10/bin:/
+	usr/lib64/ccache:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/ho
+	me/gridley/.local/bin:/home/gridley/bin,MAIL=/var/spool/mail/gridley,
+	_=/opt/torque/torque-4.2.10/bin/qsub,
+	PWD=/home/gridley/salt-management-DMSR/data/DMSR-lattice/ct4m/dflibe/
+	fs0.225/p34.0/nochemistry/mtpointertest/test2/test2/anotherone/asdf38,
+	LANG=en_US.UTF-8,
+	MODULEPATH=/usr/share/Modules/modulefiles:/etc/modulefiles:/usr/share
+	/modulefiles:/opt/modules,KDEDIRS=/usr,LOADEDMODULES=,
+	HISTCONTROL=ignoredups,HOME=/home/gridley,SHLVL=2,LOGNAME=gridley,
+	PYTHONPATH=/home/gridley/bin/mendeleevvisualization,CVS_RSH=ssh,
+	QTLIB=/usr/lib64/qt-3.3/lib,
+	SSH_CONNECTION=10.129.12.159 44120 160.36.8.163 22,
+	MODULESHOME=/usr/share/Modules,LESSOPEN=||/usr/bin/lesspipe.sh %s,
+	DISPLAY=localhost:23.0,XDG_RUNTIME_DIR=/run/user/2132,CCACHE_HASHDIR=,
+	BASH_FUNC_module()=() {  eval `/usr/bin/modulecmd bash $*`\
+}
+    euser = gridley
+    egroup = users
+    queue_type = E
+    etime = Tue Nov 22 15:26:31 2016
+    submit_args = badmt38.sh
+    start_time = Tue Nov 22 15:50:13 2016
+    Walltime.Remaining = 2591999
+    start_count = 1
+    fault_tolerant = False
+    job_radix = 0
+    submit_host = necluster.engr.utk.edu
+

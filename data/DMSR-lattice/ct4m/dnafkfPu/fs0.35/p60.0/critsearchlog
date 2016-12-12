@@ -1,0 +1,28 @@
+using default requested amount of memory, None 
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+0
+using default requested amount of memory, None 
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+0
+824550.necluster.engr.utk.edu
+
+824551.necluster.engr.utk.edu
+

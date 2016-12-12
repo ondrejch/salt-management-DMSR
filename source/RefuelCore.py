@@ -517,7 +517,7 @@ class SerpentMaterial(object):
     @staticmethod
     def available_salts():
         """Prints built-in available salt types. It is recommended that output from the core writer is used using "serpentoutput" """
-        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPuF3'
+        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPuF3','pureNaFKF','pureFLiBe'
         print 'serpent output material from "set printm 1" can be used by:'
         print 'SerpentMaterial("serpentoutput",materialname="fuel",materialfile="<material output file>")'                                                                                          
                                                                                                       
@@ -594,11 +594,61 @@ class SerpentMaterial(object):
             self.isotopic_content['64160']=.25*.2186
             self.isotopic_content['9019']=.75
             self.massdensity=7.1 #g/cm^3  http://www.chemicalbook.com/ChemicalProductProperty_US_CB1389061.aspx
-            self.atomdensity=self.massdensity / (157.25 + 3* 18.998403 ) * 0.602214086 #atoms / cm-b
+            self.atomdensity=self.massdensity / (157.25 + 3* 18.998403 ) * 0.602214086 * 3 #atoms / cm-b. also note 3 atoms per ionic unit.
             self.density=self.atomdensity
             if self.massdensity != 7.1:
                 raise Exception("If you changed the mass density of GdF3, be sure to change it in RGd in refuelmsr.py too")
             self.tempK=None
+
+        elif salt_type=='pureNaFKF':
+            # pure NaFKF in natural isotopic ratios.
+            # 70% NaF, 30% KF
+            frac_naf=0.7
+            frac_kf=0.3
+            massna=22.98976928
+            massk=39.0983 #natural weight
+            massf19=18.99840316273
+
+            #isotopics
+            kfracs=[0.932581,1.17e-4,0.067302] #frac 39,40,41
+            kmasses=[38.96370668,39.96399848,40.96182576] #respective amu
+            self.isotopic_content['11023']=frac_naf #na
+            self.isotopic_content['19039']=frac_kf*kfracs[0] #k
+            self.isotopic_content['19040']=frac_kf*kfracs[1]
+            self.isotopic_content['19041']=frac_kf*kfracs[2]
+            self.isotopic_content['9019'] =frac_kf+frac_naf #f
+
+            #density
+            # molar mixing to approximate density of the stuff
+            self.massdensity=2.558*frac_naf+2.48*frac_kf #g/ccm
+            mmass=2.0*massf19+massk+massna
+            self.atomdensity=self.massdensity/mmass*0.602214086*4.0 #4 atoms per ionic unit (atoms/cmb)
+
+        elif salt_type=='pureFLiBe':
+            # pure FLiBe in natural isotopic ratios
+            # the enrichment of Li-7 can be specified easily.
+            li7enrich=0.99995 #li-7 enrich
+            frac_lif=.82 #fracion of lif
+            frac_bef2=1.0-frac_lif #frac of bef2
+
+            # IF YOU CHANGE THE RATIOS OF LIF AND BEF2, YOU ABSOLUTELY MUST 
+            # CHANGE THE FORMULA IN .../dflibePu/refuelmsr.py to mix up the
+            # refuel.
+            massbe9=9.0121831
+            massli7=7.0160034366
+            massli6=6.0151228874
+            massf19=18.99840316273
+
+            #firstly isotopics
+            self.isotopic_content['3006']=frac_lif*(1.0-li7enrich)
+            self.isotopic_content['3007']=frac_lif*li7enrich
+            self.isotopic_content['4009']=frac_bef2
+            self.isotopic_content['9019']=frac_lif + 2.0*frac_bef2 
+
+            # then densities:
+            self.massdensity=1.94 #from wikipedia
+            mmass=massli7*li7enrich*frac_lif+massli6*(1.0-li7enrich)*frac_lif+massbe9*frac_bef2+(2.0*frac_bef2+frac_lif)*massf19
+            self.atomdensity= self.massdensity/mmass*0.602214086*5.0 #5 atom per ionic unit (atoms/cmb)
 
         elif salt_type=='WGPuF3':
             # weapons grade plutonium fluoride!
@@ -758,6 +808,7 @@ class SerpentMaterial(object):
             self.density=0.0
             self.tempK=None
             if self.volume==None:
+                pass
                 #print "Warning: Please specify a volume."
         else:
             raise Exception(" An invalid salt type was chosen. Check SerpentMaterial.available_salts() for choices.")
@@ -793,6 +844,41 @@ class SerpentMaterial(object):
         args:
             None"""
         self.burn=True
+
+    def GetTrifluorideFraction(self):
+        """ Returns the fraction of this material that is a trifluoride.
+        args:
+            None
+        returns:
+            float"""
+
+        # list of all z values of trifluoride-forming elements
+        trifluorides=['21', '22', '23', '59', '58', '57', '81', '39', '31',
+                      '60', '61', '62', '63', '64', '65', '66', '67', '68',
+                      '69', '93', '95', '94', '97', '96','13','5','71','70']
+        totaltrifluoride=0.0 #summed density of trifluoride atoms
+        totalfraction=0.0 #total summed atom fractions
+
+        # loop through isotopic makeup
+        for iso in self.isotopic_content.keys():
+            # get z value
+            if len(iso)==5:
+                z=iso[0:2]
+            elif len(iso)==4:
+                z=iso[0]
+            else:
+                raise Exception("invalid isotope {}".format(iso))
+
+            # add to trifluoride if in it
+            if z in trifluorides:
+                totaltrifluoride += self.isotopic_content[iso]
+
+            # need to leave off fluorine b/c we're only counting cations
+            #add to overall sum of fractions (not always normalized)
+            if z!='9':
+                totalfraction += self.isotopic_content[iso]
+
+        return totaltrifluoride / totalfraction
 
     def __str__(self):
         """ If a serpent material is printed to the console, print its data in a pretty way.

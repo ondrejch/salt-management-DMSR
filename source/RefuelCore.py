@@ -822,7 +822,24 @@ class SerpentMaterial(object):
             self.density=-1*self.massdensity
         elif self.massdensity==None:
             self.density=self.atomdensity
-        
+      
+    def normalizeIsotopics(self):
+        """ Makes sure that all of the isotopes in the isotopic fractions
+            sum to one (for atom fractions) or minus one (for massfracs)
+            args: none
+            returns :none"""
+        #sum fractions
+        sumfracs=0.0
+        for iso in self.isotopic_content.keys():
+            sumfracs+=self.isotopic_content[iso]
+        #now take the absolute value so that atom/mass terms stay the same
+        sumfracs=abs(sumfracs)
+        #now loop through to normalize
+        for iso in self.isotopic_content.keys():
+            self.isotopic_content[iso]/=sumfracs
+        #thats all folks
+        return None 
+ 
     def SetTemp(self, temp):
         """Used for setting the temperature of the material for either TMP or TMS.
 

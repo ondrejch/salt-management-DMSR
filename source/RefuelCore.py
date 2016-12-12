@@ -1833,7 +1833,13 @@ module load serpent
         self.kefflist=[]
         if not self.submitted_once:
             raise Exception("The job has not been submitted yet.")
-        foundkeff0=False #make sure that that the 0 time burnup step is not recorded
+
+    #make sure that that the 0 time burnup step is not recorded
+        if self.burntime==None:
+            foundkeff0=True #the first value is the one you care about
+        else:
+            foundkeff0=False #depletion was done, so you want the last one
+
         with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
             for line in resultfile.readlines():
                 if line=='':

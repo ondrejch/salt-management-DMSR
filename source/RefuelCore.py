@@ -123,6 +123,42 @@ def grabproperty(direc, props, debug=False):
         fh.close()
     return proplist
 
+# This function is used to solve the following problem that results in a
+# transcendental equation. Suppose you have a bucket filled to the brim
+# with water. In that water is a solution of salt. Suppose you'd like to
+# broth until the broth is at a concentration equal to that of the salt.
+# This becomes a differential problem due to salt being lost as broth is
+# added (bucket is filled to the brim).
+def findNecessaryUMetalFlowRate(Q0, corevolume, extraUmetal, timestep):
+        """The expression that determines the volumetric flow rate of uranium needed to mitigate fluorine is
+         trancendental, so this function solves that problem.
+
+         Inputs:
+                Q0 -- this is the volumetric flow already coming out of the core, due to adding more fresh fuel, burnable absorber, etc...
+                      units: ccm/s
+                corevolume -- volume of the whole core in ccm
+                      units: ccm/s
+                extraUmetal -- the number of moles of additional uranium that needs to be in the core by the end of the depletion step
+                      units: moles
+                timestep -- length of time of the depletion step
+                      units: days"""
+        molarmass = 91.224 #molar mass of depleted/natural uranium in g/mol
+        rho = 19.1 # grams / ccm for uranium metal
+        #Solve using inverse quadratic interpolation.
+        #Let's get an initial guess by using the flow needed with zero outflow:
+        timestep_seconds = timestep * 24. * 3600. #converting days to seconds
+
+        #let's define the expression that a zero is found to.
+        #derivations are on paper. :)
+        #finding a root to this wrt Qmetal gives the correct flow of metal needed
+        expr = lambda Qmetal: np.float_((Q0+Qmetal)*molarmass*extraUmetal/corevolume**2/Qmetal/rho+np.exp(-(Q0+Qmetal)/corevolume**2*timestep_seconds)-1.0)
+        try:
+                scipyanswer=scipy.optimize.brenth(expr,1e-13,1.0)
+        except ValueError:
+                scipyanswer=0.0
+        #this is what the old guess was, for historical reasons:
+        guess0=np.float_(extraUmetal* molarmass / rho / timestep_seconds)
+        return scipyanswer
 
 
 #------------------------------------------------------------------#

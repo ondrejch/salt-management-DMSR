@@ -1835,7 +1835,7 @@ module load serpent
             raise Exception("The job has not been submitted yet.")
 
     #make sure that that the 0 time burnup step is not recorded
-        if self.burntime==None:
+        if self.BurnTime==None:
             foundkeff0=True #the first value is the one you care about
         else:
             foundkeff0=False #depletion was done, so you want the last one

@@ -1640,13 +1640,18 @@ module load serpent
             else:
                 mat_text=""
             try:
-                    inputfiletext.append('mat {0} {1} {2} {3} {4} {5} {6}\n'.format(mat.materialname, mat.density,mat.tmp_or_tms,mat.tempK,burntext,modtext,mat_text))
+                    # try to use atom density if possible
+                    if mat.atomdensity!=None and mat.atomdensity!=0.0:
+                        den=mat.atomdensity
+                    else:
+                        den=mat.density
+                    inputfiletext.append('mat {0} {1} {2} {3} {4} {5} {6}\n'.format(mat.materialname, den,mat.tmp_or_tms,mat.tempK,burntext,modtext,mat_text))
             except AttributeError:
                     raise Exception("for material {0}, no attr".format(mat.materialname))
             #now add isotopes
             for iso in mat.isotopic_content.keys():
                 if iso=='1001':
-                    #There is a need to avoid tritium in input files. sigh.
+                    #There is a need to avoid H in input files. sigh.
                     #http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619
                     continue
                 inputfiletext.append('{0}{1}  {2}\n'.format(iso,mat.xstemplib,mat.isotopic_content[iso]))

@@ -224,7 +224,10 @@ class RefuelorAbsorberFit(object):
                         raise Exception("The type of curve fit should either be 'Refuel' or 'Absorber'")
 
                 self.vcore=InputFile.fuelvolume
-                self.refuelenrichment=InputFile.refuelenrichment
+                try:
+                    self.refuelenrichment=InputFile.refuelenrichment
+                except AttributeError:
+                    self.refuelenrichment=0.2
                 self.fittype=fittype
 
                 #some values need to be intialized
@@ -233,8 +236,18 @@ class RefuelorAbsorberFit(object):
                 #now get the initial mass fractions of 92235 and 92238
                 for mat in InputFile.materials:
                         if mat.materialname=='fuel':
-                                u235frac=mat.isotopic_content['92235']
-                                u238frac=mat.isotopic_content['92238']
+                            #sometimes plutonium/u233 is used for refuelling. this must be approximated due to the nature of this code.
+                                if '92235' in mat.isotopic_content.keys():
+                                        u235frac=mat.isotopic_content['92235']
+                                        u238frac=mat.isotopic_content['92238']
+                                elif '92233' in mat.isotopic_content.keys():
+                                        # just in case the core runs on U233
+                                        u235frac=mat.isotopic_content['92233']
+                                        u238frac=0.0
+                                elif '94239' in mat.isotopic_content.keys():
+                                        # for the Pu burner
+                                        u235frac=mat.isotopic_content['94239'] # the good stuff
+                                        u238frac=mat.isotopic_content['94240'] #basically, the fertile stuff
                                 gdfracs=None
                                 if '64158' in mat.isotopic_content.keys():
                                         #check to see if any Gd is present. if present, the most common isotope is Gd158
@@ -251,14 +264,12 @@ class RefuelorAbsorberFit(object):
                 elif u235frac > 0.:
                         self.fuel_atomfrac_u235=u235frac
                 else:
-                        raise Exception('no u235 found in the fuel salt')
+                        raise Exception('no fissile material found in the fuel salt')
 
                 if u238frac < 0.:
                         self.fuel_massfrac_u238=-1. * u238frac
                 elif u238frac >0.0:
                         self.fuel_atomfrac_u238=u238frac
-                else:
-                        raise Exception('no u238 found in fuel salt')
 
                 #save the gadolinium concentration to object instance data
                 if gdfracs != None:
@@ -997,7 +1008,7 @@ class SerpentInputFile(object):
         self.RefuelRate=None
         self.AbsorberAdditionRate=None
         self.OffGasRate=None
-        self.BurnTime=None
+        self.BurnTime=[]
         self.maxdamageflux=None
         self.PowerNormalization=''
         self.directory='.' #default directory to run and store data in
@@ -1727,9 +1738,9 @@ module load serpent
         inputfiletext.append(self.xslibfiles)
         #inputfiletext.append('set mcvol 1e6\n\n')#use MC volume calculation method
         #if there is burnup to be done, add that on.
-        if self.BurnTime==None and (self.volumetricflows!=[] or self.ratioflows!=[]):
+        if self.BurnTime==[] and (self.volumetricflows!=[] or self.ratioflows!=[]):
             raise Exception("a reprocessing flow was specified, but no burnup time. Add burnup time with SetBurnTime().")
-        if self.BurnTime!=None:
+        if self.BurnTime!=[]:
             #make some text for reprocessing stuff if there is reprocessing
             if self.volumetricflows!=[] or self.ratioflows!=[]:
                 # Serpent 2 is tricky, tricky, tricky when it comes to reprocessing.
@@ -1888,7 +1899,7 @@ module load serpent
             raise Exception("The job has not been submitted yet.")
 
     #make sure that that the 0 time burnup step is not recorded
-        if self.BurnTime==None:
+        if self.BurnTime==[]:
             foundkeff0=True #the first value is the one you care about
         else:
             foundkeff0=False #depletion was done, so you want the last one
@@ -1908,7 +1919,7 @@ module load serpent
 
             if self.kefflist==[]:
                 raise Exception("No keff values were found. Check serpent output for errors.")
-            if len(self.kefflist) != len(self.BurnTime) :
+            if (len(self.kefflist) != len(self.BurnTime)) and self.BurnTime!=[] :
                 print "Looks like {0} didn't finish burning. Returning none as Keff.".format(self.inputfilename)
                 return None
 
@@ -2105,7 +2116,7 @@ class MSBR(SerpentInputFile):
         self.RefuelRate=None
         self.AbsorberAdditionRate=None
         self.OffGasRate=None
-        self.BurnTime=None
+        self.BurnTime=[]
         self.maxdamageflux=None
         self.PowerNormalization=''
         self.directory='.' #default directory to run and store data in

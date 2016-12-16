@@ -10,7 +10,7 @@ def linear(x, m, b):
     """ the most complicated equation known to man."""
     return m*x + b
 
-def stabileCheck(inputfile, queue='gen5', ppn=8):
+def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False):
     """ Checks the stability of a SerpentInputFile object.
         The input file is re-written using the perl core writer.
         Reactivity is checked at 50 deg C increments away from 900.
@@ -78,5 +78,11 @@ def stabileCheck(inputfile, queue='gen5', ppn=8):
     #fit linear
     param=curve_fit(linear, testT, rhos)
     param=param[0] #ignore covariance data
+
+    if verb:
+        print "temperatures attempted"
+        print testT
+        print "reactivities"
+        print rhos
 
     return param[0] #return slope

@@ -22,7 +22,34 @@ Hole pitch 60.0, hole radius 18.6369848450797
 Holes punched: 31
 Core temp 626.85 C, salt density -1 g/cm3
 0
-824550.necluster.engr.utk.edu
+rm: cannot remove ‘./nafkf_puga_critsearch1_dep.m’: No such file or directory
+824767.necluster.engr.utk.edu
 
-824551.necluster.engr.utk.edu
+rm: cannot remove ‘./nafkf_puga_critsearch2_dep.m’: No such file or directory
+824768.necluster.engr.utk.edu
 
+rm: cannot remove ‘./nafkf_puga_critsearch2_dep.m’: No such file or directory
+824769.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.005039022578275766]
+reactivities:
+[-1.0107696824190362, -0.009765441585574072, -0.006918537269579239]
+rm: cannot remove ‘./nafkf_puga_critsearch2_dep.m’: No such file or directory
+824770.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.005039022578275766, 0.005133855116425758]
+reactivities:
+[-1.0107696824190362, -0.009765441585574072, -0.006918537269579239, -0.0014811906810172327]
+rm: cannot remove ‘./nafkf_puga_critsearch2_dep.m’: No such file or directory
+824772.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.005039022578275766, 0.005133855116425758, 0.00515968850215483]
+reactivities:
+[-1.0107696824190362, -0.009765441585574072, -0.006918537269579239, -0.0014811906810172327, -0.0006163796898889215]
+job started at Wed Dec 14 08:33:12 2016 and ended at Wed Dec 14 08:46:48 2016

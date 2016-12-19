@@ -22,7 +22,56 @@ Hole pitch 34.0, hole radius 8.46760431583834
 Holes punched: 109
 Core temp 626.85 C, salt density -1 g/cm3
 0
-824541.necluster.engr.utk.edu
+826961.necluster.engr.utk.edu
 
-824542.necluster.engr.utk.edu
+826962.necluster.engr.utk.edu
 
+rm: cannot remove ‘./flibe_puga_critsearch2_dep.m’: No such file or directory
+826963.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.0011652330007548984]
+reactivities:
+[-0.012589525571429613, 0.29218072041846277, 0.04327277249983267]
+rm: cannot remove ‘./flibe_puga_critsearch2_dep.m’: No such file or directory
+826964.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.0011652330007548984, 0.0004985568205212056]
+reactivities:
+[-0.012589525571429613, 0.29218072041846277, 0.04327277249983267, -0.4163724152973886]
+rm: cannot remove ‘./flibe_puga_critsearch2_dep.m’: No such file or directory
+826965.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.0011652330007548984, 0.0004985568205212056, 0.0011024695313567652]
+reactivities:
+[-0.012589525571429613, 0.29218072041846277, 0.04327277249983267, -0.4163724152973886, 0.02415223225176877]
+rm: cannot remove ‘./flibe_puga_critsearch2_dep.m’: No such file or directory
+826966.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.0011652330007548984, 0.0004985568205212056, 0.0011024695313567652, 0.0010693593747899456]
+reactivities:
+[-0.012589525571429613, 0.29218072041846277, 0.04327277249983267, -0.4163724152973886, 0.02415223225176877, 0.013174125425568632]
+rm: cannot remove ‘./flibe_puga_critsearch2_dep.m’: No such file or directory
+826967.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.0011652330007548984, 0.0004985568205212056, 0.0011024695313567652, 0.0010693593747899456, 0.0010296259888448866]
+reactivities:
+[-0.012589525571429613, 0.29218072041846277, 0.04327277249983267, -0.4163724152973886, 0.02415223225176877, 0.013174125425568632, -0.001272617496838504]
+rm: cannot remove ‘./flibe_puga_critsearch2_dep.m’: No such file or directory
+826968.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.005, 0.0011652330007548984, 0.0004985568205212056, 0.0011024695313567652, 0.0010693593747899456, 0.0010296259888448866, 0.0010331261135743085]
+reactivities:
+[-0.012589525571429613, 0.29218072041846277, 0.04327277249983267, -0.4163724152973886, 0.02415223225176877, 0.013174125425568632, -0.001272617496838504, -0.00019003610686032694]
+job started at Fri Dec 16 20:58:32 2016 and ended at Fri Dec 16 22:05:33 2016

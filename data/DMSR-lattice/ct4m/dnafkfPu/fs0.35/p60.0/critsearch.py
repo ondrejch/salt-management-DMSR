@@ -45,7 +45,7 @@ for f in [inputfile1,inputfile2]:
  
 # initial crit search variables
 i=0 #iteration counter
-pufrcs=[0.01,0.05] # initial guess volume fractions of PuGaF salt
+pufrcs=[0.001,0.005] # initial guess volume fractions of PuGaF salt
 reacs=[] #empty initially
 
 #make initial input files
@@ -88,6 +88,7 @@ while not ( -0.001 < reacs[-1] <0.001 ):
     del inputfile2.materials[delindex]
     fuel2=mix(pugaf, nafkf, pufrcs[-1])
     fuel2.materialname='fuel'
+    fuel2.volume=fuelvolume
     inputfile2.materials.append(fuel2)
 
     #submit/wait
@@ -106,11 +107,8 @@ while not ( -0.001 < reacs[-1] <0.001 ):
     print "reactivities:"
     print reacs
 
-## now prepare a final pickle for input to the burning script
-# add a refuel material, to keep that thing runnin'!
-refuel=fuel2
-refuel.materialname='refuel'
-inputfile2.materials.append(refuel)
+    i+=1
+
 
 #write out the pickle, which the burn script picks up
 import pickle

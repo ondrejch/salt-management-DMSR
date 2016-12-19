@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -V
-#PBS -q gen5
-#PBS -l nodes=3:ppn=8
+#PBS -q super
+#PBS -l nodes=1:ppn=48
 
 
 #### Executable Line
@@ -10,4 +10,4 @@ cd ${PBS_O_WORKDIR}
 module load mpi
 module load serpent
 
-mpirun -npernode 1 sss2 -omp 8 ./flibe_puga_critsearch2 | tee ./flibe_puga_critsearch2serpentoutput.txt
+sss2 -omp 48 ./flibe_puga_critsearch2 | tee ./flibe_puga_critsearch2serpentoutput.txt

@@ -5,6 +5,7 @@ from RefuelCore import *
 import copy
 from scipy.optimize import curve_fit
 import time
+import os
 
 def linear(x, m, b):
     """ the most complicated equation known to man."""
@@ -29,6 +30,7 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False):
     coresalt=inputfile.salt_type #doesn't actually matter
     sf=inputfile.salt_fraction
     p=inputfile.pitch
+    name = inputfile.inputfilename
 
     # get 900 K case rho
     k900=inputfile.ReadKeff()
@@ -36,44 +38,57 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False):
 
     #construct new inputfiles
     testT=[800.0,850.0,950.0,1000.0,1100.0]
-    inplist=[SerpentInputFile(core_size=coresize,salt_type=coresalt,
-                            case=perlcase,salt_fraction=sf,
-                            initial_enrichment=0.0,num_nodes=1,
-                            pitch=p,tempK=T) for T in testT]
+    inplist=range(len(testT)) #initialize
 
-    # now each input file gets its fuel changed to match the input
-    # original
-    # first find the desired fuelmat
+    # each new input file must get a copy of the right fuel isotopics.
     fuelmat=None
-    for mat in inputfile:
+    for mat in inputfile.materials:
         if mat.materialname =='fuel':
             fuelmat=mat #save reference to fuelmat
             break
-
     if fuelmat==None:
         raise Exception("fuel material not found in inputfile")
 
-    for j,inp in enumerate(inplist):
-        for i,mat in enumerate(inp.materials):
+    for i,T in enumerate(testT):
+        dirname=name+'stability'+str(int(T))
+        os.mkdir(dirname)
+        os.chdir(dirname)
+        inplist[i]=SerpentInputFile(core_size=coresize,salt_type=coresalt,
+                                case=perlcase,salt_fraction=sf,
+                                initial_enrichment=0.0,num_nodes=1,
+                                pitch=p,tempK=T,queue=queue, PPN=ppn)
+        # change inputfile name
+        inplist[i].SetInputFileName(name+str(int(testT[i])))
+        #set directory
+        inplist[i].directory=dirname
+
+        # copy isotopics from requested core
+        for j,mat in enumerate(inplist[i].materials):
             if mat.materialname=='fuel':
                 # change material composition
-                delindex=i
+                delindex=j
                 break
-        del inp.materials[delindex]
-        inp.materials.append(fuelmat.copy())
+        del inplist[i].materials[delindex]
+        inplist[i].materials.append(copy.copy(fuelmat))
         # and now the fuel must have the correct test temperature
-        inp.materials[-1].SetTempK(testT[j])
+        inplist[i].materials[-1].SetTemp(testT[i])
 
-    # now submit jobs!!
-    for inp in inplist:
-        inp.SubmitJob()
+        #annnddd submit!
+        inplist[i].SubmitJob()
+
+        os.chdir('..')
 
     #wait
+    time.sleep(1)
     while not(all([inp.IsDone() for inp in inplist])):
         time.sleep(3)
 
     #read reactivity
     rhos=[(inp.ReadKeff()-1.0)/inp.ReadKeff() for inp in inplist]
+
+    #append old data @ 900 K
+    rhos.append(rho900)
+    testT.append(900.0)
 
     #fit linear
     param=curve_fit(linear, testT, rhos)

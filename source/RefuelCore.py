@@ -697,6 +697,23 @@ class SerpentMaterial(object):
             mmass=massli7*li7enrich*frac_lif+massli6*(1.0-li7enrich)*frac_lif+massbe9*frac_bef2+(2.0*frac_bef2+frac_lif)*massf19
             self.atomdensity= self.massdensity/mmass*0.602214086*5.0 #5 atom per ionic unit (atoms/cmb)
 
+        elif salt_type=='ThF4':
+            # some sweet thorium fluoride. typically good as a 
+            # stabilizing/fertile additive.
+            if materialname==None:
+                self.materialname='ThF4'
+
+            # atomic masses
+            massth232=232.0380558
+
+            #density
+            self.massdensity=6.3 #wikipedia for now
+            self.atomdensity=self.massdensity/(massth232+4*massf19)*0.6022*5.0 #5 atoms per mole
+
+            # isotopics
+            self.isotopic_content['90232']=.2
+            self.isotopic_content['9019'] =.8
+
         elif salt_type=='WGPuF3':
             # weapons grade plutonium fluoride!
             if materialname==None:
@@ -1829,7 +1846,7 @@ module load serpent
 
 
         #now, at long last, write the input file!
-        self.directory=directory #necessary to know where to find results
+        #self.directory=directory #necessary to know where to find results
         with open(directory+'/'+self.inputfilename, 'w') as inputhandle:
             inputhandle.write(inputfiletext)
         # run dat

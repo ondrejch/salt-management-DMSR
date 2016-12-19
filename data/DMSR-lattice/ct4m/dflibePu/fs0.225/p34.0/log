@@ -1,0 +1,42 @@
+The use of uranium metal, for now, is assumed to be composed solely of U235 and U238.
+Starting the refuelling simulation at Fri Dec 16 17:44:20 2016
+First input file is being refuelled at 4.36302896581e-10 ccm/s.
+826916.necluster.engr.utk.edu
+
+
+Transport calculation: step = 2 / 2 
+                       BU   = 0.11 MWd/kgU
+                       time = 7 days
+
+Active cycle  500 / 500  Source neutrons :  3314
+
+Running time :                  0:17:49
+Estimated running time :        0:17:49   0:17:49
+Estimated running time left :   0:00:00   0:00:00
+
+Estimated relative CPU usage :   799.8%
+
+k-eff (analog)    = 0.95216 +/- 0.00106  [0.95008  0.95423]
+k-eff (implicit)  = 0.95281 +/- 0.00035  [0.95213  0.95348]
+
+Options : (O4) (MPI=3) (OMP=8) (CE) 
+------------------------------------------------------------
+
+Transport cycle completed in 8.36 minutes.
+
+Waiting for results from other MPI tasks...
+OK.
+
+Calculating activities...
+OK.
+
+Writing depletion output...
+OK.
+
+0
+Traceback (most recent call last):
+  File "refuelmsr.py", line 161, in <module>
+    while not(inputfile.IsDone()):
+  File "../../../../../../source/RefuelCore.py", line 1880, in IsDone
+    raise Exception("Serpent did not exit normally.Printed above should be the error.")
+Exception: Serpent did not exit normally.Printed above should be the error.

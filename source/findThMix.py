@@ -1,4 +1,6 @@
 from RefuelCore import *
+import numpy as np
+from mixer import mix
 
 # This script solves a residual from a transcendental analytic
 # expression to yield a material, that for a given volume of 
@@ -42,7 +44,9 @@ class thorfit(object):
                         self.n239=mat.isotopic_content['94239']
                 if self.n239=0.0:
                     raise Exception("no pu-239 found in fuel")
-                
+               
+                # --- some needed nuclear properties
+ 
                 # the macroscopic scatter cross section of graphite
                 # is approximated as if the reactor were homogenous
                 zedcarbon=.1589
@@ -51,7 +55,19 @@ class thorfit(object):
                 ng = 2.266/12.011*.6022 #graphite adens. 1/cmb
                 self.Sigmazed=zedcarbon*grac*ng*sigma_el_c12
 
-        def residual(pufrac, B):
+                sigma_pu239fis= 747.4
+                # resonance integrals, very approximately
+                resIpu239     = 179.7
+                resIth232     = 80.0
+
+                # atom density of PuGaF mix
+                self.pugaf=SerpentMaterial('WGPuF3')
+                self.thf4 =SerpentMaterial('ThF4')
+
+        def residual(self, pufrac, B):
             """ defines the residual ... ok... dont worry about
                 it now. just least square fit for B (probably 3
                 data points, then zero this. pufrac is volumewise """
+            trialmix=mix(self.pugaf, self.thf4, pufrac)
+            return np.log(self.fuelvol*self.n239+trialmix.isotopic_content['94239']*self.addedvol)
+                    - np.log(B*self.fuelvol+self.n239*

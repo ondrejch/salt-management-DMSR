@@ -1,0 +1,21 @@
+The use of uranium metal, for now, is assumed to be composed solely of U235 and U238.
+Starting the refuelling simulation at Wed Dec 14 10:41:56 2016
+First input file is being refuelled at 1.04667347122e-09 ccm/s.
+824781.necluster.engr.utk.edu
+
+824782.necluster.engr.utk.edu
+
+824783.necluster.engr.utk.edu
+
+824784.necluster.engr.utk.edu
+
+824785.necluster.engr.utk.edu
+
+824786.necluster.engr.utk.edu
+
+Traceback (most recent call last):
+  File "refuelmsr.py", line 241, in <module>
+    myfit=RefuelorAbsorberFit(inputfile)
+  File "../../../../../../source/RefuelCore.py", line 227, in __init__
+    self.refuelenrichment=InputFile.refuelenrichment
+AttributeError: 'SerpentInputFile' object has no attribute 'refuelenrichment'

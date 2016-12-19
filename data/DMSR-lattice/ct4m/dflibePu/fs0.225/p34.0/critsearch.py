@@ -19,11 +19,11 @@ starttime=time.asctime()
 # create two initial files. fuel material will be deleted though.
 inputfile1=SerpentInputFile(core_size='4m',salt_type='dflibe',
     case=1,salt_fraction=0.225,pitch=34.0,initial_enrichment=0.01,
-    num_nodes=3,PPN=8,queue='gen5',pmem=None)
+    num_nodes=1,PPN=48,queue='super',pmem=None)
 
 inputfile2=SerpentInputFile(core_size='4m',salt_type='dflibe',
     case=1,salt_fraction=0.225,pitch=34.0,initial_enrichment=0.01,
-    num_nodes=3,PPN=8,queue='gen5',pmem=None)
+    num_nodes=1,PPN=48,queue='super',pmem=None)
 
 inputfile1.SetInputFileName('flibe_puga_critsearch1')
 inputfile2.SetInputFileName('flibe_puga_critsearch2')
@@ -45,7 +45,7 @@ for f in [inputfile1,inputfile2]:
  
 # initial crit search variables
 i=0 #iteration counter
-pufrcs=[0.01,0.05] # initial guess volume fractions of PuGaF salt
+pufrcs=[0.001,0.005] # initial guess volume fractions of PuGaF salt
 reacs=[] #empty initially
 
 #make initial input files
@@ -72,7 +72,7 @@ reacs=[(k1-1.0)/k1,(k2-1.0)/k2]
 #loop to find the sweet spot
 # iteration num:
 i=2
-while not ( -0.001 < reacs[-1] <0.001 ):
+while not ( -0.001 < reacs[-1] < 0.001 ):
 
     #calculate new pugaf volfrac from secant method
     pufrcs.append( (pufrcs[i-2]*reacs[i-1]-pufrcs[i-1]*reacs[i-2])/
@@ -88,6 +88,7 @@ while not ( -0.001 < reacs[-1] <0.001 ):
     del inputfile2.materials[delindex]
     fuel2=mix(pugaf, flibe, pufrcs[-1])
     fuel2.materialname='fuel'
+    fuel2.volume=fuelvolume
     inputfile2.materials.append(fuel2)
 
     #submit/wait
@@ -106,12 +107,7 @@ while not ( -0.001 < reacs[-1] <0.001 ):
     print "reactivities:"
     print reacs
 
-
-## now prepare a final pickle for input to the burning script
-# add a refuel material, to keep that thing runnin'!
-refuel=fuel2
-refuel.materialname='refuel'
-inputfile2.materials.append(refuel)
+    i+=1
 
 #write out the pickle, which the burn script picks up
 import pickle

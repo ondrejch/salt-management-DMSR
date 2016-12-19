@@ -1643,6 +1643,23 @@ set declib "sss_endfb7.dec"\n\n'''
             print z_to_oxidation_num_map
         return -1*totalcharge
 
+    def popMaterial(self, matname):
+        """Removes and returns a material with material name matname
+        Input:
+            matname -- string, name of mat to remove
+        Output:
+                    -- SerpentMaterial, removed material"""
+        delindex=None
+        for j,mat in enumerate(self.materials):
+            if mat.materialname==matname:
+                delindex=j
+                break
+
+        if delindex==None:
+            raise Exception("material {} not in here.".format(matname))
+
+        return self.materials.pop(delindex)
+
     def SubmitJob(self, directory='.', usebumodethree=False):
         """Writes the input, writes the qsub script, runs the job, and waits. Whether the job is done can be found using IsDone method.
 

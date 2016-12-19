@@ -16,7 +16,7 @@ class thorfit(object):
         scipy.optimize.curve_fit. This is done due to the way the
         curve_fit function takes arguments. A residual is zeroed
         numerically to find the function value, so this isn't the
-        fastest function ever. Damn transcendental equations."""
+        fastest function ever. Darn transcendental equations."""
 
         def __init__(self, inpfile, addedvol):
             """ Should pass to this a SerpentInputFile object

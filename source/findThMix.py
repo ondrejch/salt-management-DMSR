@@ -3,7 +3,8 @@ from RefuelCore import *
 # This script solves a residual from a transcendental analytic
 # expression to yield a material, that for a given volume of 
 # thorium mix (a thorium remix, if you will) to add to the core,
-# multiplication shouldn't change.
+# multiplication shouldn't change. A little Pu-239 is added to 
+# maintain multiplication.
 
 # The assumption here is that all terms in the 6FF stay nearly
 # constant, with the exception of thermal utilization and the

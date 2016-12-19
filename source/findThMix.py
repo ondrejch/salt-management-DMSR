@@ -5,7 +5,8 @@ from mixer import mix
 # This script solves a residual from a transcendental analytic
 # expression to yield a material, that for a given volume of 
 # thorium mix (a thorium remix, if you will) to add to the core,
-# multiplication shouldn't change.
+# multiplication shouldn't change. A little Pu-239 is added to 
+# maintain multiplication.
 
 # The assumption here is that all terms in the 6FF stay nearly
 # constant, with the exception of thermal utilization and the
@@ -18,7 +19,7 @@ class thorfit(object):
         scipy.optimize.curve_fit. This is done due to the way the
         curve_fit function takes arguments. A residual is zeroed
         numerically to find the function value, so this isn't the
-        fastest function ever. Damn transcendental equations."""
+        fastest function ever. Darn transcendental equations."""
 
         def __init__(self, inpfile, addedvol):
             """ Should pass to this a SerpentInputFile object

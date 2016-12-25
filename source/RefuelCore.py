@@ -1112,7 +1112,6 @@ class SerpentInputFile(object):
 
         #default to use TMP for temperature XS interpolation
         self.tmp_or_tms='tmp'
-    #ct2m/dflibe/case0/fs0.15/p30.0/enr0.078247/
 
     def SwitchToTMS(self):
         """Switches from TMP to TMS interpolation. 
@@ -1746,9 +1745,18 @@ class SerpentInputFile(object):
             #now add isotopes
             for iso in mat.isotopic_content.keys():
                 if iso=='1001':
-                    #There is a need to avoid H in input files. sigh.
-                    #http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619
+                    print "see http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619 on why H must be left out. sorry!"
                     continue
+
+                #change temperature library as needed. the XS lib can only broaden,
+                # not narrow if temperature is made more cold. so basically if a 900K
+                # material is cooled, you have go to *.06c, which will work with TMP
+                if mat.xstemplib=='.09c' and mat.tempK < 900.0:
+                    mat.xstemplib='.06c'
+                if mat.tempK < 600.0:
+                    print "have gavin fix the code here if you want materials less than"
+                    print "600 kelvin"
+                    raise Exception("shouldnt {} be a bit warmer?".format(mat.materialname))
                 inputfiletext.append('{0}{1}  {2}\n'.format(iso,mat.xstemplib,mat.isotopic_content[iso]))
             if mat.materialname=="mod":
                 inputfiletext.append('therm grmod 950 grj2.18t grj2.20t\n')

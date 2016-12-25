@@ -542,11 +542,6 @@ class RefuelorAbsorberFit(object):
                  return guess2
 
 
-
-
-
-
-
 class SerpentMaterial(object):
     """Holds material data for a serpent input file. This can be any material, really.
     
@@ -705,7 +700,7 @@ class SerpentMaterial(object):
 
             # atomic masses
             massth232=232.0380558
-
+            massf19  =18.99840316273
             #density
             self.massdensity=6.3 #wikipedia for now
             self.atomdensity=self.massdensity/(massth232+4*massf19)*0.6022*5.0 #5 atoms per mole
@@ -992,7 +987,7 @@ class SerpentInputFile(object):
     default_pmem=None
     default_PPN='8'
     
-    def __init__(self, core_size=None,salt_type=None,case=None,salt_fraction=None, pitch=None, initial_enrichment=None, num_nodes=None, PPN=None, pmem=None, queue=None, tempK=900):
+    def __init__(self, core_size=None,salt_type=None,case=None,salt_fraction=None, pitch=None, initial_enrichment=None, num_nodes=None, PPN=None, pmem=None, queue=None, tempK=900,direc='.'):
         """Initialization. Returns a SerpentInputFile object.
 
         Arguments:
@@ -1011,6 +1006,7 @@ class SerpentInputFile(object):
            queue -- torque queue to run on. string. e.g. "gen5" or "super"
             tempK -- defaults to 900. Temperature of the fuel salt by default.
         """
+
         #assign core writer parameters to the object instance
         self.core_size=core_size
         self.salt_type=salt_type
@@ -1028,7 +1024,7 @@ class SerpentInputFile(object):
         self.BurnTime=[]
         self.maxdamageflux=None
         self.PowerNormalization=''
-        self.directory='.' #default directory to run and store data in
+        self.directory=direc #default directory to run and store data in
         #initially there is no reprocessing
         self.volumetricflows=[]  #the variable "flows" holds all mass flow info.
         self.ratioflows=[]
@@ -1044,8 +1040,8 @@ class SerpentInputFile(object):
         self.betaEff=None
 
         self.xslibfiles='''set acelib "sss_endfb7u.xsdata"
-set nfylib "sss_endfb7.nfy"
-set declib "sss_endfb7.dec"\n\n'''
+        set nfylib "sss_endfb7.nfy"
+        set declib "sss_endfb7.dec"\n\n'''
         #assign default qsub settings if none were specified. else assign the specified settings.
         if num_nodes!=None:
             self.num_nodes=num_nodes
@@ -1681,19 +1677,19 @@ set declib "sss_endfb7.dec"\n\n'''
         else:
             runtext="mpirun -npernode 1 sss2 -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
         qsubtext="""#!/bin/bash
-#PBS -V
-#PBS -q {0}
-#PBS -l nodes={1}:ppn={2}
-{3}
+        #PBS -V
+        #PBS -q {0}
+        #PBS -l nodes={1}:ppn={2}
+        {3}
 
-#### Executable Line
-cd ${{PBS_O_WORKDIR}}
+        #### Executable Line
+        cd ${{PBS_O_WORKDIR}}
 
-module load mpi
-module load serpent
+        module load mpi
+        module load serpent
 
-{4}
-""".format(self.queue,self.num_nodes,self.PPN,pmemtext,runtext)
+        {4}
+        """.format(self.queue,self.num_nodes,self.PPN,pmemtext,runtext)
         with open(directory+'/'+'{0}.sh'.format(self.inputfilename), 'w') as qsubfilehandle:
             qsubfilehandle.write(qsubtext)
         #remove old output in case a file of the same name is being run twice. This prevents failed jobs from appearing as successful.
@@ -1721,10 +1717,11 @@ module load serpent
             mat.tmp_or_tms=self.tmp_or_tms
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
-            #TODO
-            if True: #str(mat.tempK).rstrip() in ['','None']:
+            # any MSRs that have depletion have temperature treatment removed
+            if self.BurnTime != []: #str(mat.tempK).rstrip() in ['','None']:
                 mat.tmp_or_tms='' #empty string
                 mat.tempK=''
+                print 'Warning, temp treatment abandoned to avoid Serpent temperature treatment error'
             if mat.burn==True:
                 burntext="burn 1"
             else:
@@ -2120,7 +2117,8 @@ class MSBR(SerpentInputFile):
     default_pmem=None
     default_PPN='8'
     
-    def __init__(self, core_size=None,salt_type=None,case=None,salt_fraction=None, pitch=None, initial_enrichment=None, num_nodes=None, PPN=None, pmem=None, queue=None, tempK=900):
+    def __init__(self, core_size=None,salt_type=None,case=None,salt_fraction=None,
+            pitch=None, initial_enrichment=None, num_nodes=None, PPN=None, pmem=None, queue=None, tempK=900):
         """Initialization. Returns a SerpentInputFile object.
 
         Arguments:
@@ -2169,8 +2167,8 @@ class MSBR(SerpentInputFile):
         self.betaEff=None
 
         self.xslibfiles='''set acelib "sss_endfb7u.xsdata"
-set nfylib "sss_endfb7.nfy"
-set declib "sss_endfb7.dec"\n\n'''
+        set nfylib "sss_endfb7.nfy"
+        set declib "sss_endfb7.dec"\n\n'''
         #assign default qsub settings if none were specified. else assign the specified settings.
         if num_nodes!=None:
             self.num_nodes=num_nodes

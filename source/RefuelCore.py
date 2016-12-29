@@ -690,6 +690,7 @@ class SerpentMaterial(object):
             # then densities:
             self.massdensity=1.94 #from wikipedia
             mmass=massli7*li7enrich*frac_lif+massli6*(1.0-li7enrich)*frac_lif+massbe9*frac_bef2+(2.0*frac_bef2+frac_lif)*massf19
+            print mmass
             self.atomdensity= self.massdensity/mmass*0.602214086*5.0 #5 atom per ionic unit (atoms/cmb)
 
         elif salt_type=='ThF4':
@@ -1753,10 +1754,12 @@ class SerpentInputFile(object):
                 # material is cooled, you have go to *.06c, which will work with TMP
                 if mat.xstemplib=='.09c' and mat.tempK < 900.0:
                     mat.xstemplib='.06c'
-                if mat.tempK < 600.0:
+                if mat.tempK < 600.0 and mat.tempK is not None:
                     print "have gavin fix the code here if you want materials less than"
                     print "600 kelvin"
                     raise Exception("shouldnt {} be a bit warmer?".format(mat.materialname))
+                if mat.tempK is None:
+                    raise Exception(" give {} a temperature please".format(mat.materialname))
                 inputfiletext.append('{0}{1}  {2}\n'.format(iso,mat.xstemplib,mat.isotopic_content[iso]))
             if mat.materialname=="mod":
                 inputfiletext.append('therm grmod 950 grj2.18t grj2.20t\n')

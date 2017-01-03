@@ -1272,18 +1272,6 @@ class SerpentInputFile(object):
                 #convert everything to atom fractions
                 #then, atom density stays constant when changing enrichment.
                 for iso in isotopicscopy.keys():
-                                        #~ if len(iso)==4:
-                                                #~ Z=
-                                                #~ A=
-                                        #~ elif len(iso)==5:
-                                                #~ Z=
-                                                #~ A=
-
-                                        #this could be changed to change density exactly if we
-                                        #had atomic mass data easily accessible (PyNE), but I am
-                                        # going to have this estimate the refuel material's density as constant
-                                        # WRT enrichment (in reality it should be somewhat lighter)
-
                     if iso[:2]=='92':
                         #then it is uranium for sure. flourine is always '90'.
                         if iso=='92235':
@@ -1314,8 +1302,9 @@ class SerpentInputFile(object):
             self.materials[-1].atomdensity=fuelatomdensity #constant for varying enrichment
             self.materials[-1].density=fuelatomdensity
         else:
-            raise Exception("Looks like the fuel has a density given in mass density and isotopics given in atom fractions. Some extra coding is required on Gavin's behalf to make this piece of code work.")
-    
+            self.materials[-1].atomdensity=None
+            self.materials[-1].density=-1.0*fuelmassdensity
+            self.materials[-1].massdensity=fuelmassdensity
     def SetConstantVolumeFlow(self, mat1, mat2, rate):
         """Sets a constant volume flow between two materials in the input file. 
 
@@ -1773,7 +1762,7 @@ class SerpentInputFile(object):
         #add a tiny detector right in the part of the moderator with highest fast flux
         #used for integrating damage flux in moderator
         inputfiletext.append("ene graphitedamaging 1 .05 15\n") #all flux that hurts graphite ( >50 keV)
-        inputfiletext.append("det 1\nde graphitedamaging\ndx {0} {1} 1\ndy -1 1 1\ndz -1 1 1\n\n".format(self.holeradius+1., self.holeradius+2.))
+        inputfiletext.append("det 1\nde graphitedamaging\ndx {0} {1} 1\ndy -1 1 1\ndz -1 1 1\ndv 4.0\n\n".format(self.holeradius+1., self.holeradius+2.))
 
         if usebumodethree:
             inputfiletext.append("set bumode 1\n\n")

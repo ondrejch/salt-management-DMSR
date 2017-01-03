@@ -21,6 +21,7 @@ def getIsoMass(zaid):
         if a[0]=='0':
             a=a[-2:]
 
+
     # now search the data file
     # should be the isotope mass one from the NIST website
     datafile='/home/gridley/salt-management-DMSR/source/nistmasses.txt'

@@ -1242,7 +1242,7 @@ class SerpentInputFile(object):
         self.materials[-1].SetAsBurnable()
         return None
 
-    def AddRefuelMaterial(self,enrichment,volume):
+    def AddRefuelMaterial(self,enrichment,volume, fuelname='fuel'):
         """Replicates the material named "fuel" in the input file with the name "refuel", and then changes enrichment.
 
         Args:
@@ -1260,7 +1260,7 @@ class SerpentInputFile(object):
         #find the material called fuel
         self.refuelenrichment=enrichment
         for mat in self.materials:
-            if mat.materialname=='fuel':
+            if mat.materialname==fuelname:
                 #ok, found the fuel, now make a copy of its isotopics.
                 isotopicscopy=mat.isotopic_content.copy() #this is a dictionary data type
                 fuelmassdensity=mat.massdensity

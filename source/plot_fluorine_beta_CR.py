@@ -37,15 +37,15 @@ ax3=fig3.add_subplot(111)
 fig4=plt.figure()
 ax4=fig4.add_subplot(111)
 
-ax3.set_title("Conv ratio over time")
+ax3.set_title("Conversion ratio over time")
 ax3.set_xlabel("Burnt time (days)")
 ax3.set_ylabel("CR")
-ax.set_title("Calculated Excess Fluorine in core over time")
+ax.set_title("Calculated Excess Fluoride in core over time")
 ax.set_xlabel("Burnt time (days)")
-ax.set_ylabel("Excess fluorine (moles)")
+ax.set_ylabel("Excess Fluoride (moles)")
 
 
-ax2.set_title("Fluorine excess creation rate in core vs. time")
+ax2.set_title("Fluoride excess creation rate in core vs. time")
 ax2.set_xlabel("Burnt time (days)")
 ax2.set_ylabel("Excess F creation rate (mol/day)")
 
@@ -73,7 +73,6 @@ for logfilename in logfiles:
     excess_F_moles_doligez=[]
     convratios=[]
     betaEffs=[]
-    print days
     for dayval in days:
         fh=open("inputday{0}.dat".format(dayval), 'r')
         p=pickle.load(fh)
@@ -117,7 +116,7 @@ for logfilename in logfiles:
 
     #delayed neutron fraction plot
     ax4.plot(days, betaEffs)
-    ax4.set_title("beta eff")
+    ax4.set_title("Effective Delayed Neutron Fraction")
     prntstr=[]
     for item in np.diff(excess_F_moles_lower):
         prntstr.append(str(item))
@@ -128,5 +127,5 @@ for logfilename in logfiles:
     os.chdir(originaldir)
 
 for a in [ax,ax2,ax3,ax4]:
-    a.legend(["FLiBe","NaFKF"])
+    a.legend(["With chemistry","Without chemistry"])
 plt.show()

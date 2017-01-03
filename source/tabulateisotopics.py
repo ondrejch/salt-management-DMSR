@@ -11,16 +11,40 @@ import numpy as np
 import argparse
 from getmass import getIsoMass
 
+
+# need a function for pretty printing isotopes
+def LaTeXisotope(zaid):
+    """ prints an isotope in LaTeX style """
+    if len(zaid) ==4:
+        z=zaid[0]
+        a=zaid[-2:]
+        #remove leading zero if necessary
+        if a[0]=='0':
+            a=a[-1]
+    elif len(zaid) ==5:
+        z=zaid[:2]
+        a=zaid[-3:]
+        #leading zero maybe
+        if a[0]=='0':
+            a=a[-2:]
+
+
+    # this line is a BEEASSSTTT
+    z_to_elem={1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne', 11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar', 19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe', 27: 'Co', 28: 'Ni', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se', 35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo', 43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn', 51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La', 58: 'Ce', 59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy', 67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf', 73: 'Ta', 74: 'W', 75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb', 83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra', 89: 'Ac', 90: 'Th', 91: 'Pa', 92: 'U', 93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf', 99: 'Es', 100: 'Fm'}
+
+    return '$^{'+a+'}$'+z_to_elem[int(z)]
+
+# arg parse stuff
 parser = argparse.ArgumentParser(description='plot isotopics of refuelmsr.py results')
-parser.add_argument('inputfileslog', metavar='f', type=str, nargs='+', help='name of directory containing pickle data for input files')
-parser.add_argument('material', metavar='m', type=str, nargs='+', help='name of material whose isotopes get printed')
+parser.add_argument('--inputfileslog', metavar='f', type=str, nargs='+', help='name of directory containing pickle data for input files')
+parser.add_argument('--material', metavar='m', type=str, nargs='+', help='name of material whose isotopes get printed')
 
 args=parser.parse_args()
 logfiles=args.inputfileslog
 materialname=args.material[0]
 
 if len(args.material) > 1:
-    raise Exception('can only do one material at a time')
+    raise Exception('can only do one material at a time :)')
 
 # top directory
 originaldir=os.getcwd()
@@ -35,22 +59,23 @@ originaldir=os.getcwd()
 # Some run settings:
 # -----
 day='final' #can be set to any integer day where data was recorded
-numdisplayed = 100 # number of isotopes displayed
+numdisplayed = 35 # number of isotopes displayed
 
 
 firstcol='\\begin{tabular}{'
 secondcol=''
-
+thirdcol = ''
 for logfilename in logfiles:
     if 'flibe' in logfilename:
-        firstcol+='c|c||'
-        secondcol+='FLiBe & '
+        secondcol+='FLiBe & & '
     elif 'nafkf' in logfilename:
-        firstcol+='c|c||'
-        secondcol+='NaFKF & '
+        secondcol+='NaFKF &  '
+    firstcol+='c|c||'
+    thirdcol +='Isotope & Mass (kg) &'
 
 print firstcol[:-2]+'}'
 print secondcol + '\\\\'
+print thirdcol[:-2] +'\\\\'
 print '\\hline'
 
 datalist=[] # initialize
@@ -134,11 +159,21 @@ for logfilename in logfiles:
     # now sort by total mass
     masslist.sort(key=lambda tup:tup[1], reverse=True)
 
-    # keep only the top 100
-    masslist = masslist[:numdisplayed-1]
+    # keep only the top however many specified
+    masslist = masslist[:numdisplayed]
 
-    print masslist
+    # record the top num specified as a list of lists
+    datalist.append(masslist)
 
+    # go back up
     os.chdir(originaldir)
+
+# Now, to make that lovely LaTeX table...
+for i in range(numdisplayed):
+    l=''
+    for datlist in datalist:
+        iso,mass = datlist[i]
+        l += LaTeXisotope(iso) + ' & ' + '%E' % mass + ' & '
+    print l[:-3] + ' \\\\'
 
 print '\\end{tabular}'

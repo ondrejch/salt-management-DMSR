@@ -215,11 +215,11 @@ class RefuelorAbsorberFit(object):
                      fittype -- either "Refuel" or "Absorber". Determines which reactivity equations to use.
 
                 Returns a curve fit object."""
-
-                #First check if the thing passed was actually a serpent input file object
-                if type(InputFile)!=SerpentInputFile:
-                        raise Exception("An input file should be passed to collect data needed for the refuelling fit.")
-
+# commented out to run the TEI core
+#                #First check if the thing passed was actually a serpent input file object
+#                if type(InputFile)!=SerpentInputFile: 
+#                        raise Exception("An input file should be passed to collect data needed for the refuelling fit.")
+#
                 if fittype not in ['Refuel', 'Absorber']:
                         raise Exception("The type of curve fit should either be 'Refuel' or 'Absorber'")
 
@@ -1300,6 +1300,7 @@ class SerpentInputFile(object):
             self.materials[-1].density=self.materials[-1].massdensity * -1.0
         elif fuelatomdensity !=None:
             self.materials[-1].atomdensity=fuelatomdensity #constant for varying enrichment
+            self.materials[-1].massdensity=fuelmassdensity
             self.materials[-1].density=fuelatomdensity
         else:
             self.materials[-1].atomdensity=None
@@ -1860,7 +1861,7 @@ class SerpentInputFile(object):
 
 
         #now, at long last, write the input file!
-        #self.directory=directory #necessary to know where to find results
+        self.directory=directory #necessary to know where to find results
         with open(directory+'/'+self.inputfilename, 'w') as inputhandle:
             inputhandle.write(inputfiletext)
         # run dat

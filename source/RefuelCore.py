@@ -1,6 +1,7 @@
 if __name__ == '__main__':
     raise Exception("This file holds code that should be imported into other scripts, not ran on its own.")
 
+print "see http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619 on why H must be left out. sorry!"
 debug=False
 reallydebug=False
 import getpass
@@ -303,8 +304,7 @@ class RefuelorAbsorberFit(object):
                 # this just means: find a concentration of gadolinium so that the macroscopic cross section is the same.
 
 
-                if self.fuel_mass_density != None:
-                        # => use the atom densities / atom fractions
+                if self.fuel_mass_density != None and self.fuel_massfrac_u235 is not None:
                         self.N235init=self.fuel_mass_density * self.fuel_massfrac_u235/u235molarmass #initial conc. of U235 in moles per ccm (double check that)
                         self.N238init=self.fuel_mass_density * self.fuel_massfrac_u238/u238molarmass #initial conc. of U238 in moles per ccm ^^^
                 else:
@@ -1736,7 +1736,6 @@ class SerpentInputFile(object):
             #now add isotopes
             for iso in mat.isotopic_content.keys():
                 if iso=='1001':
-                    print "see http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619 on why H must be left out. sorry!"
                     continue
 
                 #change temperature library as needed. the XS lib can only broaden,

@@ -1,0 +1,77 @@
+% --- Surface cards ---
+surf 20  cyl  0 0 232.82525  -217.8365  217.8365      % outer tank
+surf 21  cyl  0 0 229.8275  -214.83875  214.83875      % reflector
+surf 22  cyl  0 0 204.84625  -214.83875  214.83875      % salt tank
+surf 32  cyl  0 0 199.965  -199.965  199.965   % cylinder graphite
+surf 101  cylz  149.9737  -51.9524   18.6337
+surf 102  cylz  119.9790 -103.9049   18.6337
+surf 103  cylz  149.9737   51.9524   18.6337
+surf 104  cylz  119.9790    0.0000   18.6337
+surf 105  cylz   89.9843  -51.9524   18.6337
+surf 106  cylz   59.9895 -103.9049   18.6337
+surf 107  cylz   29.9947 -155.8573   18.6337
+surf 108  cylz  119.9790  103.9049   18.6337
+surf 109  cylz   89.9843   51.9524   18.6337
+surf 110  cylz   59.9895    0.0000   18.6337
+surf 111  cylz   29.9947  -51.9524   18.6337
+surf 112  cylz    0.0000 -103.9049   18.6337
+surf 113  cylz  -29.9947 -155.8573   18.6337
+surf 114  cylz   59.9895  103.9049   18.6337
+surf 115  cylz   29.9947   51.9524   18.6337
+surf 116  cyl  0 0   18.6337
+surf 117  cylz  -29.9947  -51.9524   18.6337
+surf 118  cylz  -59.9895 -103.9049   18.6337
+surf 119  cylz   29.9947  155.8573   18.6337
+surf 120  cylz    0.0000  103.9049   18.6337
+surf 121  cylz  -29.9947   51.9524   18.6337
+surf 122  cylz  -59.9895    0.0000   18.6337
+surf 123  cylz  -89.9843  -51.9524   18.6337
+surf 124  cylz -119.9790 -103.9049   18.6337
+surf 125  cylz  -29.9947  155.8573   18.6337
+surf 126  cylz  -59.9895  103.9049   18.6337
+surf 127  cylz  -89.9843   51.9524   18.6337
+surf 128  cylz -119.9790    0.0000   18.6337
+surf 129  cylz -149.9737  -51.9524   18.6337
+surf 130  cylz -119.9790  103.9049   18.6337
+surf 131  cylz -149.9737   51.9524   18.6337
+% --- Cell cards ---
+cell 99999  0    outside   20   % graveyard
+ cell 10  0   tank     21 -20  % hast case 
+ cell 33  0   mod      22 -21  % reflector
+ cell 20  0   fuel     32 -22  % salt
+ cell 30  0   mod     -32      % nuclear graphite density 1.8g/cm3
+     101  102  103  104  105  106  107  108  109 
+     110  111  112  113  114  115  116  117  118 
+     119  120  121  122  123  124  125  126  127 
+     128  129  130  131 
+cell 101  0 fuel    -32 -101 
+cell 102  0 fuel    -32 -102 
+cell 103  0 fuel    -32 -103 
+cell 104  0 fuel    -32 -104 
+cell 105  0 fuel    -32 -105 
+cell 106  0 fuel    -32 -106 
+cell 107  0 fuel    -32 -107 
+cell 108  0 fuel    -32 -108 
+cell 109  0 fuel    -32 -109 
+cell 110  0 fuel    -32 -110 
+cell 111  0 fuel    -32 -111 
+cell 112  0 fuel    -32 -112 
+cell 113  0 fuel    -32 -113 
+cell 114  0 fuel    -32 -114 
+cell 115  0 fuel    -32 -115 
+cell 116  0 fuel    -32 -116 
+cell 117  0 fuel    -32 -117 
+cell 118  0 fuel    -32 -118 
+cell 119  0 fuel    -32 -119 
+cell 120  0 fuel    -32 -120 
+cell 121  0 fuel    -32 -121 
+cell 122  0 fuel    -32 -122 
+cell 123  0 fuel    -32 -123 
+cell 124  0 fuel    -32 -124 
+cell 125  0 fuel    -32 -125 
+cell 126  0 fuel    -32 -126 
+cell 127  0 fuel    -32 -127 
+cell 128  0 fuel    -32 -128 
+cell 129  0 fuel    -32 -129 
+cell 130  0 fuel    -32 -130 
+cell 131  0 fuel    -32 -131 

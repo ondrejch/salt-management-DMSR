@@ -1,0 +1,75 @@
+using default requested amount of memory, None 
+/ct4m/dflibe/case3/fs0.225/p34.0/enr0.0/800.06000500100flibe	 3/0.225/34.0/0.0/800.0
+Core size: 4 m, half: 200, 	 Case: 3
+-->  Salt flibe, case 3, salt fraction 0.225, pitch 33.9881, U235 0.0, 
+---> tempK 800.0, grtempK 850, dT -100, matlib .06c & .06c, tempC 526.85
+Writing to: MSRs2.inp
+Spark radius: 199.93, half-height: 199.93
+ salt radius: 204.6925, half-height: 214.6775
+Hole pitch 33.9881, hole radius 8.46464065432779
+Holes punched: 109
+Core temp 526.85 C, salt density -1 g/cm3
+0
+827229.necluster.engr.utk.edu
+
+using default requested amount of memory, None 
+/ct4m/dflibe/case3/fs0.225/p34.0/enr0.0/850.06000500100flibe	 3/0.225/34.0/0.0/850.0
+Core size: 4 m, half: 200, 	 Case: 3
+-->  Salt flibe, case 3, salt fraction 0.225, pitch 33.99405, U235 0.0, 
+---> tempK 850.0, grtempK 900, dT -50, matlib .06c & .06c, tempC 576.85
+Writing to: MSRs2.inp
+Spark radius: 199.965, half-height: 199.965
+ salt radius: 204.84625, half-height: 214.83875
+Hole pitch 33.99405, hole radius 8.46612248508307
+Holes punched: 109
+Core temp 576.85 C, salt density -1 g/cm3
+0
+827230.necluster.engr.utk.edu
+
+using default requested amount of memory, None 
+/ct4m/dflibe/case3/fs0.225/p34.0/enr0.0/950.06000500100flibe	 3/0.225/34.0/0.0/950.0
+Core size: 4 m, half: 200, 	 Case: 3
+-->  Salt flibe, case 3, salt fraction 0.225, pitch 34.00595, U235 0.0, 
+---> tempK 950.0, grtempK 1000, dT 50, matlib .09c & .09c, tempC 676.85
+Writing to: MSRs2.inp
+Spark radius: 200.035, half-height: 200.035
+ salt radius: 205.15375, half-height: 215.16125
+Hole pitch 34.00595, hole radius 8.46908614659361
+Holes punched: 109
+Core temp 676.85 C, salt density -1 g/cm3
+0
+827231.necluster.engr.utk.edu
+
+using default requested amount of memory, None 
+/ct4m/dflibe/case3/fs0.225/p34.0/enr0.0/1000.06000500100flibe	 3/0.225/34.0/0.0/1000.0
+Core size: 4 m, half: 200, 	 Case: 3
+-->  Salt flibe, case 3, salt fraction 0.225, pitch 34.0119, U235 0.0, 
+---> tempK 1000.0, grtempK 1050, dT 100, matlib .09c & .09c, tempC 726.85
+Writing to: MSRs2.inp
+Spark radius: 200.07, half-height: 200.07
+ salt radius: 205.3075, half-height: 215.3225
+Hole pitch 34.0119, hole radius 8.47056797734888
+Holes punched: 109
+Core temp 726.85 C, salt density -1 g/cm3
+0
+827232.necluster.engr.utk.edu
+
+using default requested amount of memory, None 
+/ct4m/dflibe/case3/fs0.225/p34.0/enr0.0/1100.06000500100flibe	 3/0.225/34.0/0.0/1100.0
+Core size: 4 m, half: 200, 	 Case: 3
+-->  Salt flibe, case 3, salt fraction 0.225, pitch 34.0238, U235 0.0, 
+---> tempK 1100.0, grtempK 1150, dT 200, matlib .09c & .09c, tempC 826.85
+Writing to: MSRs2.inp
+Spark radius: 200.14, half-height: 200.14
+ salt radius: 205.615, half-height: 215.645
+Hole pitch 34.0238, hole radius 8.47353163885942
+Holes punched: 109
+Core temp 826.85 C, salt density -1 g/cm3
+0
+827233.necluster.engr.utk.edu
+
+temperatures attempted
+[800.0, 850.0, 950.0, 1000.0, 1100.0, 900.0]
+reactivities
+[0.0002499375156211782, 0.0003798556548512035, -0.00013901932368599258, 0.001497753369945139, 0.0015874759132978367, 0.000789376392649875]
+4.64263488701e-06

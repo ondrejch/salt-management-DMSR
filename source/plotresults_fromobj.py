@@ -143,8 +143,6 @@ for logfilename in inputdirs:
         fh.close()
 
 
-
-
     # --- convert all flows to kg per day ---
     refuelrates=np.array(refuelrates)*density*3600.*24./1000.
     absorberrates=np.array(absorberrates) *GdF3density * 3600. *24./1000.

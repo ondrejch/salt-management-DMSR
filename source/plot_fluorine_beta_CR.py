@@ -127,5 +127,8 @@ for logfilename in logfiles:
     os.chdir(originaldir)
 
 for a in [ax,ax2,ax3,ax4]:
-    a.legend(["With chemistry","Without chemistry"])
+    a.legend(["With chemistry","Without chemistry"], loc=0)
+
+ax.set_ylim([-1000.0, 10000.0])
+
 plt.show()

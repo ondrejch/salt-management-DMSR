@@ -135,7 +135,7 @@ for logfilename in logfiles:
     for iso in isodict.keys():
         #iso, mass in kg
         try:
-            masslist.append( (iso, isodict[iso]/0.602214086 * volume * getIsoMass(iso) ) ) 
+            masslist.append( (iso, isodict[iso]/0.602214086 * volume * getIsoMass(iso)/1000.0 ) ) 
 
         except Exception:
             # wonderful, now this has to deal with excited states.
@@ -150,11 +150,11 @@ for logfilename in logfiles:
             #check if isotope is already in records
             for iso2, amount in masslist:
                 if newiso==iso2:
-                    amount += isodict[iso]/0.602214086 * volume * getIsoMass(newiso) 
+                    amount += isodict[iso]/0.602214086 * volume * getIsoMass(newiso) /1000.0
 
             # yes, this is intentionally a for-else statement
             else:
-                masslist.append( (newiso, isodict[iso]/0.602214086 * volume * getIsoMass(newiso) ) ) 
+                masslist.append( (newiso, isodict[iso]/0.602214086 * volume * getIsoMass(newiso) /1000.0 ) ) 
 
     # now sort by total mass
     masslist.sort(key=lambda tup:tup[1], reverse=True)

@@ -1,0 +1,766 @@
+Traceback (most recent call last):
+  File "critsearchTh.py", line 176, in <module>
+    main(sys.argv)
+  File "critsearchTh.py", line 24, in main
+    thoriumfrac=float(argv[i+1])
+ValueError: could not convert string to float: {0.01,
+Traceback (most recent call last):
+  File "critsearchTh.py", line 176, in <module>
+    main(sys.argv)
+  File "critsearchTh.py", line 24, in main
+    thoriumfrac=float(argv[i+1])
+ValueError: could not convert string to float: {0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.1NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.14NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.12NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.15NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.17NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.21NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.11NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.19NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.18NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.13NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.16NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.25NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.24NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.2NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.26NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.22NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.23NaFKFpuga_dep.m’: No such file or directory
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+/ct4m/dnafkf/case1/fs0.35/p60.0/enr0.01/9006000500100nafkf	 1/0.35/60.0/0.01/900
+Core size: 4 m, half: 200, 	 Case: 1
+-->  Salt nafkf, case 1, salt fraction 0.35, pitch 60.0, U235 0.01, 
+---> tempK 900, grtempK 950, dT 0, matlib .09c & .09c, tempC 626.85
+Writing to: MSRs2.inp
+Spark radius: 200, half-height: 200
+ salt radius: 205, half-height: 215
+Hole pitch 60.0, hole radius 18.6369848450797
+Holes punched: 31
+Core temp 626.85 C, salt density -1 g/cm3
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.01NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.04NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.03NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.02NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.09NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.05NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.07NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.08NaFKFpuga_dep.m’: No such file or directory
+rm: cannot remove ‘./2th0.06NaFKFpuga_dep.m’: No such file or directory

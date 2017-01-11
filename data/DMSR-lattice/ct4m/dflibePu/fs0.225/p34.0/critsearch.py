@@ -45,7 +45,7 @@ for f in [inputfile1,inputfile2]:
  
 # initial crit search variables
 i=0 #iteration counter
-pufrcs=[0.001,0.005] # initial guess volume fractions of PuGaF salt
+pufrcs=[0.001,0.002] # initial guess volume fractions of PuGaF salt
 reacs=[] #empty initially
 
 #make initial input files
@@ -75,8 +75,17 @@ i=2
 while not ( -0.001 < reacs[-1] < 0.001 ):
 
     #calculate new pugaf volfrac from secant method
-    pufrcs.append( (pufrcs[i-2]*reacs[i-1]-pufrcs[i-1]*reacs[i-2])/
-                    (reacs[i-1]-reacs[i-2]) )
+    newpufrc=(pufrcs[i-2]*reacs[i-1]-pufrcs[i-1]*reacs[i-2])/
+                    (reacs[i-1]-reacs[i-2]) 
+    if newpufrc < 0.0:
+        print "got negative pufrc. damping."
+        newpufrc=pufrcs[-1]*0.9
+
+    elif newpufrc > 1.0:
+        print "got pufrc over one. damping."
+        newpufrc=pufrc[-1]*1.1
+
+    pufrcs.append(newpufrc )
     if pufrcs[-1] < 0.0 or pufrcs[-1] > 1.0:
         raise Exception("invalid pufrac, {}".format(pufrcs[-1]))
 

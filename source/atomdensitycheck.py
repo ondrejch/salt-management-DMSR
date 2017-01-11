@@ -31,6 +31,8 @@ for logfilename in logfiles:
         salt='FLiBe'
     elif 'nafkf' in logfilename:
         salt='NaFKF'
+    else:
+        salt='unknown salt'
 
     os.chdir(logfilename)
     ls=os.listdir('.')

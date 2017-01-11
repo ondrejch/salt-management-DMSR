@@ -1,0 +1,24 @@
+crit search on 0.05 volfrac thorium
+using default requested amount of memory, None 
+0
+using default requested amount of memory, None 
+0
+827756.necluster.engr.utk.edu
+
+827757.necluster.engr.utk.edu
+
+827780.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.002, 0.0020137022849064223]
+reactivities:
+[-0.31919159938789504, -0.004314535243405637, -0.0021184784634717285]
+827793.necluster.engr.utk.edu
+
+attempted PuGaF volume fractions and reactivities:
+volfracs:
+[0.001, 0.002, 0.0020137022849064223, 0.002026920520309007]
+reactivities:
+[-0.31919159938789504, -0.004314535243405637, -0.0021184784634717285, 0.00013998040274364488]
+job started at Mon Dec 26 15:56:20 2016 and ended at Mon Dec 26 16:45:27 2016

@@ -1,7 +1,6 @@
 if __name__ == '__main__':
     raise Exception("This file holds code that should be imported into other scripts, not ran on its own.")
 
-print "see http://ttuki.vtt.fi/serpent/viewtopic.php?f=11&t=2363&p=6619&hilit=SetDirectPointers&sid=e940f3980379e14edf24a6f5a0cdad94#p6619 on why H must be left out. sorry!"
 debug=False
 reallydebug=False
 import getpass

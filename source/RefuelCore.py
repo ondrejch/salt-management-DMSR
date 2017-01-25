@@ -977,8 +977,9 @@ class SerpentMaterial(object):
     def serpPrint(self):
         """prints the material so that you can put it in a serpent input file"""
         ret_string='' #init & append
-        modtext = 'moder grmod 6000' if mat.materialname=='mod' else ''
-        ret_string += 'mat {0} {1} vol {2} {3}\n'.format(mat.materialname,mat.density,mat.volume,modtext)
+        voltext = '' if self.volume is None else 'vol {}'.format(self.volume)
+        modtext = 'moder grmod 6000' if self.materialname=='mod' else ''
+        ret_string += 'mat {0} {1} {2} {3}\n'.format(self.materialname,self.density,voltext,modtext)
         for iso in self.isotopic_content.keys():
             ret_string += '{}.09c {}\n'.format(iso,self.isotopic_content[iso])
         if self.materialname == 'mod':
@@ -1769,7 +1770,7 @@ class SerpentInputFile(object):
         inputfiletext.append("92235.09c 0.0\n\n")
         inputfiletext.append("set bc 1\n\n")
         inputfiletext.append("set pop {0} {1} {2} 1\n\n".format(self.num_particles,self.num_cycles,self.num_skipped_cycles))
-        inputfiletext.append("set bumode 1\n\n") # this will fix the atom density rise issue
+        #inputfiletext.append("set bumode 1\n\n") # this will fix the atom density rise issue
         inputfiletext.append("set gcu -1\n\n") #turn off group constant generation to run faster
 
         #add a tiny detector right in the part of the moderator with highest fast flux

@@ -3,7 +3,7 @@ if __name__ == '__main__':
 
 debug=False
 reallydebug=False
-import getpass
+import getmass
 
 #----------------------------------------------------#
 # This function is useful for grabbing refuelrates,
@@ -1252,6 +1252,17 @@ class SerpentInputFile(object):
         self.materials[-1].massdensity=6.52
         self.materials[-1].atomdensity=6.52/ 91.224*.602214086 #atoms / cm-b self.materials[-1].density=19.1/ 238.02891*.602214086 #atoms / cm-b
         self.materials[-1].density=6.52/ 91.224*.602214086 #.density is the part that actually gets printed in the serpent input file
+        self.materials[-1].SetAsBurnable()
+        return None
+
+    def AddThoriumMetal(self, volume):
+        """ Adds some thorium metal to the input file. """
+        self.AddMaterial(SerpentMaterial('empty', volume=volume, materialname='Thmetal'))
+        self.materials[-1].isotopic_content={'90232':1.0}
+        self.materials[-1].massdensity = 11.72 #g/cm^3
+        self.materials[-1].atomdensity = self.materials[-1].massdensity / 
+                                         getmass.getIsoMass('90232') * 0.602214086 
+        self.materials[-1].density = self.materials[-1].atomdensity
         self.materials[-1].SetAsBurnable()
         return None
 

@@ -64,6 +64,8 @@ for logfilename in inputdirs:
         density=flibedensity
     elif 'nafkf' in logfilename:
         density=nafkfdensity
+    elif 'TEI' in logfilename:
+        density=input('please enter the salt density of the secret TEI salt')
     else:
         raise Exception("Error with the logfilename. No density avail.")
 

@@ -7,12 +7,13 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 import RefuelCore
+import sys
 
 #This scipt should be given one of the inputfileslog folders if you'd like to
 # get a visual on its isotopic compositionn over time.
 #Change that on the below line:
 #TODO add command line argumentes rather than hardcoded directory
-os.chdir('inputfileslog') #access folder with binary SerpentInputFile data
+os.chdir(sys.argv[1]) #access folder with binary SerpentInputFile data
 ls=os.listdir('.')
 
 #get day data from file names

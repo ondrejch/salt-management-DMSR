@@ -63,6 +63,7 @@ def getIsoMass(zaid):
 
     return mass 
 
+# run some examples
 if __name__=='__main__':
     print 'uranium 235'
     print getIsoMass('92235')

@@ -32,7 +32,7 @@ for logfilename in logfiles:
     elif 'nafkf' in logfilename:
         salt='NaFKF'
     else:
-        salt='unknown salt'
+        salt='Fuel'
 
     os.chdir(logfilename)
     ls=os.listdir('.')
@@ -62,5 +62,5 @@ for logfilename in logfiles:
 
     lgnd.append(salt)
 
-ax.legend(lgnd)
+#ax.legend(lgnd)
 plt.show()

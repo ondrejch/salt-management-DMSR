@@ -205,6 +205,7 @@ while burnttime<maxburntime:
 
         elif fluorineexcess < 0.0:
                 print "there is a shortage of fluorine in the core. letting burn step happen without U metal addition."
+                Umetaladditionrate = 0.0
         #elif refuelrate == 0.0:
         #        print "Excess reactivity present. not adding any U metal as a result."
         else:
@@ -262,8 +263,8 @@ while burnttime<maxburntime:
                 testinputfiles=[copy.copy(inputfile) for x in range(num_test_cases)] #make <num_test_cases> copies of the original
 
                 #now set new refuel rates to collect data
-                refuelrates_to_try=np.random.random_sample(num_test_cases) * refuelrate*2.5
-                absorberaddition_rates_to_try=np.random.random_sample(num_test_cases) * absorberadditionrate * 2.0
+                refuelrates_to_try=np.random.random_sample(num_test_cases) * refuelrate*2.5 + 1e-6 #the 1e-6 lets it not get stuck @ 0
+                absorberaddition_rates_to_try=np.random.random_sample(num_test_cases) * absorberadditionrate * 2.0 + 1e-6
                 for i,file in enumerate(testinputfiles):
                         if refuelrates_to_try[i] > 10.:
                                 print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."

@@ -19,7 +19,7 @@ reallydebug=False
 #-------------------------------------------#
 
 #make a serpent input file for an arbitrary MSR core
-inputfile=SerpentInputFile(core_size="4m", salt_type="dflibe", case=1, salt_fraction=0.225, pitch=34.0, initial_enrichment=.012097, num_nodes=15, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
+inputfile=SerpentInputFile(core_size="4m", salt_type="dflibe", case=1, salt_fraction=0.225, pitch=34.0, initial_enrichment=.012097, num_nodes=9, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
 
 #change the input name from MSRs2
 inputfile.SetInputFileName('FLiBe4mcore')
@@ -231,6 +231,15 @@ while burnttime<maxburntime:
         #----------------------------------------------------------#
 
         #set the refuel rates
+        # but first make sure values are reasonable. TTA seems to mess up quite badly if unreasonable flows are passed in.
+        if refuelrate > 5.0:
+                print "refuel rate is way too high. reducing to a random reasonable number."
+                refuelrate = np.random.random_sample(1)[0] * 1.0
+        #same for the absorber
+        elif absorberadditionrate > 5.0:
+                print 'absorber rate is way too high. reducing to a reasonable value.'
+                absorberadditionrate = np.random.random_sample(1)[0] * 0.1
+
         inputfile.SetConstantVolumeFlow('refuel','fuel',refuelrate) #volumetric addition of new fuel
         inputfile.SetConstantVolumeFlow('absorbertank','fuel', absorberadditionrate) #addition of GdF3
         inputfile.SetConstantVolumeFlow('Umetal', 'fuel', Umetaladditionrate)
@@ -286,6 +295,10 @@ while burnttime<maxburntime:
                                 print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."
                                 print "Reducing flow to reasonable guess value for data collection"
                                 refuelrates_to_try[i] = np.random.random_sample(1)[0] * 30.
+                        elif absorberaddition_rates_to_try[i] > 0.5:
+                                print "too much absorber being added. damping."
+                                absorberaddition_rates_to_try[i] = np.random.random_sample(1)[0] * 0.5
+
                         #set the refuel rates
                         file.SetConstantVolumeFlow('refuel','fuel',refuelrates_to_try[i]) #volumetric addition of new fuel
                         file.SetConstantVolumeFlow('absorbertank','fuel', absorberaddition_rates_to_try[i]) #addition of GdF3

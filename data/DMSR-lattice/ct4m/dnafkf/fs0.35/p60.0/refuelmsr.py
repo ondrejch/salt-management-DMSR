@@ -19,7 +19,7 @@ reallydebug=False
 #-------------------------------------------#
 
 #make a serpent input file for an arbitrary MSR core
-inputfile=SerpentInputFile(core_size="4m", salt_type="dnafkf", case=1, salt_fraction=0.35, pitch=60.0, initial_enrichment=.027063, num_nodes=10, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
+inputfile=SerpentInputFile(core_size="4m", salt_type="dnafkf", case=1, salt_fraction=0.35, pitch=60.0, initial_enrichment=.027063, num_nodes=9, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
 
 #change the input name from MSRs2
 inputfile.SetInputFileName('nafkf4mcore')
@@ -229,6 +229,15 @@ while burnttime<maxburntime:
         #----------------------------------------------------------#
         # High resolution run, test if guessed refuel rate is correct  #
         #----------------------------------------------------------#
+        #set the refuel rates
+        # but first make sure values are reasonable. TTA seems to mess up quite badly if unreasonable flows are passed in.
+        if refuelrate > 5.0:
+                print "refuel rate is way too high. reducing to a random reasonable number."
+                refuelrate = np.random.random_sample(1)[0] * 1.0
+        #same for the absorber
+        elif absorberadditionrate > 5.0:
+                print 'absorber rate is way too high. reducing to a reasonable value.'
+                absorberadditionrate = np.random.random_sample(1)[0] * 0.1
 
         #set the refuel rates
         inputfile.SetConstantVolumeFlow('refuel','fuel',refuelrate) #volumetric addition of new fuel

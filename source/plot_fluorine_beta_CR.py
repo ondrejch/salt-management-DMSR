@@ -15,8 +15,11 @@ from matplotlib import rc
 
 parser = argparse.ArgumentParser(description='plot some key results of refuelmsr.py')
 parser.add_argument('inputfileslog', metavar='f', type=str, nargs='+', help='name of directory containing pickle data for input files')
+parser.add_argument('--gauss', dest='gauss', action='store_true')
+parser.set_defaults(gauss=False)
 args=parser.parse_args()
 logfiles=args.inputfileslog
+usegauss=args.gauss #apply a gauss filter to data. smooths out noise.
 originaldir=os.getcwd()
 
 #---------------------------
@@ -55,6 +58,8 @@ for logfilename in logfiles:
         salt='flibe'
     elif 'nafkf' in logfilename:
         salt='nafkf'
+    elif 'TEI' in logfilename:
+        salt='secret'
 
     os.chdir(logfilename)
     ls=os.listdir('.')
@@ -96,6 +101,12 @@ for logfilename in logfiles:
     ## for Palatino and other serif fonts use:
     #rc('font',**{'family':'serif','serif':['Palatino']})
     rc('text', usetex=True)
+    if usegauss:
+        import scipy.ndimage.filters as fil
+        #override with filtered data
+        excess_F_moles_upper = fil.gaussian_filter1d(excess_F_moles_upper, 1)
+        convratios = fil.gaussian_filter1d(convratios, 1)
+        betaEffs = fil.gaussian_filter1d(convratios,1)
 
     #plot for fluorine excess over time
     line1 =ax.plot(days, excess_F_moles_upper)
@@ -125,10 +136,9 @@ for logfilename in logfiles:
 
     #now go back to the original location
     os.chdir(originaldir)
-
+#lgnd
 for a in [ax,ax2,ax3,ax4]:
-    a.legend(["With chemistry","Without chemistry"], loc=0)
+    a.legend(["CRAM","TTA"], loc=0)
 
-ax.set_ylim([-1000.0, 10000.0])
 
 plt.show()

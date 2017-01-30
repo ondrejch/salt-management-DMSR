@@ -1260,8 +1260,8 @@ class SerpentInputFile(object):
         self.AddMaterial(SerpentMaterial('empty', volume=volume, materialname='Thmetal'))
         self.materials[-1].isotopic_content={'90232':1.0}
         self.materials[-1].massdensity = 11.72 #g/cm^3
-        self.materials[-1].atomdensity = self.materials[-1].massdensity / 
-                                         getmass.getIsoMass('90232') * 0.602214086 
+        self.materials[-1].atomdensity = self.materials[-1].massdensity /( 
+                                         getmass.getIsoMass('90232') * 0.602214086 )
         self.materials[-1].density = self.materials[-1].atomdensity
         self.materials[-1].SetAsBurnable()
         return None
@@ -1670,7 +1670,7 @@ class SerpentInputFile(object):
 
         return self.materials.pop(delindex)
 
-    def SubmitJob(self, directory='.', usebumodethree=False):
+    def WriteJob(self, directory='.', usebumodethree=False):
         """Writes the input, writes the qsub script, runs the job, and waits. Whether the job is done can be found using IsDone method.
 
         Args:
@@ -1890,6 +1890,10 @@ class SerpentInputFile(object):
             inputhandle.write(inputfiletext)
         # run dat
         #the qsub command in modified to send output and errors from qsub to non-standardly named files
+
+    def SubmitJob(self,directory='.'):
+        """ does exactly what you'd think """
+
         command='qsub'+' -o '+ directory+'/'+self.inputfilename+'.log -j oe ' + directory+'/'+self.inputfilename+'.sh'
         #next line should submit the job
         print subprocess.check_output(command, shell=True) # the qsub script is just the name of the input file plus '.sh'

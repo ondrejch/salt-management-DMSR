@@ -9,6 +9,12 @@ import time
 import copy
 import scipy.optimize
 import subprocess
+from RefuelCore import ZfromZAID
+
+# possibly nest this all within a main when done
+#def main()
+# need to look up how to parse arguments from a few variables,
+# sys.argv
 
 # First read command line input
 parser = argparse.ArgumentParser(description=
@@ -55,10 +61,10 @@ optdict = dict.fromkeys(['maintenance','keffbounds','refuel','absorber','core',
 
 otheropts = [] # all other options
 
-#some options will be in the form of a list. init.
-optdict['maintenance']=[]
-optdict['constflows'] =[]
-optdict['runsettings']=dict.fromkeys('PPN','queue','num_nodes')
+# --- some options will be in the form of a list. init. ---
+optdict['maintenance']=[] # maintain concentration of thorium, keep F excess low, etc
+optdict['constflows'] =[] # used for stuff like offgasing, possibly removal of precious metals
+optdict['runsettings']=dict.fromkeys('PPN','queue','num_nodes') # set pop <blah>
 
 for line in inpfile:
     
@@ -167,6 +173,60 @@ for line in inpfile:
             # save it
             optdict['core']=='oldObject',sline[2]
 
+        else:
+            
+            raise Exception('unknown core option {}'.format(sline[1])
+
+    elif all([x in sline for x in ['maintain', 'in', 'via']):
+
+        # this is a salt maintenance command, where some material is added to maintain
+        # a desired quantity in the salt. Initially, I'm including fluoride excess
+        # and a concentration maintenance command.
+        quantity = sline[1] 
+        material = sline[3]
+        deltamat = sline[5]
+        saltComp = None
+
+
+        if quantity == 'conc':
+            # which nuclide or element component gets controlled?
+            saltComp = sline[7]
+
+        elif quantity == 'excessFluoride':
+            # need to mitigate excess fluorine nuclei, of course
+            pass
+
+        else:
+            raise Exception('{} is not a known maintenance option ATM'.format(quantity)
+
+        # then add this on to the list of maintenance commands
+        optdict['maintenance'].append(quantity, material, deltamat, saltComp)
+
+    elif sline[0] == 'constflow':
+
+        # this means a flow that doesnt change in response to other quantities
+        # in the salt.
+        nuclides = sline[1] # should be comma separated values or 'all'
+        numbers  = sline[2] # , separated, and either len matches nuclides or one value
+        flowtype = sline[3] # serpent flow type. 1 conserves material amounts, 0 is constant
+        mat1     = sline[4]
+        mat2     = sline[5]
+
+        # split by comma basis
+        nuclides = nuclides.split(',')
+        numbers  = numbers.split (',')
+        flowtype = int(flowtype)
+
+        # input checks
+        if not ( len(nuclides) == len(numbers) or len(numbers)==1 ):
+            raise Exception('length of flow numbers should be one or match 
+                            number of nuclides/elements given')
+
+        if flowtype not in [0,1,2]:
+            raise Exception(' flowtype {} is not a valid serpent flow type'.format(flowtype))
+
+        # now this can be safely appended to constflows
+        optdict['constflows'].append( (nuclides, numbers, flowtype, mat1, mat2) )
 
     elif line !='\n':
         raise Exception('unknown keyword: {}'.format(line)
@@ -253,6 +313,13 @@ elif optdict['core'][0] == 'oldObject':
 
     myCore = pickle.load(filehandle)
 
+elif optdict['core'][0] == 'serpentInput':
+
+    raise Exception(' havent written code for this yet lol ')
+
+else:
+    raise Exception('bad error here')
+
 # --- initialization ---
 
 burnttime = 0
@@ -262,7 +329,7 @@ refuelrate=initialguessrefuelrate
 
 #--------------
 #temporary:
-refuelrate=0.40774835852993285
+refuelrate= 0.5 # need to create a better guess on this
 #---------------
 
 absorberadditionrates=[]
@@ -296,5 +363,102 @@ iternum=0 #keeps track of number of iterations needed to solve for refuel rate i
 if outdir not in listdir('.'):
     subprocess.call(['mkdir', outdir])
 
+#loop through all materials, and give them the appropriate Z to 
+# oxidation number mapping. this can be dynamically changed if needed.
+for mat in myCore.materials:
+    mat.Z2ox = mat.CalcExcessFluorine(ret_z2charge=True)
+    #debug
+    print mat.Z2ox
+    print 'playin it safe rn'
+    quit()
+
+raise Exception(' need to add a definition of depltion sequence. define "daystep"')
+
 # BURN BABY BURN
 while burnttime < maxburntime:
+
+    # set all of the constant material flows, firstly
+    for nuc,num,flowt in optdict['constflows']:
+
+        if flowt == 0: #flow type = 0
+            assert nuc[0] == 'all' #constant volume must mean all flow
+            myCore.AddFlow(mat1, mat2, nuc[0], num[0], 0)
+
+        elif flowt == 1:
+            myCore.AddFlow(mat1, mat2, nuc, num, 1)
+
+        elif flowt ==2:
+            raise Exception('OK, does anyone actually know what type 2 flows do??')
+
+    # now loop through all of the "salt management" quantities.
+    # just make a list of the quantities of interest (eg fluorideExcess),
+    # and then calculate the flows needed to mitigate them.
+    for quantity, controlmaterial, additive, saltcomp in optdict['maintenance']:
+
+        controlpoint = myCore.getMat(controlmaterial) # pointer to control material
+        additivepoint = myCore.getMat(additive) # pointer to additive
+
+        # generally, calculate what the current quantity of interest is.
+        # first, cover the case of fluoride.
+        if quantity is 'excessFluoride':
+
+            # returns total amount of excess fluoride in moles. NOT a concentration.
+            important_quantity = controlpoint.CalcExcessFluorine()
+            
+            # to figure out how much additive to, well, add, check how 
+            # much positive charge it would give to the salt, given the assumed
+            # oxidation states.
+            # the best way to do this, IMO, is calculate how many moles of charge per ccm
+            # the additive has, and then set a constant volume flow over the next step that fully
+            # mitigates all excess fluoride.
+            molPositiveV = 0.0 # init, moles positive volumetric
+            for iso in additivepoint.isotopic_content.keys():
+
+                z = ZfromZAID(iso)
+                # add how much charge per ccm it would contribute if it were in the 
+                # control material
+                molPositiveV += additivepoint.isotopic_content[iso]*controlpoint.Z2ox[z]/0.602214086
+
+            # now the flow rate is simple!!!
+            totalToAdd = important_quantity / molPositiveV # total volume of additive to add
+
+            # now, if totalToAdd is negative, you need to add an oxidizing agent, or do nothing
+            # assuming your fuel becomes more oxidizing with time (TerraPower claims theirs doesnt
+            # do this, personal comm. Jeff Latkowski )
+            if totalToAdd < 0.0:
+                raise Exception(" fuel became more reducing. WHY WHY WHY ")
+
+            myCore.SetConstantVolumeFlow(additive, controlmaterial, totalToAdd/float(daystep*24*3600) )
+
+        elif quantity is 'conc':
+
+            # this is just a concentration of some material, eg thorium.
+            # it may be either a unique isotope, or an element Z value. 
+            # if it is a Z value, sum across isotopes.
+            if len(saltcomp) is 1 or len(saltcomp) is 2:
+                # implies a Z value
+                important_quantity = 0.0 #init
+                for iso in controlpoint.isotopic_content.keys():
+
+                    z = ZfromZAID(iso)
+                    important_quantity += controlpoint.isotopic_content[iso] if z is saltcomp else 0.0
+
+                # now sum to find the total concentration of Z in the additive, too
+                additive_conc = 0.0 # init
+                for iso in additivepoint.isotopic_content.keys():
+
+                    z = ZfromZAID(iso)
+                    additive_conc += additivepoint.isotopic_content[iso] if z is saltcomp else 0.0
+
+
+            elif len(saltcomp) is 4 or len(saltcomp) is 5:
+
+                important_quantity = controlpoint.isotopic_content[saltcomp]
+
+            else:
+
+                raise Exception('unknown salt component {} in {}'.format(saltcomp, controlmat))
+
+        else:
+            raise Exception('unknown quantity {}'.format(quantity))
+

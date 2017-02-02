@@ -5,6 +5,19 @@ debug=False
 reallydebug=False
 import getmass
 
+# sometimes, a piece of code gets repeated so much that you HAVE
+# to make it its own function, even if it is small.
+def ZfromZAID(zaid):
+    """ takes a ZAID, returns its Z. string -> string. """
+    if len(zaid) is 4:
+        z = zaid[0]
+    elif len(zaid) is 5:
+        z = zaid[:2]
+    else:
+        raise Exception('what z value does {} have?'.format(zaid)
+
+    return z
+
 #----------------------------------------------------#
 # This function is useful for grabbing refuelrates,
 # absorber rates, and Umetal rates from previous runs.

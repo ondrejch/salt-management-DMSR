@@ -689,7 +689,6 @@ class SerpentMaterial(object):
             # then densities:
             self.massdensity=1.94 #from wikipedia
             mmass=massli7*li7enrich*frac_lif+massli6*(1.0-li7enrich)*frac_lif+massbe9*frac_bef2+(2.0*frac_bef2+frac_lif)*massf19
-            print mmass
             self.atomdensity= self.massdensity/mmass*0.602214086*5.0 #5 atom per ionic unit (atoms/cmb)
 
         elif salt_type=='ThF4':
@@ -881,6 +880,10 @@ class SerpentMaterial(object):
             self.density=-1*self.massdensity
         elif self.massdensity==None:
             self.density=self.atomdensity
+
+        # lastly, initialize a Z value to oxidation number dictionary.
+        # defaults to allll noble.
+        self.Z2ox = dict.fromkeys([str(i+1) for i in range(118)],0)
       
     def normalizeIsotopics(self):
         """ Makes sure that all of the isotopes in the isotopic fractions
@@ -987,6 +990,246 @@ class SerpentMaterial(object):
             ret_string += 'therm grmod 950 grj2.18t grj2.20t\n'
         ret_string += '\n'
         return ret_string
+
+    def CalcExcessFluorine(self,estimate='upper', debugmode=False, returnzvaldict=False, use_X_Doligez=False, printoxstates=False, printfexcess=False,ret_z2charge=False):
+        """Calculates the excess of fluorine atoms in the material in the current state, assuming that all elements are in their most common oxidation states. Obviously, results here only make sense if the material in question is a 
+        fluoride salt.
+
+        This defaults to estimate="upper" because a reducing environment is MUCH preferable to an oxidizing one, where like half of these compounds
+        turn into gas.
+
+        I do wonder, if the salt became sufficiently reducing, what if uranium started to precipitate? Is this possible? Because generally 
+        criticality accidents are not good.
+
+        Args:
+            None
+
+        Keyword args:
+            estimate -- defaults to upper. either "upper" or "lower", for respectively low or high oxidation states for certain d block elements.
+            debugmode -- prints extra info if set to True.
+            returnzvaldict -- does not even calc excess fluorine, but is convenient here. This causes the elemental composition of the salt to be returned.
+                this is in this part of the code because writing a separate method would be redundant.
+            use_X_Doligez -- normally false. if set to true, provides the oxidation states of fission products calculated by X. Doligez et. al at University de Charles Fourier. accurate b/c from thermo calcs.
+            printoxstates -- normally false. if set to true, prints the oxidation states of the elements in the salt."""
+
+        fuel = self # this used to be a method of SerpentInputFile, but this actually makes more sense.
+        #             to be a method of SerpentMaterial
+
+        #if the fuel isotope densities are given in mass terms, then it is harder to calculate the excess fluorine. solution: i don't write that code.
+        if fuel.massdensity != None:
+            raise Exception("convert stuff to atom fractions/densities first")
+        atomdensity=fuel.atomdensity
+        if atomdensity==None:
+            raise Exception("Atom density of fuel must be defined to do an excess fluorine calculation.")
+        if atomdensity < 0.0:
+            raise Exception (" negative atom density, this is really confusing if this happens")
+
+        #get isotope data in fuel
+        zvals_moles={} #holds total num of moles of each element in core salt
+
+        # to get an accurate calculation, we need to normalize all of the atom fractions so they sum to one.
+        # this way we are guaranteed to get atom density when multiplying the atom density of the fuel by the fraction.
+        for iso in fuel.isotopic_content.keys():
+            if len(iso)==4:
+                #then Z for this isotope is one character long
+                z=iso[0]
+
+            elif len(iso)==5:
+                #Z is two characters
+                z=iso[:2]
+            else:
+                raise Exception("something happened, Z>99 ?")
+
+            if z not in zvals_moles.keys():
+                zvals_moles[z]=fuel.isotopic_content[iso] / 0.602214086 * self.fuelvolume #units are moles. total for all in-core salt.
+            elif z in zvals_moles.keys():
+                zvals_moles[z] +=fuel.isotopic_content[iso] / 0.602214086 * self.fuelvolume # ^^^
+        if returnzvaldict:
+            #print "CalcExcessFluorine returning total moles of each element for this core."
+            return zvals_moles
+        if debugmode:
+            print "here is some debug stuff:"
+            print atomdensity
+            print zvals_moles
+            #print iso
+
+
+        #cool, we have the number of moles per ccm of all elements in the fuel now.
+        #now it's time to construct a map from element z values to oxidation states
+        noblegases=[2,10,18,36, 54, 86]
+        halogens=[9, 17, 35, 53, 85]
+        chalcogens=[8,16, 84] #Se and Te not included. they are likely acutally noble from Engel et al
+        nitrogengroup=[7, 15, 33, 83] #Sb is likely noble, from Engel
+        carbongroup=[6, 14, 82] # Ge and Sn noble, from Engel
+        borongroup=[5, 13, 31, 81] #indium is likely noble
+        alkaline=[4, 12, 20, 38, 56, 88]
+        alkali=[1, 3, 11, 19, 37, 55, 87]
+        lanthanides=range(57, 72)
+        noblemetals=[41, 42, 43, 44, 45, 46, 47, 48, 50, 51, 49] #all reported as noble by Engel et al, 49 from Doligez tho
+
+        #let's begin:
+        z_to_oxidation_num_map={}
+        for z in noblegases:
+            z_to_oxidation_num_map[str(z)]=0
+        for z in halogens:
+            z_to_oxidation_num_map[str(z)]=-1
+        for z in chalcogens:
+            z_to_oxidation_num_map[str(z)]=-2
+        for z in nitrogengroup:
+            z_to_oxidation_num_map[str(z)]=-3
+        for z in carbongroup:
+            z_to_oxidation_num_map[str(z)]=4 #i'm guessing that most of these will be tin and lead, which commonly go to IV oxidation
+        for z in borongroup:
+            z_to_oxidation_num_map[str(z)]=3
+        for z in alkaline:
+            z_to_oxidation_num_map[str(z)]=2
+        for z in alkali:
+            z_to_oxidation_num_map[str(z)]=1
+        for z in lanthanides:
+            z_to_oxidation_num_map[str(z)]=3 #lanthanides to +3 oxidation state
+        for z in noblemetals:
+            z_to_oxidation_num_map[str(z)]=0
+
+        #now some of the less standard oxidation states should be added:
+        z_to_oxidation_num_map['32']=0 #Ge is noble
+        z_to_oxidation_num_map['33']=0 #As
+        z_to_oxidation_num_map['34']=0 #Se
+        z_to_oxidation_num_map['40']=4 #Zr is usually +4
+        z_to_oxidation_num_map['30']=2 #Zn is almost always +2
+        z_to_oxidation_num_map['92']=4 #uranium should hopefully be in the +4 oxidation state, primarily
+        z_to_oxidation_num_map['94']=3 #Pu in +3
+        #X. Doligez (see wiki Depletion page) says yttrium likes the +3 state
+        z_to_oxidation_num_map['39']=3
+
+        #ORNL found in the MSRE that the tellurium tended to leave through the purge gas, which suggests an oxidation state of mostly 0
+        z_to_oxidation_num_map['52']=0
+        #interestingly enough, from the purge gas samples, it looks like Sr tended to take no oxidation at times.
+        #this is evidenced by the fact that about 17% of Sr-89 left through purge gas. Sr will be treated at +2 regardless.
+
+        # all transuranics are likely trifluorides, according to Engel et al
+        z_to_oxidation_num_map['91']=4 #https://en.wikipedia.org/wiki/Protactinium
+        z_to_oxidation_num_map['90']=4 #https://en.wikipedia.org/wiki/Thorium
+        z_to_oxidation_num_map['93']=3 #https://en.wikipedia.org/wiki/Neptunium
+        z_to_oxidation_num_map['94']=3 #taken from the wikipedia page... ctrl-F "most common oxidation"
+        z_to_oxidation_num_map['95']=3 #    ^^^
+        z_to_oxidation_num_map['96']=3 #  ^^^
+        z_to_oxidation_num_map['97']=3 #     ^^^
+
+        #lastly, we have a few transition metals to work with.
+        # these tend to take a huge variety of oxidation states,
+        #so the best we can do is give an upper and lower bound.
+        #protactinium can even make weird stuff like an effective Pa2F9..
+        # and yes, Pa2F9 can exist in the molten salt temp range
+        if estimate=='upper':
+            #this is the estimate that is likely best to have. 
+            # a more reducing salt, in general, seems to minimize corrosion.
+            #lower possible oxidation numbers should go here.
+            #this results in an upper estimate on excess fluorine.
+
+       	    #looks like Cd almost always in the +2 state
+            #rhodium info from its wiki page.
+            #looks like copper can be either +1 or +2
+            z_to_oxidation_num_map['29']=2 #copper
+            z_to_oxidation_num_map['24']=2 #chromium
+            z_to_oxidation_num_map['25']=2 #manganese
+            z_to_oxidation_num_map['26']=2 #iron
+            z_to_oxidation_num_map['27']=2 #cobalt
+            z_to_oxidation_num_map['22']=3 #titanium
+            z_to_oxidation_num_map['23']=3 #vanadium
+            #looks like scandium is pretty much guaranteed to be in the +3 state
+            z_to_oxidation_num_map['21']=3 #scandium
+            #again, looks like we can basically guarantee Ni to be +2 state
+            z_to_oxidation_num_map['28']=2 #nickel
+
+        elif estimate=='lower':
+            #upper possible oxidation states go here
+
+            z_to_oxidation_num_map['29']=2 #copper
+            #note: CrF5 apparently boils at 117 deg C. problem?
+            #      CrF4 boils at 400 deg C
+            #      CrF3 melts at 1100 deg C, phew, itll stay in there...
+            z_to_oxidation_num_map['24']=5 #chromium
+            # MnF4... also a gas in the molten salt range.
+            z_to_oxidation_num_map['25']=4 #manganese
+            z_to_oxidation_num_map['26']=3 #iron
+            # CoF3... real nasty. readily does this:
+            # 4 CoF3 + 2 H2O -> 4 HF + 4 CoF2 + O2
+            #people say the the risk of sodium leaks in molten sodium
+            # reactors is bad. well, this may be worse... chemistry is key!
+            z_to_oxidation_num_map['27']=3 #cobalt
+            z_to_oxidation_num_map['22']=4 #titanium
+            # VF5 is a gas...
+            z_to_oxidation_num_map['23']=5 #vanadium
+            z_to_oxidation_num_map['21']=3 #scandium
+            z_to_oxidation_num_map['46']=3 #palladium
+            z_to_oxidation_num_map['28']=2 #nickel
+
+
+        else:
+            raise Exception("Wrong type of estimate. either upper or lower.")
+
+
+
+        if use_X_Doligez:
+            #This will use the oxidation states that X. Doligez calculated at University of Charles Fourier.
+            # see: http://www.sciencedirect.com.proxy.lib.utk.edu:90/science/article/pii/S0306454913004799
+            # *only accessible from that link with UTK netid
+            #specifically, see figure 3
+
+            #they predicted a large amount of FP's to be noble:
+            for z in range(26, 35) + range(41, 53) + [36, 54]:
+                z=str(z)
+                z_to_oxidation_num_map[z]=0
+
+            # I, Br at typical oxidation
+            for z in ['35', '53']:
+                z_to_oxidation_num_map[z]=-1
+
+            # tetrafluorides
+            for z in ['40', '90', '91', '92']:
+                z_to_oxidation_num_map[z]=4
+
+            #trifluoride
+            for z in range(57, 70) + range(93, 97):
+                z=str(z)
+                z_to_oxidation_num_map[z]=3
+
+            for z in ['37', '55']:
+                z_to_oxidation_num_map[z]=1 #typical alkali
+
+            for z in ['38', '56']:
+                z_to_oxidation_num_map[z]=2 #typical alkaline
+
+
+
+        #--------------------------------------------------------------
+
+        #check to make sure that I added standard oxidation states for each z value in the problem
+        for z in zvals_moles.keys():
+            if z not in z_to_oxidation_num_map.keys():
+                raise Exception("Add a standard oxidation state for Z={0}".format(z))
+
+        #sometimes you want that z to charge map, so return it if specified
+        if ret_z2charge:
+            return z_to_oxidation_num_map
+
+        #Now if we loop through all the moles of each element, and multiply by charge, and sum, we should come out with net moles of charge
+        # if the elements all take on their expected oxidation states.
+        totalcharge=0.0 #moles
+        chargevals=[]
+        for z in zvals_moles.keys():
+            totalcharge += z_to_oxidation_num_map[z] * zvals_moles[z] #(moles charge / mole) * (total moles)
+
+        #ok, now how many moles of fluorine are excess?
+        #if the net charge is negative, and fluorine has a charge of -1, then moles excess fluorine = -1 * totalcharge
+        if printfexcess:
+            if totalcharge < 0.0:
+                print "There is an excess of fluorine in the core.\n There are {0} too many moles of fluorine total.".format(totalcharge * -1)
+            elif totalcharge >= 0.0:
+                print "The core has created an excessively reducing environment. {0} moles of fluorine are need additionally.".format(totalcharge* -1)
+        if printoxstates:
+            print z_to_oxidation_num_map
+        return -1*totalcharge
 
 import subprocess #used for terminal commands
 import os    
@@ -1330,6 +1573,8 @@ class SerpentInputFile(object):
             self.materials[-1].atomdensity=None
             self.materials[-1].density=-1.0*fuelmassdensity
             self.materials[-1].massdensity=fuelmassdensity
+        return None
+
     def SetConstantVolumeFlow(self, mat1, mat2, rate):
         """Sets a constant volume flow between two materials in the input file. 
 
@@ -1369,6 +1614,65 @@ class SerpentInputFile(object):
         if makedeletion:
             del self.volumetricflows[delindex]
         self.volumetricflows.append((mat1,mat2,ratioflow))
+
+    def AddFlow(self, mat1, mat2, nuc, num, flowtype):
+        """ primarily used by saltmgr.py.
+        adds a flow of type flowtype containing nuclides nuc with time constants num.
+        nuc must be a list. the length of num must be either one (extends to all nucs)
+        or correspondingly match the length of nuc. mat1, mat2 are materials in the input
+        file. """
+
+
+        # make materials burnable if needed
+        mat1index=mat2index=None
+        for index,mat in enumerate(self.materials):
+            if mat.materialname==mat1:
+                mat1index=index
+                mat.burn=True
+            elif mat.materialname==mat2:
+                mat2index=index
+                mat.burn=True
+
+        #if not found, raise exception
+        if mat1index==None:
+            raise Exception("material {0} not found in this input file.".format(mat1))
+        if mat2index==None:
+            raise Exception("material {0} not found in this input file.".format(mat2))
+
+        if flowtype == 0:
+            # this is a constant volume flow
+            # delete the old flow between materials if it exists
+            delindex=0
+            makedeletion=False
+            for m1,m2,rflow in self.volumetricflows:
+                if m1==mat1 and m2==mat2:
+                    makedeletion=True
+                    break
+                delindex+=1
+            if makedeletion:
+                del self.volumetricflows[delindex]
+
+            # add it!
+            if type(num) == list:
+                raise Exception('so, yeah, if you really need to do constant volume flows that dont change with time, you need to let gavin know at gridley@vols.utk.edu')
+            self.volumetricflows.append(mat1, mat2, num)
+
+        elif flowtype == 1:
+            # a ratio-based, mass conserving flow.
+            # delete the old flow if it exists
+            delindex=0
+            makedeletion=False
+            for m1,m2,rflow in self.ratioflows:
+                if m1==mat1 and m2==mat2:
+                    makedeletion=True
+                    break
+                delindex+=1
+            if makedeletion:
+                del self.ratioflows[delindex]
+
+            # now add the flow!
+            self.ratioflows.append(mat1, mat2, nuc, num)
+            
         
     def SetRatioFlow(self, mat1, mat2, elements, flows):
         """Adds what is essentially a decay constant term to the Bateman equations, with the material it "decays" into being mat2.
@@ -1411,247 +1715,6 @@ class SerpentInputFile(object):
             del self.ratioflows[delindex]
         self.ratioflows.append( (mat1, mat2, elements, flows) )
 
-    def CalcExcessFluorine(self,estimate='upper', debugmode=False, returnzvaldict=False, use_X_Doligez=False, printoxstates=False, printfexcess=False,ret_z2charge=False):
-        """Calculates the excess of fluorine atoms in the core in the current state, assuming that all elements are in their most common oxidation states. 
-
-        This defaults to estimate="upper" because a reducing environment is MUCH preferable to an oxidizing one, where like half of these compounds
-        turn into gas.
-
-        I do wonder, if the salt became sufficiently reducing, what if uranium started to precipitate? Is this possible? Because generally 
-        criticality accidents are not good.
-
-        Args:
-            None
-
-        Keyword args:
-            estimate -- defaults to upper. either "upper" or "lower", for respectively low or high oxidation states for certain d block elements.
-            debugmode -- prints extra info if set to True.
-            returnzvaldict -- does not even calc excess fluorine, but is convenient here. This causes the elemental composition of the salt to be returned.
-                this is in this part of the code because writing a separate method would be redundant.
-            use_X_Doligez -- normally false. if set to true, provides the oxidation states of fission products calculated by X. Doligez et. al at University de Charles Fourier. accurate b/c from thermo calcs.
-            printoxstates -- normally false. if set to true, prints the oxidation states of the elements in the salt."""
-
-        for mat in self.materials:
-            if mat.materialname=='fuel':
-                #save memory reference to fuel material in new variable
-                fuel=mat
-                break
-
-        #if the fuel isotope densities are given in mass terms, then it is harder to calculate the excess fluorine. solution: i don't write that code.
-        if fuel.massdensity != None:
-            raise Exception("convert stuff to atom fractions/densities first")
-        atomdensity=fuel.atomdensity
-        if atomdensity==None:
-            raise Exception("Atom density of fuel must be defined to do an excess fluorine calculation.")
-        if atomdensity < 0.0:
-            raise Exception (" negative atom density, this is really confusing if this happens")
-
-        #get isotope data in fuel
-        zvals_moles={} #holds total num of moles of each element in core salt
-
-        # to get an accurate calculation, we need to normalize all of the atom fractions so they sum to one.
-        # this way we are guaranteed to get atom density when multiplying the atom density of the fuel by the fraction.
-        for iso in fuel.isotopic_content.keys():
-            if len(iso)==4:
-                #then Z for this isotope is one character long
-                z=iso[0]
-
-            elif len(iso)==5:
-                #Z is two characters
-                z=iso[:2]
-            else:
-                raise Exception("something happened, Z>99 ?")
-
-            if z not in zvals_moles.keys():
-                zvals_moles[z]=fuel.isotopic_content[iso] / 0.602214086 * self.fuelvolume #units are moles. total for all in-core salt.
-            elif z in zvals_moles.keys():
-                zvals_moles[z] +=fuel.isotopic_content[iso] / 0.602214086 * self.fuelvolume # ^^^
-        if returnzvaldict:
-            #print "CalcExcessFluorine returning total moles of each element for this core."
-            return zvals_moles
-        if debugmode:
-            print "here is some debug stuff:"
-            print atomdensity
-            print zvals_moles
-            #print iso
-
-
-        #cool, we have the number of moles per ccm of all elements in the fuel now.
-        #now it's time to construct a map from element z values to oxidation states
-        noblegases=[2,10,18,36, 54, 86]
-        halogens=[9, 17, 35, 53, 85]
-        chalcogens=[8,16, 84] #Se and Te not included. they are likely acutally noble from Engel et al
-        nitrogengroup=[7, 15, 33, 83] #Sb is likely noble, from Engel
-        carbongroup=[6, 14, 82] # Ge and Sn noble, from Engel
-        borongroup=[5, 13, 31, 81] #indium is likely noble
-        alkaline=[4, 12, 20, 38, 56, 88]
-        alkali=[1, 3, 11, 19, 37, 55, 87]
-        lanthanides=range(57, 72)
-        noblemetals=[41, 42, 43, 44, 45, 46, 47, 48, 50, 51, 49] #all reported as noble by Engel et al, 49 from Doligez tho
-
-        #let's begin:
-        z_to_oxidation_num_map={}
-        for z in noblegases:
-            z_to_oxidation_num_map[str(z)]=0
-        for z in halogens:
-            z_to_oxidation_num_map[str(z)]=-1
-        for z in chalcogens:
-            z_to_oxidation_num_map[str(z)]=-2
-        for z in nitrogengroup:
-            z_to_oxidation_num_map[str(z)]=-3
-        for z in carbongroup:
-            z_to_oxidation_num_map[str(z)]=4 #i'm guessing that most of these will be tin and lead, which commonly go to IV oxidation
-        for z in borongroup:
-            z_to_oxidation_num_map[str(z)]=3
-        for z in alkaline:
-            z_to_oxidation_num_map[str(z)]=2
-        for z in alkali:
-            z_to_oxidation_num_map[str(z)]=1
-        for z in lanthanides:
-            z_to_oxidation_num_map[str(z)]=3 #lanthanides to +3 oxidation state
-        for z in noblemetals:
-            z_to_oxidation_num_map[str(z)]=0
-
-        #now some of the less standard oxidation states should be added:
-        z_to_oxidation_num_map['32']=0 #Ge is noble
-        z_to_oxidation_num_map['33']=0 #As
-        z_to_oxidation_num_map['34']=0 #Se
-        z_to_oxidation_num_map['40']=4 #Zr is usually +4
-        z_to_oxidation_num_map['30']=2 #Zn is almost always +2
-        z_to_oxidation_num_map['92']=4 #uranium should hopefully be in the +4 oxidation state, primarily
-        z_to_oxidation_num_map['94']=3 #Pu in +3
-        #X. Doligez (see wiki Depletion page) says yttrium likes the +3 state
-        z_to_oxidation_num_map['39']=3
-
-        #ORNL found in the MSRE that the tellurium tended to leave through the purge gas, which suggests an oxidation state of mostly 0
-        z_to_oxidation_num_map['52']=0
-        #interestingly enough, from the purge gas samples, it looks like Sr tended to take no oxidation at times.
-        #this is evidenced by the fact that about 17% of Sr-89 left through purge gas. Sr will be treated at +2 regardless.
-
-        # all transuranics are likely trifluorides, according to Engel et al
-        z_to_oxidation_num_map['91']=4 #https://en.wikipedia.org/wiki/Protactinium
-        z_to_oxidation_num_map['90']=4 #https://en.wikipedia.org/wiki/Thorium
-        z_to_oxidation_num_map['93']=3 #https://en.wikipedia.org/wiki/Neptunium
-        z_to_oxidation_num_map['94']=3 #taken from the wikipedia page... ctrl-F "most common oxidation"
-        z_to_oxidation_num_map['95']=3 #    ^^^
-        z_to_oxidation_num_map['96']=3 #  ^^^
-        z_to_oxidation_num_map['97']=3 #     ^^^
-
-        #lastly, we have a few transition metals to work with.
-        # these tend to take a huge variety of oxidation states,
-        #so the best we can do is give an upper and lower bound.
-        #protactinium can even make weird stuff like an effective Pa2F9..
-        # and yes, Pa2F9 can exist in the molten salt temp range
-        if estimate=='upper':
-            #this is the estimate that is likely best to have. 
-            # a more reducing salt, in general, seems to minimize corrosion.
-            #lower possible oxidation numbers should go here.
-            #this results in an upper estimate on excess fluorine.
-
-       	    #looks like Cd almost always in the +2 state
-            #rhodium info from its wiki page.
-            #looks like copper can be either +1 or +2
-            z_to_oxidation_num_map['29']=2 #copper
-            z_to_oxidation_num_map['24']=2 #chromium
-            z_to_oxidation_num_map['25']=2 #manganese
-            z_to_oxidation_num_map['26']=2 #iron
-            z_to_oxidation_num_map['27']=2 #cobalt
-            z_to_oxidation_num_map['22']=3 #titanium
-            z_to_oxidation_num_map['23']=3 #vanadium
-            #looks like scandium is pretty much guaranteed to be in the +3 state
-            z_to_oxidation_num_map['21']=3 #scandium
-            #again, looks like we can basically guarantee Ni to be +2 state
-            z_to_oxidation_num_map['28']=2 #nickel
-
-        elif estimate=='lower':
-            #upper possible oxidation states go here
-
-            z_to_oxidation_num_map['29']=2 #copper
-            #note: CrF5 apparently boils at 117 deg C. problem?
-            #      CrF4 boils at 400 deg C
-            #      CrF3 melts at 1100 deg C, phew, itll stay in there...
-            z_to_oxidation_num_map['24']=5 #chromium
-            # MnF4... also a gas in the molten salt range.
-            z_to_oxidation_num_map['25']=4 #manganese
-            z_to_oxidation_num_map['26']=3 #iron
-            # CoF3... real nasty. readily does this:
-            # 4 CoF3 + 2 H2O -> 4 HF + 4 CoF2 + O2
-            #people say the the risk of sodium leaks in molten sodium
-            # reactors is bad. well, this may be worse... chemistry is key!
-            z_to_oxidation_num_map['27']=3 #cobalt
-            z_to_oxidation_num_map['22']=4 #titanium
-            # VF5 is a gas...
-            z_to_oxidation_num_map['23']=5 #vanadium
-            z_to_oxidation_num_map['21']=3 #scandium
-            z_to_oxidation_num_map['46']=3 #palladium
-            z_to_oxidation_num_map['28']=2 #nickel
-
-
-        else:
-            raise Exception("Wrong type of estimate. either upper or lower.")
-
-
-
-        if use_X_Doligez:
-            #This will use the oxidation states that X. Doligez calculated at University of Charles Fourier.
-            # see: http://www.sciencedirect.com.proxy.lib.utk.edu:90/science/article/pii/S0306454913004799
-            # *only accessible from that link with UTK netid
-            #specifically, see figure 3
-
-            #they predicted a large amount of FP's to be noble:
-            for z in range(26, 35) + range(41, 53) + [36, 54]:
-                z=str(z)
-                z_to_oxidation_num_map[z]=0
-
-            # I, Br at typical oxidation
-            for z in ['35', '53']:
-                z_to_oxidation_num_map[z]=-1
-
-            # tetrafluorides
-            for z in ['40', '90', '91', '92']:
-                z_to_oxidation_num_map[z]=4
-
-            #trifluoride
-            for z in range(57, 70) + range(93, 97):
-                z=str(z)
-                z_to_oxidation_num_map[z]=3
-
-            for z in ['37', '55']:
-                z_to_oxidation_num_map[z]=1 #typical alkali
-
-            for z in ['38', '56']:
-                z_to_oxidation_num_map[z]=2 #typical alkaline
-
-
-
-        #--------------------------------------------------------------
-
-        #check to make sure that I added standard oxidation states for each z value in the problem
-        for z in zvals_moles.keys():
-            if z not in z_to_oxidation_num_map.keys():
-                raise Exception("Add a standard oxidation state for Z={0}".format(z))
-
-        #sometimes you want that z to charge map, so return it if specified
-        if ret_z2charge:
-            return z_to_oxidation_num_map
-
-        #Now if we loop through all the moles of each element, and multiply by charge, and sum, we should come out with net moles of charge
-        # if the elements all take on their expected oxidation states.
-        totalcharge=0.0 #moles
-        chargevals=[]
-        for z in zvals_moles.keys():
-            totalcharge += z_to_oxidation_num_map[z] * zvals_moles[z] #(moles charge / mole) * (total moles)
-
-        #ok, now how many moles of fluorine are excess?
-        #if the net charge is negative, and fluorine has a charge of -1, then moles excess fluorine = -1 * totalcharge
-        if printfexcess:
-            if totalcharge < 0.0:
-                print "There is an excess of fluorine in the core.\n There are {0} too many moles of fluorine total.".format(totalcharge * -1)
-            elif totalcharge >= 0.0:
-                print "The core has created an excessively reducing environment. {0} moles of fluorine are need additionally.".format(totalcharge* -1)
-        if printoxstates:
-            print z_to_oxidation_num_map
-        return -1*totalcharge
 
     def popMaterial(self, matname):
         """Removes and returns a material with material name matname
@@ -1839,7 +1902,7 @@ class SerpentInputFile(object):
                         if float(num) != 0.0:
                             inputfiletext.append('mflow flow{0}\n'.format(flowindex))
                             inputfiletext.append('all {0}\n'.format(num))#constant volume flows are almost certainly not chemical processes, and will include the whole of the material
-                            reproschemetext+='rc {0} {1} flow{2} 0 %0 indicates constant flow\n'.format(mat1,mat2,flowindex)
+                            reproschemetext+='rc {0} {1} flow{2} 2 %2 indicates constant flow\n'.format(mat1,mat2,flowindex)
                             flowindex+=1
                         inputfiletext.append('\n')
                 if self.ratioflows!=[]:
@@ -2138,3 +2201,15 @@ class SerpentInputFile(object):
             self.materials[indx].SetTemp(mattemp)
             self.materials[indx].SetAsBurnable()
 
+    def getMat(self, matname):
+        """ Ok, it is ridiculous that I didn't make this method earlier.
+        Takes a material name, returns a pointer to that material.
+        Input:
+            matname -- name of material in input file
+        Output:
+            A pointer to a SerpentMaterial object."""
+        for mat in self.materials:
+            if mat.materialname is matname:
+                return mat
+        else:
+            raise Exception("material {} not found in this input file.".format(matname))

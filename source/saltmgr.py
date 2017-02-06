@@ -133,7 +133,7 @@ for line in inpfile:
         # need to be sure to watch for 'include' statements in the file
 
         if sline[1] == 'serpentInput':
-            
+           
             # name of serpent input file to read from
             optdict['core']=('serpentInput', sline[2])
 
@@ -185,12 +185,14 @@ for line in inpfile:
         quantity = sline[1] 
         material = sline[3]
         deltamat = sline[5]
-        saltComp = None
+        saltComp = None # component of salt if concentration is controlled
+        concentration = None # concentration to aim for (atoms / cmb)
 
 
         if quantity == 'conc':
             # which nuclide or element component gets controlled?
             saltComp = sline[7]
+            concentration = sline[8]
 
         elif quantity == 'excessFluoride':
             # need to mitigate excess fluorine nuclei, of course
@@ -200,7 +202,7 @@ for line in inpfile:
             raise Exception('{} is not a known maintenance option ATM'.format(quantity)
 
         # then add this on to the list of maintenance commands
-        optdict['maintenance'].append(quantity, material, deltamat, saltComp)
+        optdict['maintenance'].append(quantity, material, deltamat, saltComp,concentration)
 
     elif sline[0] == 'constflow':
 
@@ -393,7 +395,7 @@ while burnttime < maxburntime:
     # now loop through all of the "salt management" quantities.
     # just make a list of the quantities of interest (eg fluorideExcess),
     # and then calculate the flows needed to mitigate them.
-    for quantity, controlmaterial, additive, saltcomp in optdict['maintenance']:
+    for quantity, controlmaterial, additive, saltcomp,concentration in optdict['maintenance']:
 
         controlpoint = myCore.getMat(controlmaterial) # pointer to control material
         additivepoint = myCore.getMat(additive) # pointer to additive
@@ -435,6 +437,9 @@ while burnttime < maxburntime:
             # this is just a concentration of some material, eg thorium.
             # it may be either a unique isotope, or an element Z value. 
             # if it is a Z value, sum across isotopes.
+
+            # NOTE probably need to add try/except KeyError expressions to handle when a nuclide is missing
+
             if len(saltcomp) is 1 or len(saltcomp) is 2:
                 # implies a Z value
                 important_quantity = 0.0 #init
@@ -452,12 +457,34 @@ while burnttime < maxburntime:
 
 
             elif len(saltcomp) is 4 or len(saltcomp) is 5:
-
+                
+                # this means that a single isotope is being controlled.
                 important_quantity = controlpoint.isotopic_content[saltcomp]
+
+                # also, get its concentration in the additive material.
+                additive_conc = additivepoint.isotopic_content[saltcomp]
 
             else:
 
                 raise Exception('unknown salt component {} in {}'.format(saltcomp, controlmat))
+
+            # Now that both concentrations are known, the flow needed to maintain the desired concentration
+            # is now known.
+            # the total excess quantity in the fuel salt is:
+            total_excess = (important_quantity - concentration) * controlpoint.volume #units of 1/(cmb) * cm^3
+
+            if total_excess < 0.0:
+
+                # need to add material
+                flow = -1.0 * total_excess / (additive_conc * additivepoint.volume) / float(daystep*24*3600) #no unit
+                
+                # set the flow (ccm/s)
+                myCore.SetConstantVolumeFlow(additive,controlmaterial,
+
+            elif total_excess > 0.0:
+
+                # need to remove material
+                flow = total_excess / (important_quantity * controlpoint.volume)  / float(daystep*24*3600)
 
         else:
             raise Exception('unknown quantity {}'.format(quantity))

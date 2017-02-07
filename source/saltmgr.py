@@ -392,6 +392,10 @@ while burnttime < maxburntime:
         elif flowt ==2:
             raise Exception('OK, does anyone actually know what type 2 flows do??')
 
+    # ------------------------------------------
+    # ---         Salt Maintenance           ---
+    # ------------------------------------------
+
     # now loop through all of the "salt management" quantities.
     # just make a list of the quantities of interest (eg fluorideExcess),
     # and then calculate the flows needed to mitigate them.
@@ -471,21 +475,138 @@ while burnttime < maxburntime:
             # Now that both concentrations are known, the flow needed to maintain the desired concentration
             # is now known.
             # the total excess quantity in the fuel salt is:
-            total_excess = (important_quantity - concentration) * controlpoint.volume #units of 1/(cmb) * cm^3
+            total_excess = (concentration - important_quantity) * controlpoint.volume #units of 1/(cmb) * cm^3
 
             if total_excess < 0.0:
 
                 # need to add material
-                flow = -1.0 * total_excess / (additive_conc * additivepoint.volume) / float(daystep*24*3600) #no unit
+                flow = -1.0 * total_excess / (additive_conc) / float(daystep*24*3600) # units of ccm/s
                 
                 # set the flow (ccm/s)
-                myCore.SetConstantVolumeFlow(additive,controlmaterial,
+                myCore.SetConstantVolumeFlow(additive,controlmaterial,flow)
+                myCore.SetConstantVolumeFlow(controlmaterial,additive,0.0) # delete old flow if it exists
 
             elif total_excess > 0.0:
 
                 # need to remove material
-                flow = total_excess / (important_quantity * controlpoint.volume)  / float(daystep*24*3600)
+                flow = total_excess / (important_quantity * controlpoint.volume)  / float(daystep*24*3600) #ccm/s
+
+                # set the flow!
+                myCore.SetConstantVolumeFlow(additive,controlmaterial,0.0) # delete old flow in wrong direction
+                raise Exception(" Where should any excess material be going? need to code this in. ")
+                myCore.SetConstantVolumeFlow(controlmaterial,asdf,adsf)
+
+            else total_excess == 0.0:
+
+                #what are the odds of this happening??
+                flow = 0.0
+
+                # delete both flows
+                myCore.SetConstantVolumeFlow(additive,controlmaterial,0.0)
+                myCore.SetConstantVolumeFlow(controlmaterial,additive,0.0)
 
         else:
             raise Exception('unknown quantity {}'.format(quantity))
+
+
+    # now that all flows are set:
+    # --- RUN DAT INPUT FILE ---
+    myCore.WriteJob()
+    myCore.SubmitJob()
+
+    # wait
+    while not (inputfile.IsDone()):
+        time.sleep(3)
+
+    # grab results
+    keff,relerror = myCore.ReadKeff(returnrelerror=True) #ABS estimate keff
+
+    # record all reactivities into the correct variables
+    if refuelrate> 0:
+
+        # record refuelrates and resulting reactivities if refueling
+        refueltestrhos.append( (keff-1.)/keff )
+        attempted_refuel_rates.append( refuelrate )
+        refuel_sigmas.append(relerror)
+
+    elif absorberadditionrate > 0.:
+
+        # record absorber rates and rhos if adding absorber
+        absorbertestrhos.append( (keff-1.)/keff )
+        attempted_absorber_rates.append(absorberadditionrate)
+        absorber_sigmas.append(relerror)
+
+    elif refuelrate == 0.0 and absorberadditionrate==0.0:
+
+        # record both if nothing is being addded
+        absorbertestrhos.append( (keff-1.)/keff )
+        attempted_absorber_rates.append(absorberadditionrate)
+        absorber_sigmas.append(relerror)
+        refueltestrhos.append( (keff-1.)/keff )
+        attempted_refuel_rates.append( refuelrate )
+        refuel_sigmas.append(relerror)
+
+    else:
+
+        # something's wrong...
+        print absorberadditionrate,refuelrate
+        raise Exception("absorber addition rate or refuel rate took on an unreasonable value")
+
+    # --- now, where did keff land? ---
+
+    if lowerkeffbound > keff or upperkeffbound < keff:
+
+        # run test cases!
+        testinputfiles = [copy.copy(myCore) for x in range(num_test_cases)] # copy some!
+
+        # try some new refuel rates to collect data
+        refuelrates_to_try=np.random.random_sample(num_test_cases) * refuelrate*2.5
+        absorberaddition_rates_to_try=np.random.random_sample(num_test_cases) * absorberadditionrate * 0.5
+
+        # next, make sure all the guessed flows are reasonable
+
+        # check for unreasonable guessed flows
+        for i,testcore in enumerate(testinputfiles):
+
+            # do some sanity checks. let's not collapse the core into a neutron star, etc.
+            if refuelrates_to_try[i] > 10.:
+                print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."
+                print "Reducing flow to reasonable guess value for data collection"
+                refuelrates_to_try[i] = np.random.random_sample(1)[0] * 30.
+            elif absorberaddition_rates_to_try[i] > 0.3:
+                print 'too much absorber being attempted to be added, reducing'
+                absorberaddition_rates_to_try[i] = np.random.random_sample(1)[0] * 10.0
+
+            # create new directories to run each of the tests in
+            # by default, for now, they are named test<testnumber>
+            lswdir = os.listdir('.')
+            if 'test{}'.format(i) in lswdir:
+                
+                # remove old tests
+                subprocess.call(['rm -r test{}'.format(i)])
+            
+            # create new test directory
+            subprocess.call(['mkdir test{}'.format(i)])
+
+            #set the refuel rates
+            # refuels will be 0 if adding absorber, and vice-versa
+            testcore.SetConstantVolumeFlow('refuel','fuel',refuelrates_to_try[i])
+            testcore.SetConstantVolumeFlow('absorbertank','fuel', absorberaddition_rates_to_try[i])
+
+            # need to set this constant volume outflow to compensate for stuff getting added.
+            # NOTE if salt management is bringing other materials in, this will have to be 
+            # included in this outflow. Maybe a method should be created that will clear outflows,
+            # then recalculate how much material should come out to balance whatever comes in.
+            testcore.SetConstantVolumeFlow('fuel','excessfueltank',
+                                           refuelrates_to_try[i]+
+                                           absorberaddition_rates_to_try[i])
+            testcore.num_nodes=3 #this could be dynamically changed
+            testcore.SetInputFileName('test{0}'.format(i))
+
+            # move into the new test directory
+            os.chdir('test{}.format(i)')
+            testcore.WriteJob()
+            testcore.SubmitJob()
+
+            os.chdir('..')
 

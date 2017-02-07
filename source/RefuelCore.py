@@ -14,7 +14,7 @@ def ZfromZAID(zaid):
     elif len(zaid) is 5:
         z = zaid[:2]
     else:
-        raise Exception('what z value does {} have?'.format(zaid)
+        raise Exception('what z value does {} have?'.format(zaid))
 
     return z
 
@@ -1915,7 +1915,7 @@ class SerpentInputFile(object):
                         if float(num) != 0.0:
                             inputfiletext.append('mflow flow{0}\n'.format(flowindex))
                             inputfiletext.append('all {0}\n'.format(num))#constant volume flows are almost certainly not chemical processes, and will include the whole of the material
-                            reproschemetext+='rc {0} {1} flow{2} 2 %2 indicates constant flow\n'.format(mat1,mat2,flowindex)
+                            reproschemetext+='rc {0} {1} flow{2} 0 %0 indicates constant flow\n'.format(mat1,mat2,flowindex)
                             flowindex+=1
                         inputfiletext.append('\n')
                 if self.ratioflows!=[]:

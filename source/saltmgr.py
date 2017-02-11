@@ -230,6 +230,21 @@ for line in inpfile:
         # now this can be safely appended to constflows
         optdict['constflows'].append( (nuclides, numbers, flowtype, mat1, mat2) )
 
+    elif sline[0] == 'reactivityDropFlow':
+
+        # this is the flow that drops reactivity when needed, eg
+        # absorber going to fuel
+        downRhoFrom = sline[1]
+        downRhoTo   = sline[2]
+        downRhoIsotopes = sline[3] #must be comma separated, no space
+
+    elif sline[0] == 'reactivityRiseFlow':
+
+        # this is typically a refuel flow into fuel.
+        upRhoFrom = sline[1]
+        upRhoTo   = sline[2]
+        upRhoIsotopes = sline[3] # comma separated, no space
+
     elif line !='\n':
         raise Exception('unknown keyword: {}'.format(line)
         
@@ -334,22 +349,22 @@ refuelrate=initialguessrefuelrate
 refuelrate= 0.5 # need to create a better guess on this
 #---------------
 
-absorberadditionrates=[]
+downRhoRates=[]
 Umetaladditionrates=[]
-absorberadditionrate=0.0
+downRhoRate=0.0
 Umetaladditionrate=0.0
 
 burnsteps=[]
 material_densities=[]
 successful_keffs=[]
 successful_refuelrates=[]
-successful_absorberrates=[]
+successful_downRhoRates=[]
 successful_Umetaladditionrates=[]
-absorbertestrhos=[]
+downRhotestRhos=[]
 refueltestrhos=[]
-attempted_absorber_rates=[]
+attempted_downRhoRates=[]
 attempted_refuel_rates=[]
-absorber_sigmas=[]
+downRho_sigmas=[]
 refuel_sigmas=[]
 
 #---------------------------#
@@ -374,7 +389,7 @@ for mat in myCore.materials:
     print 'playin it safe rn'
     quit()
 
-raise Exception(' need to add a definition of depltion sequence. define "daystep"')
+raise Exception(' need to add a definition of depletion sequence. define "daystep"')
 
 # BURN BABY BURN
 while burnttime < maxburntime:
@@ -383,13 +398,14 @@ while burnttime < maxburntime:
     for nuc,num,flowt in optdict['constflows']:
 
         if flowt == 0: #flow type = 0
-            assert nuc[0] == 'all' #constant volume must mean all flow
-            myCore.AddFlow(mat1, mat2, nuc[0], num[0], 0)
+            raise Exception("Jaakko says: 'No type 0 flows!'")
 
         elif flowt == 1:
             myCore.AddFlow(mat1, mat2, nuc, num, 1)
 
         elif flowt ==2:
+            myCore.AddFlow(mat1, mat2, nuc[0], num[0], 2)
+            assert nuc[0] == 'all' #constant volume must mean all flow
             raise Exception('OK, does anyone actually know what type 2 flows do??')
 
     # ------------------------------------------
@@ -529,19 +545,19 @@ while burnttime < maxburntime:
         attempted_refuel_rates.append( refuelrate )
         refuel_sigmas.append(relerror)
 
-    elif absorberadditionrate > 0.:
+    elif downRhorate > 0.:
 
-        # record absorber rates and rhos if adding absorber
-        absorbertestrhos.append( (keff-1.)/keff )
-        attempted_absorber_rates.append(absorberadditionrate)
-        absorber_sigmas.append(relerror)
+        # record downRho rates and rhos if adding reactivity fall flow
+        downRhotestrhos.append( (keff-1.)/keff )
+        attempted_downRhoRates.append(downRhoRate)
+        downRho_sigmas.append(relerror)
 
-    elif refuelrate == 0.0 and absorberadditionrate==0.0:
+    elif refuelrate == 0.0 and downRhoRate==0.0:
 
         # record both if nothing is being addded
-        absorbertestrhos.append( (keff-1.)/keff )
-        attempted_absorber_rates.append(absorberadditionrate)
-        absorber_sigmas.append(relerror)
+        downRhotestrhos.append( (keff-1.)/keff )
+        attempted_downRhoRates.append(downRhoRate)
+        downRho_sigmas.append(relerror)
         refueltestrhos.append( (keff-1.)/keff )
         attempted_refuel_rates.append( refuelrate )
         refuel_sigmas.append(relerror)
@@ -549,7 +565,7 @@ while burnttime < maxburntime:
     else:
 
         # something's wrong...
-        print absorberadditionrate,refuelrate
+        print downRhoRate,refuelrate
         raise Exception("absorber addition rate or refuel rate took on an unreasonable value")
 
     # --- now, where did keff land? ---
@@ -561,7 +577,7 @@ while burnttime < maxburntime:
 
         # try some new refuel rates to collect data
         refuelrates_to_try=np.random.random_sample(num_test_cases) * refuelrate*2.5
-        absorberaddition_rates_to_try=np.random.random_sample(num_test_cases) * absorberadditionrate * 0.5
+        downRho_to_try=np.random.random_sample(num_test_cases) * downRhoRate * 0.5
 
         # next, make sure all the guessed flows are reasonable
 
@@ -573,9 +589,9 @@ while burnttime < maxburntime:
                 print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."
                 print "Reducing flow to reasonable guess value for data collection"
                 refuelrates_to_try[i] = np.random.random_sample(1)[0] * 30.
-            elif absorberaddition_rates_to_try[i] > 0.3:
+            elif downRho_to_try[i] > 0.3:
                 print 'too much absorber being attempted to be added, reducing'
-                absorberaddition_rates_to_try[i] = np.random.random_sample(1)[0] * 10.0
+                downRho_to_try[i] = np.random.random_sample(1)[0] * 10.0
 
             # create new directories to run each of the tests in
             # by default, for now, they are named test<testnumber>
@@ -590,8 +606,10 @@ while burnttime < maxburntime:
 
             #set the refuel rates
             # refuels will be 0 if adding absorber, and vice-versa
+            # will need to make this able to accept other reactivity control modes,
+            # eg uranium removal
             testcore.SetConstantVolumeFlow('refuel','fuel',refuelrates_to_try[i])
-            testcore.SetConstantVolumeFlow('absorbertank','fuel', absorberaddition_rates_to_try[i])
+            testcore.SetConstantVolumeFlow(downRhoFrom,downRhoTo, downRho_to_try[i])
 
             # need to set this constant volume outflow to compensate for stuff getting added.
             # NOTE if salt management is bringing other materials in, this will have to be 
@@ -610,3 +628,154 @@ while burnttime < maxburntime:
 
             os.chdir('..')
 
+        # now wait for all files to finish
+        while not all([core.IsDone() for core in testinputfiles]):
+            time.sleep(3)
+
+        # time to make some fits to the data we get.
+        # firstly, grab keff. this code is restructed from the original refuelmsr.py.
+        if downRhoRate != 0.0:
+
+            # iterate through new data
+            for core in testinputfiles:
+
+                keff, sigma = core.ReadKeff(returnrelerror=True)
+                rho = (keff - 1.0) / keff
+                downRhotestRhos.append(rho)
+                downRho_sigmas.append(sigma)
+
+            # save all the attempted downRho rates
+            attempted_downRhoRates.extend(downRho_to_try)
+
+            # make a new reactivity fit object
+            myfit = RefuelorAbsorberFit(myCore, fittype="Refuel")
+            myfit.fitcurve(attempted_downRhoRates, downRhotestrhos)
+
+            # make a new guess to the absorber rate now
+            downRhoRate = myfit.guessfunctionzero()
+
+            # sometimes, nothing at all should be added.
+            # the curve fit method is bad at predicting this.
+            # thus, try zero for every third reactivity iteration.
+            if iternum == 3:
+                downRhoRate = 0.0
+
+            # if the curve fit made an unreasonable function, more
+            # data must be collected. random sample!
+            if np.isnan(downRhoRate):
+                downRhoRate = (np.random.random_sample(1)[0]-.5)
+
+            # now print out some results
+            print "---------   Iteration {0} at {1} days   ------------".format(iternum, burnttime)
+            print "currently attempting to add burnable absorber.\n Absorber addition rate is {0} ccm/s.".format(
+                    downRhoRate)
+            print "attempted absorber addition rates are:"
+            print attempted_downRhoRates
+            print "resulting reactivities are:"
+            print downRhotestRhos
+
+        # this is the corresponding procedure for calculating refuel flows
+        elif refuelrate != 0.0 or (refuelrate == 0.0 and downRhoRate == 0.0):
+
+            for core in testinputfiles:
+                
+                # record all results
+                keff, sigma = core.ReadKeff(returnrelerror=True)
+                rho = ( keff - 1.0) / keff
+                refueltestrhos.append(rho)
+                refuel_sigma.append(sigma)
+
+            # add refuel rates to the longer list (not this set of trials)
+            attempted_refuel_rates.extend(refuelrates_to_try)
+
+            # init fit object
+            myfit=RefuelorAbsorberFit(inputfile)
+
+            # fit the data to curve
+            myfit.fitcurve(attempted_refuel_rates, refueltestrhos)
+
+            # zero the curve: ie zero reactivity
+            refuelrate = myfit.guessfunctionzero()
+
+            # again, don't use any unreasonable results; if so collect more data
+            if np.isnan(refuelrate) or refuelrate > 50.0:
+
+                # make a reasonable guess
+                refuelrate = np.random.random_sample(1)[0] * initialguessrefuelrate
+
+            # try zero refuel on every third iteration, just seems to speed stuff up well.
+            if iternum == 3:
+
+                refuelrate = 0.0
+
+            # lastly, print out info for this iteration
+            print "----------Iteration {0} at {1} days------------".format(iternum,burnttime)
+            print "refuel rate attempted in this iteration is {0} ccm/s".format(refuelrate)
+            print "attempted refuel rates are:"
+            print attempted_refuel_rates
+            print "resulting reactivities are:"
+            print refueltestrhos
+
+        else:
+
+            # you shouldnt refuel and try to lower rho at the same time.
+            raise Exception("tried to lower reactivity and refuel at the same time. very wrong. apologize!"
+
+        # next, if a negative rho lowering flow is specified or a 
+        # negative refuel rate, this means that reactivity should be moving in
+        # the other direction. switch em up!
+        if refuelrate < 0.0:
+
+            refuelrate = 0.0
+            downRhoRate = initialguessrefuelrate * 0.1 # could add better guessing here
+
+        elif downRhoRate < 0.0:
+
+           downRhoRate = 0.0
+           refuelrate = initialguessrefuelrate # reasonable, but could be better
+
+        # bump up the iteration counter on solving for correct rates at this timestep
+        iternum += 1
+
+    # yay, keff was in desired bounds!
+    elif lowerkeffbound <= keff or upperkeffbound >= keff:
+
+        # clear all of the data used in calculating the new refuel rate
+        absorbertestrhos=[]
+        refueltestrhos=[]
+        attempted_absorber_rates=[]
+        attempted_refuel_rates=[]
+        absorber_sigmas=[]
+        refuel_sigmas=[]
+        iternum=0 #reset refuel rate solver iteration number
+
+        #save the input file's info
+        burnsteps.append(burnttime)
+        successful_keffs.append(inputfile.ReadKeff())
+        inputfile.keff=inputfile.ReadKeff()
+        inputfile.convratio = inputfile.ReadConvRatio()
+        inputfile.betaEff = inputfile.ReadBetaEff()
+        successful_refuelrates.append(refuelrate)
+        successful_absorberrates.append(absorberadditionrate)
+        successful_Umetaladditionrates.append(Umetaladditionrate)
+
+        # grabbing the max damage flux to graphite only automatically works with
+        # the DMSR core writer mode
+        if optdict['core'][0]=='DMSR':
+            myCore.GetMaxDamageFlux()
+
+        # now, write out a copy of the current myCore object to the output directory.
+        # allows easy sorting of data!
+        with open(outputdirectory+'/inputday{}.dat'.format(int(burnttime)),'w') as out:
+
+            pickle.dump(myCore, f)
+
+        # increment burnt time now that it's all saved, and continue.
+        # maybe this time step could dynamically change
+        burnttime += timeincrement
+
+    else:
+        raise Exception("keff was read incorrectly. was not a number.")
+
+endtime = time.asctime()
+print "job started at {} and finished at {}".format(starttime, endtime)

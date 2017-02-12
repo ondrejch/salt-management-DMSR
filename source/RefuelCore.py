@@ -914,6 +914,61 @@ class SerpentMaterial(object):
             self.isotopic_content[iso]/=sumfracs
         #thats all folks
         return None 
+
+    def converToAtomDens(self):
+        """ converts material to be in terms of atom densities and fractions,
+        not those darn mass fractions that are typically less easy to do some
+        calculations on. 
+        args : none
+        returns :none """
+
+        # check if the material is already in terms of atom densities
+        if self.atomdensity is not None and all([self.isotopic_content[comp] >= 0.0 for comp in self.isotopic_content.keys()]):
+
+            # do nothing then
+            return None
+
+        # mass density given, but isotopics in terms of atom fracs
+        elif self.atomdensity is None and all([self.isotopic_content[comp] >= 0.0 for comp in self.isotopic_content.keys()]):
+
+            # find the "molar mass" of this material
+            self.normalizeIsotopics()
+
+            # init. average mass of one atom of this mix (amu)
+            mmass = 0.0
+
+            #sum atomic weights over composition
+            for iso in self.isotopic_content.keys():
+                mmass += getmass.getIsoMass(iso)
+
+            # set the atom density, (cmb)^-1
+            self.density=self.atomdensity=self.massdensity / mmass * .602214086
+
+            return None #done
+
+        # last case: both density and fractions given in mass terms
+        elif self.atomdensity is None and not all([self.isotopic_content[comp] >= 0.0 for comp in self.isotopic_content.keys()]):
+
+            # normalize mass fractions.
+            self.normalizeIsotopics()
+
+            # consider one cubic centimeter of material. first, all mass fractions get resaved as atom densities
+            for iso in self.isotopic_content.keys():
+
+                self.isotopic_content[iso] = self.massdensity * self.isotopic_content[iso] / getmass.getIsoMass(iso) * .602214086
+
+            # now, all atom densities properly normalize to the atom density
+            self.density = self.atomdensity = sum( self.isotopic_content.values() )
+
+            return None
+
+        else:
+
+            print self
+            # if someone actually needs to deal with materials where atom density is given with isotopics
+            # in mass fractions, ill fix this when the time comes
+            raise Exception("encountered unforeseen material definition.")
+
  
     def SetTemp(self, temp):
         """Used for setting the temperature of the material for either TMP or TMS.
@@ -1602,6 +1657,7 @@ class SerpentInputFile(object):
         #first the indices of the materials to flow from must be known
         mat1index=None
         mat2index=None
+
         for index,mat in enumerate(self.materials):
             if mat.materialname==mat1:
                 mat1index=index
@@ -1614,8 +1670,34 @@ class SerpentInputFile(object):
             raise Exception("material {0} not found in this input file.".format(mat1))
         if mat2index==None:
             raise Exception("material {0} not found in this input file.".format(mat2))
+
+        # using type 2 flows depletes source material. the material here will be less 
+        # dense than its original composition. to compensate, the volume flow is 
+        # adjusted so that the flow rate passed to this method will set a volume flow
+        # equivalent to the same volume flow of the source material at time t=0.
+        # in other words, you must increase the volume flow rate you tell serpent to
+        # do to compensate for falling material density.
+        # e.g:
+        # you set a 1 ccm/s flow of FLiBe into the core at time step 0
+        # you continue, and then set another 1 ccm/s flow of FLiBe into the
+        # core at time step 1. At this time step 1, the total amount of material
+        # moving into the core is not the same as it once was, because the density
+        # of the source fell over the first depletion step.
+
+        adjustedFlowRate = rate * mat1index.initDensity / mat1index.atomdensity
+
         #now the flow can be added on, and the volume argument is translated into the ratio that serpent takes
-        ratioflow=rate/(self.materials[mat1index]).volume #serpent flows are based on fractions of the material per second
+        ratioflow=adjustedFlowRate / (self.materials[mat1index]).volume #serpent flows are based on fractions of the material per second
+
+        if len(self.BurnTime) > 1:
+            raise Exception('yeah, probably should do one depletion step at a time ya know')
+
+        # now, check if the material will run out over this depletion step.
+        if ratioflow * float(self.BurnTime[0])*24.0*3600.0 > 1:
+
+            print 'material {} will run out this depletion step, restocking to original density'.format(mat1)
+            mat1.restock()
+
         #if this is a flow between two materials that already exists, override the old one
         delindex=0
         makedeletion=False
@@ -1626,6 +1708,11 @@ class SerpentInputFile(object):
             delindex+=1
         if makedeletion:
             del self.volumetricflows[delindex]
+
+        # now, ONLY type 2 flows can be used. 
+        # these deplete source material.
+        # here, check if the material will run out during this depletion
+        # step. If so, restock the material!
         self.volumetricflows.append((mat1,mat2,ratioflow))
 
     def AddFlow(self, mat1, mat2, nuc, num, flowtype):

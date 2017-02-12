@@ -337,6 +337,11 @@ elif optdict['core'][0] == 'serpentInput':
 else:
     raise Exception('bad error here')
 
+# now, convert all materials in the input file into atom density/fraction
+# terms. these are much easier to work with IMO.
+for mat in myCore.materials:
+    mat.converToAtomDens()
+
 # --- initialization ---
 
 burnttime = 0
@@ -773,6 +778,9 @@ while burnttime < maxburntime:
         # increment burnt time now that it's all saved, and continue.
         # maybe this time step could dynamically change
         burnttime += timeincrement
+
+        # copy burnt materials into current input
+        myCore.CopyBurntMaterials()
 
     else:
         raise Exception("keff was read incorrectly. was not a number.")

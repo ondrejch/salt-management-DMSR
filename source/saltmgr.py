@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Main script for salt-management-DMSR.
 import argparse
 import os
@@ -147,18 +148,18 @@ for line in inpfile:
         elif sline[1] == 'DMSR':
 
             # grab input params
-            coresize = sline[2]
-            pitch    = sline[3]
-            saltfrac = sline[4]
-            initenrich = sline[5]
-            salt_type = sline[6]
+            DMSRopts = {}
+            DMSRopts['coresize'] = sline[2]
+            DMSRopts['pitch'] = sline[3]
+            DMSRopts['saltfrac'] = sline[4]
+            DMSRopts['initenrich'] = sline[5]
+            DMSRopts['salt_type'] = sline[6]
 
-            # save it
             # storing data in tuples is cool i guess
-            optdict['core']=('DMSR',(coresize,pitch,saltfrac))
+            optdict['core']=('DMSR',DMSRopts))
 
-            print 'writing {} meter DMSR core with {} cm pitch and 
-                    salt fraction of {}'.format(coresize, pitch,saltfrac)
+            print 'writing {} meter DMSR core with {} cm pitch and salt fraction of {}'.format(
+                    coresize, pitch,saltfrac)
 
         elif sline[1] == 'oldObject':
 
@@ -168,16 +169,16 @@ for line in inpfile:
             if sline[2] not in os.listdir('.'):
 
                 raise Exception('old core obj {} not found in current dir'.format(
-                    sline[2])
+                    sline[2]))
 
             # save it
-            optdict['core']=='oldObject',sline[2]
+            optdict['core']='oldObject',sline[2]
 
         else:
             
-            raise Exception('unknown core option {}'.format(sline[1])
+            raise Exception('unknown core option {}'.format(sline[1]))
 
-    elif all([x in sline for x in ['maintain', 'in', 'via']):
+    elif all([x in sline for x in ['maintain', 'in', 'via']]):
 
         # this is a salt maintenance command, where some material is added to maintain
         # a desired quantity in the salt. Initially, I'm including fluoride excess
@@ -199,10 +200,10 @@ for line in inpfile:
             pass
 
         else:
-            raise Exception('{} is not a known maintenance option ATM'.format(quantity)
+            raise Exception('{} is not a known maintenance option ATM'.format(quantity))
 
         # then add this on to the list of maintenance commands
-        optdict['maintenance'].append(quantity, material, deltamat, saltComp,concentration)
+        optdict['maintenance'].append((quantity, material, deltamat, saltComp,concentration))
 
     elif sline[0] == 'constflow':
 
@@ -221,8 +222,7 @@ for line in inpfile:
 
         # input checks
         if not ( len(nuclides) == len(numbers) or len(numbers)==1 ):
-            raise Exception('length of flow numbers should be one or match 
-                            number of nuclides/elements given')
+            raise Exception('length of flow numbers should be one or match number of nuclides/elements given')
 
         if flowtype not in [0,1,2]:
             raise Exception(' flowtype {} is not a valid serpent flow type'.format(flowtype))
@@ -238,6 +238,12 @@ for line in inpfile:
         downRhoTo   = sline[2]
         downRhoIsotopes = sline[3] #must be comma separated, no space
 
+    elif sline[0] == 'maxIter':
+
+        # max iteration number when solving for flows to 
+        # properly maintain reactivity
+        maxiter = sline[1] 
+
     elif sline[0] == 'reactivityRiseFlow':
 
         # this is typically a refuel flow into fuel.
@@ -246,7 +252,7 @@ for line in inpfile:
         upRhoIsotopes = sline[3] # comma separated, no space
 
     elif line !='\n':
-        raise Exception('unknown keyword: {}'.format(line)
+        raise Exception('unknown keyword: {}'.format(line))
         
 
 # check input
@@ -258,8 +264,8 @@ if None in optdict.values():
 if optdict['core'][0] == 'serpentInputFile':
    
     # first off, create a new generic serpent input file object
-    myCore=genericserpentinput.genericInput(num_nodes=optdict['runsettings']['num_nodes']
-                                              ,PPN=optdict['runsettings']['PPN']
+    myCore=genericserpentinput.genericInput(num_nodes=optdict['runsettings']['num_nodes'],
+                                              PPN=optdict['runsettings']['PPN'],
                                               queue=['runsettings']['queue'])
 
     # try to read in the serpent input file and save all of its options, materials, etc
@@ -315,11 +321,11 @@ elif optdict['core'][0] == 'DMSR':
 
     # create a new DMSR from Dr. Chvala's core writer
     myCore = RefuelCore.SerpentInputFile(core_size=coresize,
-                                        salt_type=,
-                                        case=1,
-                                        salt_fraction=saltfrac,
-                                        pitch=pitch,
-                                        initial_enrichment=initenrich,
+                                        salt_type=optdict['core'][1]['salt_type'],
+                                        case=optdict['core'][1]['salt_type'],1,
+                                        salt_fraction=optdict['core'][1]['salt_type'],saltfrac,
+                                        pitch=optdict['core'][1]['salt_type'],pitch,
+                                        initial_enrichment=optdict['core'][1]['salt_type'],initenrich,
                                         num_nodes=optdict['runsettings']['num_nodes'],
                                         PPN=optdict['runsettings']['PPN'],
                                         queue=optdict['runsettings']['queue'] )
@@ -341,6 +347,11 @@ else:
 # terms. these are much easier to work with IMO.
 for mat in myCore.materials:
     mat.converToAtomDens()
+
+# now initial material densities must be saved.
+# see pydoc RefuelCore.SerpentInputFile.saveInitialDensities
+# for more information.
+myCore.saveInitialDensities()
 
 # --- initialization ---
 
@@ -784,6 +795,10 @@ while burnttime < maxburntime:
 
     else:
         raise Exception("keff was read incorrectly. was not a number.")
+
+    if iternum > maxiter:
+
+        raise Exception("Exiting. Hit maximum refuel solution iterations.")
 
 endtime = time.asctime()
 print "job started at {} and finished at {}".format(starttime, endtime)

@@ -603,6 +603,10 @@ class SerpentMaterial(object):
         self.massdensity=None #give none values if nothing is assigned.
         self.atomdensity=None
 
+        # this holds initial density info. see SerpentInputFile.saveInitDensity
+        # for more information
+        self.initDensity = None 
+
         #initially set the cross section library to the default.
         self.xstemplib=SerpentMaterial.default_temp_library
 
@@ -1299,6 +1303,12 @@ class SerpentMaterial(object):
             print z_to_oxidation_num_map
         return -1*totalcharge
 
+    def restock(self):
+        """ if a material is running low from using type 2 flows, and
+        may run out in the next depletion step, restore the density to
+        its original value """
+        self.atomdensity = self.density = self.initDensity
+
 import subprocess #used for terminal commands
 import os    
 class SerpentInputFile(object):
@@ -1667,7 +1677,7 @@ class SerpentInputFile(object):
                 mat.burn=True
         #if not found, raise exception
         if mat1index==None:
-            raise Exception("material {0} not found in this input file.".format(mat1))
+            raise Exception("material {0} not found in this input file.".format(mat1)) 
         if mat2index==None:
             raise Exception("material {0} not found in this input file.".format(mat2))
 
@@ -1684,7 +1694,7 @@ class SerpentInputFile(object):
         # moving into the core is not the same as it once was, because the density
         # of the source fell over the first depletion step.
 
-        adjustedFlowRate = rate * mat1index.initDensity / mat1index.atomdensity
+        adjustedFlowRate = rate * self.materials[mat1index].initDensity / self.materials[mat1index].atomdensity
 
         #now the flow can be added on, and the volume argument is translated into the ratio that serpent takes
         ratioflow=adjustedFlowRate / (self.materials[mat1index]).volume #serpent flows are based on fractions of the material per second
@@ -2002,7 +2012,7 @@ class SerpentInputFile(object):
                         if float(num) != 0.0:
                             inputfiletext.append('mflow flow{0}\n'.format(flowindex))
                             inputfiletext.append('all {0}\n'.format(num))#constant volume flows are almost certainly not chemical processes, and will include the whole of the material
-                            reproschemetext+='rc {0} {1} flow{2} 0 %0 indicates constant flow\n'.format(mat1,mat2,flowindex)
+                            reproschemetext+='rc {0} {1} flow{2} 2 %2 indicates constant flow\n'.format(mat1,mat2,flowindex)
                             flowindex+=1
                         inputfiletext.append('\n')
                 if self.ratioflows!=[]:
@@ -2313,3 +2323,19 @@ class SerpentInputFile(object):
                 return mat
         else:
             raise Exception("material {} not found in this input file.".format(matname))
+
+    def saveInitialDensities(self):
+        """ There is an interesting problem that plagues serpent. it would be nice to use a
+        constant flow that does not deplete source material. unfortunately this type 0 flow
+        has recently been determined to be faulty, allowing only usage of type 2 flows for 
+        constant flow. These deplete source material, meaning that numbers passed into serpent
+        must dyanmically change as material densities fall. additionally, these materials will
+        need to be occasionally restocked. SetConstantVolumeFlow covers all of these tasks
+        automatically.
+
+        args: none
+        returns: none """
+
+        for mat in self.materials:
+
+            mat.initDensity = mat.atomdensity

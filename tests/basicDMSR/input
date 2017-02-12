@@ -1,0 +1,14 @@
+#    core type   size (m)   pitch (cm)   salt frac     init enrich    salt type
+core DMSR        4.0        10.0         .10           .01            dflibe
+
+# keff bounding
+0.998 < keff < 1.002
+
+# refuel material specification:
+#              uses same composition as fuel     but at higher enrichment
+set refuel     moreEnrichedFuel                  0.2
+
+# run settings
+set PPN 8
+set queue gen5
+set num_nodes 4

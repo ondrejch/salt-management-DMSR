@@ -188,8 +188,7 @@ while burnttime<maxburntime:
         #first off, be sure there is still a Umetal material still in the input. If not, more must be added.
         for mat in inputfile.materials: #finding the Umetal material data
                 if mat.materialname=='Umetal':
-                        Umetal=mat
-                        break
+                        Umetal=mat break
         if Umetal==None:
                 #this indicates a uranium metal should be added to the input file
                 # this happens when serpent does not include material output for Umetal, so it must be re-added

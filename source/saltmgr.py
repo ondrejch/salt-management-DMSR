@@ -4,7 +4,7 @@ import argparse
 import os
 import pickle
 import RefuelCore
-import genericserpentinput
+import genericserpinput
 import pickle
 import time
 import copy
@@ -32,7 +32,7 @@ parser.add_argument('--outdir',dest='outputdirectory',type=str, nargs=1,
     help='name of output directory',default='inputfileslog')
 
 args = parser.parse_args()
-saltmgrinput = args.inpfile # name of saltmgr input file
+saltmgrinput = args.inpfile[0] # name of saltmgr input file
 outdir = args.outputdirectory
 originaldir = os.getcwd() # get current working dir
 
@@ -53,7 +53,7 @@ if outdir in os.listdir('.'):
         raise Exception('I SAID Y OR N, HOW DID YOU BREAK THIS')
 
 # now read from the input file.
-inpfile = open(saltmgrinput)
+inpfile = open(saltmgrinput, 'r')
 
 # init some variables that are necessary for running
 optdict = dict.fromkeys(['maintenance','keffbounds','refuel','absorber','core',
@@ -65,12 +65,17 @@ otheropts = [] # all other options
 # --- some options will be in the form of a list. init. ---
 optdict['maintenance']=[] # maintain concentration of thorium, keep F excess low, etc
 optdict['constflows'] =[] # used for stuff like offgasing, possibly removal of precious metals
-optdict['runsettings']=dict.fromkeys('PPN','queue','num_nodes') # set pop <blah>
+optdict['runsettings']=dict.fromkeys(['PPN','queue','num_nodes']) # set pop <blah>
 
 for line in inpfile:
     
     # split line
     sline = line.split()
+
+    if sline == []:
+
+        # pass blank lines
+        continue
 
     # now go through all options
     if sline[0] == 'set':
@@ -82,7 +87,10 @@ for line in inpfile:
             if sline[2] == 'moreEnrichedFuel':
 
                 # should be enrichment of refuel mat
-                optdict['refuel']=('moreEnrichedFuel',sline[3]) 
+                try:
+                    optdict['refuel']=('moreEnrichedFuel',sline[3]) 
+                except:
+                    raise Exception('please specify refuel enrichment')
 
             elif sline[2] == 'sameAsFuel':
                 
@@ -112,9 +120,9 @@ for line in inpfile:
     elif '<' in sline and 'keff' in sline:
 
         # set keff bounds
-        optdict['keffbounds'] = None,None
+        optdict['keffbounds'] = [None,None]
         optdict['keffbounds'][0] = float(sline[0])
-        optdict['keffbounds'][1] = float(sline[2])
+        optdict['keffbounds'][1] = float(sline[4])
 
 
     elif sline[0] == 'maintain':
@@ -156,10 +164,10 @@ for line in inpfile:
             DMSRopts['salt_type'] = sline[6]
 
             # storing data in tuples is cool i guess
-            optdict['core']=('DMSR',DMSRopts))
+            optdict['core']=('DMSR',DMSRopts)
 
             print 'writing {} meter DMSR core with {} cm pitch and salt fraction of {}'.format(
-                    coresize, pitch,saltfrac)
+                  DMSRopts['coresize']   , DMSRopts['pitch'] ,  DMSRopts['saltfrac'])
 
         elif sline[1] == 'oldObject':
 
@@ -251,13 +259,30 @@ for line in inpfile:
         upRhoTo   = sline[2]
         upRhoIsotopes = sline[3] # comma separated, no space
 
+    elif sline[0] == '#':
+
+        # this is a comment
+        continue
+
     elif line !='\n':
         raise Exception('unknown keyword: {}'.format(line))
         
 
-# check input
-if None in optdict.values():
-    raise Exception('not all required options were set')
+## check input
+#for key in optdict.keys():
+#    
+#    # check if iterable
+#    if optdict[key].__iter__:
+#        if None in optdict[key]:
+#            print 'be sure to set this value:'
+#            print key
+#            raise Exception('value not set')
+#
+#    elif None == optdict[key]:
+#        print 'be sure to set this value:'
+#        print key
+#        raise Exception('value not set')
+
 
 # Now take that, and deplete!
 # load a serpent input file, or generate one from the core writer?
@@ -320,12 +345,12 @@ if optdict['core'][0] == 'serpentInputFile':
 elif optdict['core'][0] == 'DMSR':
 
     # create a new DMSR from Dr. Chvala's core writer
-    myCore = RefuelCore.SerpentInputFile(core_size=coresize,
+    myCore = RefuelCore.SerpentInputFile(core_size=optdict['core'][1]['coresize'],
                                         salt_type=optdict['core'][1]['salt_type'],
-                                        case=optdict['core'][1]['salt_type'],1,
-                                        salt_fraction=optdict['core'][1]['salt_type'],saltfrac,
-                                        pitch=optdict['core'][1]['salt_type'],pitch,
-                                        initial_enrichment=optdict['core'][1]['salt_type'],initenrich,
+                                        case=1,
+                                        salt_fraction=float(optdict['core'][1]['saltfrac']),
+                                        pitch=float(optdict['core'][1]['pitch']),
+                                        initial_enrichment=float(optdict['core'][1]['initenrich']),
                                         num_nodes=optdict['runsettings']['num_nodes'],
                                         PPN=optdict['runsettings']['PPN'],
                                         queue=optdict['runsettings']['queue'] )
@@ -342,6 +367,9 @@ elif optdict['core'][0] == 'serpentInput':
 
 else:
     raise Exception('bad error here')
+
+# close the input file
+inpfile.close()
 
 # now, convert all materials in the input file into atom density/fraction
 # terms. these are much easier to work with IMO.
@@ -528,7 +556,7 @@ while burnttime < maxburntime:
                 raise Exception(" Where should any excess material be going? need to code this in. ")
                 myCore.SetConstantVolumeFlow(controlmaterial,asdf,adsf)
 
-            else total_excess == 0.0:
+            elif total_excess == 0.0:
 
                 #what are the odds of this happening??
                 flow = 0.0
@@ -735,7 +763,7 @@ while burnttime < maxburntime:
         else:
 
             # you shouldnt refuel and try to lower rho at the same time.
-            raise Exception("tried to lower reactivity and refuel at the same time. very wrong. apologize!"
+            raise Exception("tried to lower reactivity and refuel at the same time. very wrong. apologize!")
 
         # next, if a negative rho lowering flow is specified or a 
         # negative refuel rate, this means that reactivity should be moving in

@@ -7,6 +7,8 @@ def getIsoMass(zaid):
     """ grabs an isotopes mass in AMU. zaid should be in serpent format"""
     zaid = str(zaid) #coerce as string. serves as error checker/conversion
 
+
+
     #get z/a value
     if len(zaid) ==4:
         z=zaid[0]
@@ -21,6 +23,9 @@ def getIsoMass(zaid):
         if a[0]=='0':
             a=a[-2:]
 
+    # check if the nuclide is natural
+    if '000' in zaid:
+        return getNaturalMass(zaid, z)
 
     # now search the data file
     # should be the isotope mass one from the NIST website
@@ -62,6 +67,66 @@ def getIsoMass(zaid):
 
 
     return mass 
+
+def getNaturalMass(zaid, z):
+    """gets mass of a natural isotope. this is really meant
+    to just be called by getIsoMass, so please use that function
+    instead. """
+
+    abundances = {}
+    # add abundances by {zaid:abundance} pairs
+    datafile='/home/gridley/salt-management-DMSR/source/nistmasses.txt'
+    with open(datafile, 'r') as f:
+        current_z='  '
+        while current_z != z:
+            l=next(f)
+            current_z = l[-3:]
+            current_z = current_z[:2] #remove newline
+            current_z = current_z[-1] if current_z[0]==' ' else current_z
+            if z != '1':
+                while l != '\n' :
+                    try:
+                        l=next(f)
+                    except StopIteration:
+                        raise Exception("isotope {} not found".format(zaid))
+
+        while current_z == z:
+            l=next(f)
+            current_z = l[-3:]
+            current_z = current_z[:2] #remove newline
+            current_z = current_z[-1] if current_z[0]==' ' else current_z
+            if z != '1':
+                while l != '\n' :
+                    try:
+                        l=next(f)
+                        
+                        if l[:4] == 'Mass':
+                            current_a = l[-4:]
+                            current_a = current_a[:3] # remove \n
+                            if current_a[:2]=='= ':
+                                current_a=current_a[-1]
+                            elif current_a[0]==' ':
+                                current_a=current_a[1:]
+
+                        lsplit = l.split()
+                        if len ( lsplit ) == 3 or lsplit == []:
+                            continue # isotope does not occur in nature
+                        try:
+                            if lsplit[0]+lsplit[1] == 'IsotopicComposition':
+                                thisZaid = str( int(z)*1000 + int(current_a) )
+                                abundances[thisZaid] = float( lsplit[3].split('(')[0] )
+                        except IndexError:
+                            raise Exception('couldnt find abundance {}'.format(lsplit))
+                    except StopIteration:
+                        raise Exception("isotope {} not found".format(zaid))
+
+    natMass = 0.0
+
+    # add all weighted masses then
+    for key in abundances.keys():
+        natMass += getIsoMass(key) * abundances[key]
+
+    return natMass
 
 # run some examples
 if __name__=='__main__':

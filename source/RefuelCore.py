@@ -946,7 +946,7 @@ class SerpentMaterial(object):
                 mmass += getmass.getIsoMass(iso)
 
             # set the atom density, (cmb)^-1
-            self.density=self.atomdensity=self.massdensity / mmass * .602214086
+            self.density=self.atomdensity=  -1.0 * self.massdensity / mmass * .602214086
 
             return None #done
 
@@ -959,7 +959,7 @@ class SerpentMaterial(object):
             # consider one cubic centimeter of material. first, all mass fractions get resaved as atom densities
             for iso in self.isotopic_content.keys():
 
-                self.isotopic_content[iso] = self.massdensity * self.isotopic_content[iso] / getmass.getIsoMass(iso) * .602214086
+                self.isotopic_content[iso] = -1.0 * self.massdensity * self.isotopic_content[iso] / getmass.getIsoMass(iso) * .602214086
 
             # now, all atom densities properly normalize to the atom density
             self.density = self.atomdensity = sum( self.isotopic_content.values() )
@@ -1088,7 +1088,7 @@ class SerpentMaterial(object):
         #             to be a method of SerpentMaterial
 
         #if the fuel isotope densities are given in mass terms, then it is harder to calculate the excess fluorine. solution: i don't write that code.
-        if fuel.massdensity != None:
+        if fuel.massdensity is not None and fuel.atomdensity is None:
             raise Exception("convert stuff to atom fractions/densities first")
         atomdensity=fuel.atomdensity
         if atomdensity==None:

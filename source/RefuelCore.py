@@ -1113,9 +1113,9 @@ class SerpentMaterial(object):
                 raise Exception("something happened, Z>99 ?")
 
             if z not in zvals_moles.keys():
-                zvals_moles[z]=fuel.isotopic_content[iso] / 0.602214086 * self.fuelvolume #units are moles. total for all in-core salt.
+                zvals_moles[z]=fuel.isotopic_content[iso] / 0.602214086 * self.volume #units are moles. total for all in-core salt.
             elif z in zvals_moles.keys():
-                zvals_moles[z] +=fuel.isotopic_content[iso] / 0.602214086 * self.fuelvolume # ^^^
+                zvals_moles[z] +=fuel.isotopic_content[iso] / 0.602214086 * self.volume # ^^^
         if returnzvaldict:
             #print "CalcExcessFluorine returning total moles of each element for this core."
             return zvals_moles

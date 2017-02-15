@@ -424,10 +424,6 @@ if outdir not in os.listdir('.'):
 # oxidation number mapping. this can be dynamically changed if needed.
 for mat in myCore.materials:
     mat.Z2ox = mat.CalcExcessFluorine(ret_z2charge=True)
-    #debug
-    print mat.Z2ox
-    print 'playin it safe rn'
-    quit()
 
 raise Exception(' need to add a definition of depletion sequence. define "daystep"')
 

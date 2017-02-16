@@ -58,7 +58,7 @@ inpfile = open(saltmgrinput, 'r')
 # init some variables that are necessary for running
 optdict = dict.fromkeys(['maintenance','keffbounds','refuel','absorber','core',
                          'maxiter', 'constflows','fuel','runsettings','maxBurnTime',
-                         'burnIncrement']) #contains all options
+                         'burnIncrement','power']) #contains all options
 
 otheropts = [] # all other options
 
@@ -116,7 +116,44 @@ for line in inpfile:
 
                 optdict['runsettings']['num_nodes'] = sline[2]
 
+            elif sline[1] == 'dayStepping':
 
+                # there can be two kinds: nonuniform steps (probably more optimal) or uniform.
+                # right now, only uniform daystepping is done because I'm short on time.
+                
+                if sline[2] == 'uniform':
+
+                    daystep = int(sline[3])
+
+                else:
+
+                    raise Exception("unknown time stepping method {}".format(sline[2]))
+
+            elif sline[1] == 'maxBurnTime':
+
+                # how much time should depletion take place for?
+
+                if sline[3] == 'years':
+
+                    maxburntime = int( float(sline[2]) * 365.25)
+
+                elif sline[3] == 'days':
+                    
+                    maxburntime = int(sline[2])
+
+                else:
+                    
+                    raise Exception("unknown time unit {}, use days or years.".format(sline[2]))
+
+            elif sline[1] == 'power':
+
+                # power of the molten salt reactor
+
+                optdict['power'] = float(sline[2])
+
+            else:
+
+                raise Exception('unknown keyword {}'.format(sline[2]))
 
         elif '<' in sline and 'keff' in sline:
 
@@ -226,6 +263,13 @@ for line in inpfile:
             if flowtype not in [0,1,2]:
                 raise Exception(' flowtype {} is not a valid serpent flow type'.format(flowtype))
 
+            # format the data some
+            if len(numbers) ==1:
+                numbers = float(numbers[0])
+            else:
+                numbers = [float(num) for num in numbers]
+
+
             # now this can be safely appended to constflows
             optdict['constflows'].append( (nuclides, numbers, flowtype, mat1, mat2) )
 
@@ -263,22 +307,6 @@ for line in inpfile:
         print line
         raise Exception("Not enough arguments given.")
         
-
-## check input
-#for key in optdict.keys():
-#    
-#    # check if iterable
-#    if optdict[key].__iter__:
-#        if None in optdict[key]:
-#            print 'be sure to set this value:'
-#            print key
-#            raise Exception('value not set')
-#
-#    elif None == optdict[key]:
-#        print 'be sure to set this value:'
-#        print key
-#        raise Exception('value not set')
-
 
 # Now take that, and deplete!
 # load a serpent input file, or generate one from the core writer?
@@ -367,6 +395,16 @@ else:
 # close the input file
 inpfile.close()
 
+
+# next, add some uranium metal to the input file if some was requested.
+for quantity, controlmaterial, additive, saltcomp,concentration in optdict['maintenance']:
+
+    if additive == 'Umetal' and 'Umetal' not in [mat.materialname for mat in myCore.materials]:
+
+        enrich = .0072 #natural enrichment
+        myCore.AddUraniumMetal(enrich, 1e6) # 1e6 ccm volume
+
+
 # now, convert all materials in the input file into atom density/fraction
 # terms. these are much easier to work with IMO.
 for mat in myCore.materials:
@@ -420,18 +458,36 @@ iternum=0 #keeps track of number of iterations needed to solve for refuel rate i
 if outdir not in os.listdir('.'):
     subprocess.call(['mkdir', outdir])
 
-#loop through all materials, and give them the appropriate Z to 
+#loop through all materials that may be mixed with the salt, and give them the appropriate Z to 
 # oxidation number mapping. this can be dynamically changed if needed.
 for mat in myCore.materials:
     mat.Z2ox = mat.CalcExcessFluorine(ret_z2charge=True)
 
-raise Exception(' need to add a definition of depletion sequence. define "daystep"')
+# loop through all flows. If any materials are listed that are not actually
+# in the input file, assume they are empty tanks and add them.
+for a,b,c,mat1,mat2 in optdict['constflows']:
+
+    if mat1 not in [mat.materialname for mat in myCore.materials]:
+
+        print "adding material {} to input file. assuming empty tank of volume 1e6.".format(mat1)
+        myCore.materials.append(RefuelCore.SerpentMaterial('empty', volume = 1e6, materialname=mat1))
+
+    elif mat2 not in [mat.materialname for mat in myCore.materials]:
+
+        print "adding material {} to input file. assuming empty tank of volume 1e6.".format(mat2)
+        myCore.materials.append(RefuelCore.SerpentMaterial('empty', volume = 1e6, materialname=mat2))
+
+# set the burn time increment of the input file.
+myCore.SetBurnTime(daystep)
 
 # BURN BABY BURN
 while burnttime < maxburntime:
 
+    # set reactor power level
+    myCore.SetPowerNormalization('power',optdict['power'])
+
     # set all of the constant material flows, firstly
-    for nuc,num,flowt in optdict['constflows']:
+    for nuc,num,flowt,mat1,mat2 in optdict['constflows']:
 
         if flowt == 0: #flow type = 0
             raise Exception("Jaakko says: 'No type 0 flows!'")
@@ -458,7 +514,7 @@ while burnttime < maxburntime:
 
         # generally, calculate what the current quantity of interest is.
         # first, cover the case of fluoride.
-        if quantity is 'excessFluoride':
+        if quantity == 'excessFluoride':
 
             # returns total amount of excess fluoride in moles. NOT a concentration.
             important_quantity = controlpoint.CalcExcessFluorine()
@@ -483,12 +539,17 @@ while burnttime < maxburntime:
             # now, if totalToAdd is negative, you need to add an oxidizing agent, or do nothing
             # assuming your fuel becomes more oxidizing with time (TerraPower claims theirs doesnt
             # do this, personal comm. Jeff Latkowski )
-            if totalToAdd < 0.0:
-                raise Exception(" fuel became more reducing. WHY WHY WHY ")
+            if totalToAdd <= 0.0:
 
-            myCore.SetConstantVolumeFlow(additive, controlmaterial, totalToAdd/float(daystep*24*3600) )
+                print 'fuel is in a reducing state. letting continue with zero reducing agent addition'
+                myCore.SetConstantVolumeFlow(additive, controlmaterial, 0.0 )
 
-        elif quantity is 'conc':
+            else:
+
+                # add some reducing agent
+                myCore.SetConstantVolumeFlow(additive, controlmaterial, totalToAdd/float(daystep*24*3600) )
+
+        elif quantity == 'conc':
 
             # this is just a concentration of some material, eg thorium.
             # it may be either a unique isotope, or an element Z value. 
@@ -567,7 +628,7 @@ while burnttime < maxburntime:
     myCore.SubmitJob()
 
     # wait
-    while not (inputfile.IsDone()):
+    while not (myCore.IsDone()):
         time.sleep(3)
 
     # grab results

@@ -4,6 +4,8 @@ if __name__ == '__main__':
 debug=False
 reallydebug=False
 import getmass
+import getpass # this rhyme was unintentional although very nice.
+
 
 # sometimes, a piece of code gets repeated so much that you HAVE
 # to make it its own function, even if it is small.
@@ -946,7 +948,7 @@ class SerpentMaterial(object):
                 mmass += getmass.getIsoMass(iso)
 
             # set the atom density, (cmb)^-1
-            self.density=self.atomdensity=  -1.0 * self.massdensity / mmass * .602214086
+            self.density=self.atomdensity=  self.massdensity / mmass * .602214086
 
             return None #done
 
@@ -1086,6 +1088,12 @@ class SerpentMaterial(object):
 
         fuel = self # this used to be a method of SerpentInputFile, but this actually makes more sense.
         #             to be a method of SerpentMaterial
+
+        # if the material has no volume definition, assume that it will not be ever added to the salt.
+        if self.volume is None:
+            print "No Z to charge dict assigned to {} since it wont have any mass flows.".format(self.materialname)
+            return None
+
 
         #if the fuel isotope densities are given in mass terms, then it is harder to calculate the excess fluorine. solution: i don't write that code.
         if fuel.massdensity is not None and fuel.atomdensity is None:
@@ -1781,7 +1789,9 @@ class SerpentInputFile(object):
                 del self.ratioflows[delindex]
 
             # now add the flow!
-            self.ratioflows.append(mat1, mat2, nuc, num)
+            self.ratioflows.append( (mat1, mat2, nuc, num) )
+
+            return None
             
         
     def SetRatioFlow(self, mat1, mat2, elements, flows):
@@ -2319,7 +2329,7 @@ class SerpentInputFile(object):
         Output:
             A pointer to a SerpentMaterial object."""
         for mat in self.materials:
-            if mat.materialname is matname:
+            if mat.materialname == matname:
                 return mat
         else:
             raise Exception("material {} not found in this input file.".format(matname))

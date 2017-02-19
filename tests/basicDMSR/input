@@ -2,6 +2,7 @@
 core DMSR        4.0        10.0         .10           .01            dflibe
 
 # keff bounding
+
 0.998 < keff < 1.002
 
 # refuel material specification:
@@ -12,6 +13,11 @@ set refuel     moreEnrichedFuel                  0.2
 set PPN 8
 set queue gen5
 set num_nodes 4
+set dayStepping uniform 1
+set power 300e6
+set maxBurnTime 30 days
+set inputFileName basicDMSR
+set numTestCases 5
 
 # salt management commands
 maintain excessFluoride in fuel via Umetal at 0.0

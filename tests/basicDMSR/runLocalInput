@@ -1,0 +1,49 @@
+# same as input, but runs it on the machine running the python script rather
+# than a job queue. using this because certain individuals are making liberal use of the
+# fill queue.
+#    core type   size (m)   pitch (cm)   salt frac     init enrich    salt type
+core DMSR        4.0        34.0         .225           .01            dflibe
+
+# keff bounding
+0.998 < keff < 1.002
+
+# set to run on local computer
+set runMode local
+
+# refuel material specification:
+#              uses same composition as fuel     but at higher enrichment
+set refuel     moreEnrichedFuel                  0.2
+set absorber   gadoliniumFluoride
+
+# run settings
+set PPN 8 # my PC has 4 cores plus hyperthreads on each
+set dayStepping uniform 1
+set power 300e6
+set maxBurnTime 30 days
+set inputFileName basicDMSR
+set numTestCases 5
+
+# some refuel settings
+reactivityRiseFlow refuel fuel all
+reactivityDropFlow absorber fuel all
+
+
+# salt management commands
+maintain excessFluoride in fuel via Umetal at 0.0
+
+# as an example, maintaining thorium concentration looks like this:
+# keep Th concentration at .07 a/cmb
+# maintain conc in fuel via Thmetal on 90232 at 0.07
+
+# offgasing
+#           elements      ratio (s^-1)   flow type     from_mat    to_mat
+constflow   Xe,Kr,He,Ne   0.2             1             fuel      offgas
+
+# reactivity dropping flow must be specified
+reactivityDropFlow GdF3 fuel all
+
+# reactivity rising flow must be specified
+reactivityRiseFlow refuel fuel all
+
+# set max number of iterations for calculating refuel rates
+maxIter 10

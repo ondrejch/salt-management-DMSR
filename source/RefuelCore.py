@@ -1391,22 +1391,18 @@ class SerpentInputFile(object):
         else:
             #num_nodes refers to the function argument. self.num_nodes is the instance variable being assigned.
             self.num_nodes=SerpentInputFile.default_num_nodes
-            print "using default number of nodes for qsub script, {0} nodes".format(SerpentInputFile.default_num_nodes)
         if PPN!=None:
             self.PPN=PPN
         else:
             self.PPN=SerpentInputFile.default_PPN
-            print "using the default number of PPN for qsub, {0} PPN".format(SerpentInputFile.default_PPN)
         if pmem!=None:
             self.pmem=pmem
         else:
             self.pmem=SerpentInputFile.default_pmem
-            print "using default requested amount of memory, {0} ".format(SerpentInputFile.default_pmem)
         if queue!=None:
             self.queue=queue
         else:
             self.queue=SerpentInputFile.default_queue
-            print "using default queue, {0}".format(SerpentInputFile.default_queue)
 
 
         #The name of the input file being used should be, by default, 'MSRs2'. This should be able to be changed if necessary.
@@ -1608,7 +1604,7 @@ class SerpentInputFile(object):
         A material called refuel should be in the input file after running this.
         """
 
-        if enrichment > 1:
+        if enrichment > 1.0:
             raise Exception("enrichment can't go over 100%. takes a fraction, not percent.")
 
         #find the material called fuel
@@ -1624,7 +1620,7 @@ class SerpentInputFile(object):
             if ZfromZAID(iso) == '92':
                 totUFracs += fuel.isotopic_content[iso]
 
-        else:
+        if totUFracs == 0.0:
             raise Exception("no uranium found in fuel material")
 
         if totUFracs < 0.0:
@@ -1636,6 +1632,8 @@ class SerpentInputFile(object):
         self.materials.append( copy.copy(fuel) )
         self.materials[-1].isotopic_content['92235'] = enrichment * totUFracs
         self.materials[-1].isotopic_content['92238'] = (1.0 - enrichment) * totUFracs
+        self.materials[-1].volume = 1e6
+        self.materials[-1].materialname = 'refuel'
 
         return None
 
@@ -2067,8 +2065,12 @@ class SerpentInputFile(object):
         elif mode=='local':
 
            # submit to local machine, no distributed memory parallelism
-           command = 'sss2 -omp {0} {1} > {1}serpentoutput.txt'.format(self.PPN, directory + '/'+ self.inputfilename)
-           subprocess.call([command])
+           command = 'sss2 -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, directory + '/'+ self.inputfilename)
+           print subprocess.check_output(command, shell=True)
+
+        else:
+
+            raise Exception('unknown run mode {}'.format(mode))
 
         self.submitted_once=True #it has now been submittedq
 

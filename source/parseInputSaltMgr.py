@@ -16,14 +16,17 @@ def parseSaltMgrOptions(filename):
     # init some variables that are necessary for running
     optdict = dict.fromkeys(['maintenance','keffbounds','refuel','absorber','core',
                              'maxiter', 'constflows','fuel','runsettings','maxBurnTime',
-                             'power','numTestCases','daystep','inputFileName'])
+                             'power','numTestCases','daystep','inputFileName','runMode'])
 
     otheropts = [] # all other options
 
     # --- some options will be in the form of a list. init. ---
     optdict['maintenance']=[] # maintain concentration of thorium, keep F excess low, etc
     optdict['constflows'] =[] # used for stuff like offgasing, possibly removal of precious metals
-    optdict['runsettings']=dict.fromkeys(['PPN','queue','num_nodes']) # set pop <blah>
+    optdict['runsettings']=dict.fromkeys(['PPN','queue','num_nodes','mode']) # set pop <blah>
+
+    # default running mode in runsettings:
+    optdict['runsettings']['mode'] = 'queue'
 
     for line in inpfile:
         
@@ -47,7 +50,7 @@ def parseSaltMgrOptions(filename):
 
                         # should be enrichment of refuel mat
                         try:
-                            optdict['refuel']=('moreEnrichedFuel',sline[3]) 
+                            optdict['refuel']=('moreEnrichedFuel',float(sline[3]) )
                         except:
                             raise Exception('please specify refuel enrichment')
 
@@ -80,6 +83,10 @@ def parseSaltMgrOptions(filename):
                 elif sline[1] == 'num_nodes':
 
                     optdict['runsettings']['num_nodes'] = sline[2]
+
+                elif sline[1] == 'runMode':
+
+                    optdict['runsettings']['mode'] = sline[2]
 
                 elif sline[1] == 'dayStepping':
 

@@ -29,7 +29,7 @@ def getIsoMass(zaid):
 
     # now search the data file
     # should be the isotope mass one from the NIST website
-    datafile='/home/gridley/salt-management-DMSR/source/nistmasses.txt'
+    datafile='/home/gavin/salt-management-DMSR/source/nistmasses.txt'
     with open(datafile, 'r') as f:
         current_z='  '
         while current_z != z:
@@ -75,7 +75,7 @@ def getNaturalMass(zaid, z):
 
     abundances = {}
     # add abundances by {zaid:abundance} pairs
-    datafile='/home/gridley/salt-management-DMSR/source/nistmasses.txt'
+    datafile='/home/gavin/salt-management-DMSR/source/nistmasses.txt'
     with open(datafile, 'r') as f:
         current_z='  '
         while current_z != z:

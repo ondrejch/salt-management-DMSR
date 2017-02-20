@@ -426,11 +426,12 @@ while burnttime < maxburntime:
     # now that all flows are set:
     # --- RUN DAT INPUT FILE ---
     myCore.WriteJob()
-    myCore.SubmitJob()
+    myCore.SubmitJob(mode = optdict['runsettings']['mode'] )
 
-    # wait
-    while not (myCore.IsDone()):
-        time.sleep(3)
+    # wait if doing queue computing
+    if optdict['runsettings']['mode'] == 'queue':
+        while not (myCore.IsDone()):
+            time.sleep(3)
 
     # grab results
     keff,relerror = myCore.ReadKeff(returnrelerror=True) #ABS estimate keff
@@ -522,13 +523,14 @@ while burnttime < maxburntime:
             # move into the new test directory
             os.chdir('test{}'.format(i))
             testcore.WriteJob()
-            testcore.SubmitJob()
+            testcore.SubmitJob(mode = optdict['runsettings']['mode'] )
 
             os.chdir('..')
 
-        # now wait for all files to finish
-        while not all([core.IsDone() for core in testinputfiles]):
-            time.sleep(3)
+        # now wait for all files to finish if doing queuing
+        if optdict['runsettings']['mode'] == 'queue':
+            while not all([core.IsDone() for core in testinputfiles]):
+                time.sleep(3)
 
         # time to make some fits to the data we get.
         # firstly, grab keff. this code is restructed from the original refuelmsr.py.

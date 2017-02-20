@@ -2052,13 +2052,27 @@ class SerpentInputFile(object):
         # run dat
         #the qsub command in modified to send output and errors from qsub to non-standardly named files
 
-    def SubmitJob(self,directory='.'):
-        """ does exactly what you'd think """
+    def SubmitJob(self,directory='.', mode='queue'):
+        """ does exactly what you'd think
+        queue mode will submit to torque/maui style queueing systems with the specified queue,
+        nodes, PPN, etc.
+        local mode runs on the local computer."""
 
-        command='qsub'+' -o '+ directory+'/'+self.inputfilename+'.log -j oe ' + directory+'/'+self.inputfilename+'.sh'
-        #next line should submit the job
-        print subprocess.check_output(command, shell=True) # the qsub script is just the name of the input file plus '.sh'
-        self.submitted_once=True #it has now been submitted
+        if mode=='queue':
+
+            # submit to torque / maui style queuing
+            command='qsub'+' -o '+ directory+'/'+self.inputfilename+'.log -j oe ' + directory+'/'+self.inputfilename+'.sh'
+            print subprocess.check_output(command, shell=True) # the qsub script is just the name of the input file plus '.sh'
+
+        elif mode=='local':
+
+           # submit to local machine, no distributed memory parallelism
+           command = 'sss2 -omp {0} {1} > {1}serpentoutput.txt'.format(self.PPN, directory + '/'+ self.inputfilename)
+           subprocess.call([command])
+
+        self.submitted_once=True #it has now been submittedq
+
+        return None
 
     def IsDone(self,getstatus=False):
         """Checks if an attempt has been made to submit the job. If not, an exception is raised, because this would be a code error.

@@ -9,9 +9,11 @@ import pickle
 import time
 import copy
 import scipy.optimize
-import subprocess
+import shutil
+import numpy as np
 from RefuelCore import ZfromZAID
 from parseInputSaltMgr import parseSaltMgrOptions
+
 
 # possibly nest this all within a main when done
 #def main()
@@ -57,17 +59,23 @@ if outdir in os.listdir('.'):
 optdict = parseSaltMgrOptions(saltmgrinput)
 
 # --- unpack some stuff from optdict ---
-num_test_cases = optdict['numTestCases']
-lowerkeffbound = optdict['keffbounds'][0]
-upperkeffbound = optdict['keffbounds'][1]
-upRhoFrom = optdict['upRhoFrom']
-upRhoTo = optdict['upRhoTo']
-upRhoIsotopes = optdict['upRhoIsotopes']
-downRhoFrom = optdict['downRhoFrom']
-downRhoTo = optdict['downRhoTo']
-downRhoIsotopes = optdict['downRhoIsotopes']
-maxburntime = optdict['maxBurnTime']
-daystep = optdict['daystep']
+try:
+    num_test_cases = optdict['numTestCases']
+    lowerkeffbound = optdict['keffbounds'][0]
+    upperkeffbound = optdict['keffbounds'][1]
+    upRhoFrom = optdict['upRhoFrom']
+    upRhoTo = optdict['upRhoTo']
+    upRhoIsotopes = optdict['upRhoIsotopes']
+    downRhoFrom = optdict['downRhoFrom']
+    downRhoTo = optdict['downRhoTo']
+    downRhoIsotopes = optdict['downRhoIsotopes']
+    maxburntime = optdict['maxBurnTime']
+    daystep = optdict['daystep']
+except:
+    print 'failed to parse all required options.'
+    print optdict
+    quit()
+
 
 # Now take that, and deplete!
 # load a serpent input file, or generate one from the core writer?
@@ -124,8 +132,6 @@ if optdict['core'][0] == 'serpentInputFile':
             # the hope here is that the user used "set pop"
             self.otheropts.append( line )
 
-    # and close the original input file
-    serpentInpFile.close()
 
 elif optdict['core'][0] == 'DMSR':
 
@@ -144,7 +150,9 @@ elif optdict['core'][0] == 'oldObject':
 
     # this simply reads in an old SerpentInputFile or genericInput
 
+    filehandle = open(optdict['core'][1], 'r')
     myCore = pickle.load(filehandle)
+    filehandle.close()
 
 elif optdict['core'][0] == 'serpentInput':
 
@@ -153,9 +161,10 @@ elif optdict['core'][0] == 'serpentInput':
 else:
     raise Exception('bad error here')
 
-# close the input file
-inpfile.close()
 
+# change the input file name if one was specified
+inpName = optdict['inputFileName']
+myCore.SetInputFileName(inpName)
 
 
 # next, add some uranium metal to the input file if some was requested.
@@ -170,11 +179,37 @@ for quantity, controlmaterial, additive, saltcomp,concentration in optdict['main
 
         myCore.AddThoriumMetal(1e6) # 1e6 ccm volume
 
-
 # now, convert all materials in the input file into atom density/fraction
 # terms. these are much easier to work with IMO.
 for mat in myCore.materials:
     mat.converToAtomDens()
+
+# need to add a refuel material, whatever it may be
+#
+if optdict['refuel'][0] == 'moreEnrichedFuel':
+
+    # sometimes you'd like to refuel off a material that is the
+    # same as fuel, but more enriched
+    myCore.AddRefuelMaterial(optdict['refuel'][1],1e6)
+
+elif optdict['refuel'][0] == 'sameAsFuel':
+
+    # sometimes the fuel and refuel materials are the exact same
+    myCore.materials.append( copy.copy( myCore.getMat('fuel') ))
+    myCore.materials[-1].materialname = 'refuel'
+    myCore.materials[-1].volume = 1e6
+
+else:
+    raise Exception('unknown refuel scheme')
+
+# next, see if any absorber materials are being added
+# 
+if optdict['absorber'] == 'gadoliniumFluoride':
+
+    myCore.materials.append(RefuelCore.SerpentMaterial('GdF3', materialname='absorber', volume = 1e6))
+
+else:
+    raise Exception("unknown absorber type: {}".format(optdict['absorber']))
 
 # now initial material densities must be saved.
 # see pydoc RefuelCore.SerpentInputFile.saveInitialDensities
@@ -222,7 +257,7 @@ iternum=0 #keeps track of number of iterations needed to solve for refuel rate i
 
 #create a directory for storing InputFile pickles too. yum
 if outdir not in os.listdir('.'):
-    subprocess.call(['mkdir', outdir])
+    os.mkdir(outdir)
 
 #loop through all materials that may be mixed with the salt, and give them the appropriate Z to 
 # oxidation number mapping. this can be dynamically changed if needed.
@@ -462,10 +497,10 @@ while burnttime < maxburntime:
             if 'test{}'.format(i) in lswdir:
                 
                 # remove old tests
-                subprocess.call(['rm -r test{}'.format(i)])
+                shutil.rmtree('test{}'.format(i))
             
             # create new test directory
-            subprocess.call(['mkdir test{}'.format(i)])
+            os.mkdir('test{}'.format(i))
 
             #set the refuel rates
             # refuels will be 0 if adding absorber, and vice-versa
@@ -481,11 +516,11 @@ while burnttime < maxburntime:
             testcore.SetConstantVolumeFlow('fuel','excessfueltank',
                                            refuelrates_to_try[i]+
                                            absorberaddition_rates_to_try[i])
-            testcore.num_nodes=3 #this could be dynamically changed
-            testcore.SetInputFileName('test{0}'.format(i))
+            testcore.num_nodes=4 #this could be dynamically changed
+            testcore.SetInputFileName('{}{}'.format(inpName,i))
 
             # move into the new test directory
-            os.chdir('test{}.format(i)')
+            os.chdir('test{}'.format(i))
             testcore.WriteJob()
             testcore.SubmitJob()
 

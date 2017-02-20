@@ -1,18 +1,22 @@
 # Input file parser for saltmgr.py.
 # Splitting this into two files lets it be far more clear as to what
 # code is doing pertinent calculations, and what code is just parsing text.
+import os
 
 def parseSaltMgrOptions(filename):
     """ Creates a dictionary called optdict that saltmgr
     will read options from. """
 
     # now read from the input file.
+    if filename not in os.listdir('.'):
+        raise Exception("input file {} not found.".format(filename))
+
     inpfile = open(filename, 'r')
 
     # init some variables that are necessary for running
     optdict = dict.fromkeys(['maintenance','keffbounds','refuel','absorber','core',
                              'maxiter', 'constflows','fuel','runsettings','maxBurnTime',
-                             'burnIncrement','power','numTestCases','daystep']) #contains all options
+                             'power','numTestCases','daystep','inputFileName'])
 
     otheropts = [] # all other options
 
@@ -51,6 +55,13 @@ def parseSaltMgrOptions(filename):
                         
                         #this implies making a copy of the fuel material and renaming
                         optdict['refuel']=('sameAsFuel', -1.0)
+
+                elif sline[1] == 'absorber':
+
+                    # this is the material added in case reactivity is too high
+                    if sline[2] == 'gadoliniumFluoride':
+
+                        optdict['absorber'] = 'gadoliniumFluoride'
 
                 elif sline[1]=='fuel':
 
@@ -110,6 +121,10 @@ def parseSaltMgrOptions(filename):
                     # number of test runs to do 
                     optdict['numTestCases'] = int(sline[2])
 
+                elif sline[1] == 'inputFileName':
+
+                    # name of input file as it appears in the q
+                    optdict['inputFileName'] = sline[2]
 
                 else:
 
@@ -153,9 +168,6 @@ def parseSaltMgrOptions(filename):
                     # storing data in tuples is cool i guess
                     optdict['core']=('DMSR',DMSRopts)
 
-                    print 'writing {} meter DMSR core with {} cm pitch and salt fraction of {}'.format(
-                          DMSRopts['coresize']   , DMSRopts['pitch'] ,  DMSRopts['saltfrac'])
-
                 elif sline[1] == 'oldObject':
 
                     # this option reads a pickled object of either RefuelCore.SerpentInputFile
@@ -187,11 +199,11 @@ def parseSaltMgrOptions(filename):
                 if quantity == 'conc':
                     # which nuclide or element component gets controlled?
                     saltComp = sline[7]
-                    concentration = sline[8]
+                    concentration = float(sline[9])
 
                 elif quantity == 'excessFluoride':
                     # need to mitigate excess fluorine nuclei, of course
-                    concentration = sline[7]
+                    concentration = float(sline[7])
 
                 else:
                     print sline[0]
@@ -254,12 +266,12 @@ def parseSaltMgrOptions(filename):
                 optdict['upRhoTo']   = sline[2]
                 optdict['upRhoIsotopes'] = sline[3] # comma separated, no space
 
-            elif sline[0] == '#':
+            elif sline[0] == '#' or line=='\n':
 
                 # this is a comment
                 continue
 
-            elif line !='\n':
+            else:
                 raise Exception('unknown keyword: {}'.format(line))
 
         except IndexError:
@@ -267,10 +279,29 @@ def parseSaltMgrOptions(filename):
             print line
             raise Exception("Not enough arguments given.")
 
-        inpfile.close()
 
         # may want to add some checking here that optdict
         # has no entries corresponding to none
         # eg "set pop not found"
 
-        return optdict
+    inpfile.close()
+
+    # before returning optdict, make sure that all necessary options were specified.
+    if optdict['numTestCases'] is None:
+        raise Exception(" must set numTestCases ")
+    elif optdict['keffbounds'] is [None,None]:
+        raise Exception(" must set keff bounding ")
+    elif optdict['core'] is None:
+        raise Exception(" must set core type ")
+    elif optdict['maxBurnTime'] is None:
+        raise Exception(" must set maxBurnTime ")
+    elif optdict['power'] is None:
+        raise Exception(" must set power ")
+    elif optdict['runsettings'] is None:
+        raise Exception(" must give runsettings ")
+    elif optdict['inputFileName'] is None:
+        raise Exception(" must set inputFileName ")
+    elif optdict['daystep'] is None:
+        raise Exception(" must set daystep ")
+
+    return optdict

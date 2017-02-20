@@ -1,5 +1,5 @@
 #    core type   size (m)   pitch (cm)   salt frac     init enrich    salt type
-core DMSR        4.0        10.0         .10           .01            dflibe
+core DMSR        4.0        34.0         .225           .01            dflibe
 
 # keff bounding
 
@@ -8,16 +8,22 @@ core DMSR        4.0        10.0         .10           .01            dflibe
 # refuel material specification:
 #              uses same composition as fuel     but at higher enrichment
 set refuel     moreEnrichedFuel                  0.2
+set absorber   gadoliniumFluoride
 
 # run settings
-set PPN 8
-set queue gen5
-set num_nodes 4
+set PPN 48
+set queue super
+set num_nodes 2
 set dayStepping uniform 1
 set power 300e6
 set maxBurnTime 30 days
 set inputFileName basicDMSR
 set numTestCases 5
+
+# some refuel settings
+reactivityRiseFlow refuel fuel all
+reactivityDropFlow absorber fuel all
+
 
 # salt management commands
 maintain excessFluoride in fuel via Umetal at 0.0

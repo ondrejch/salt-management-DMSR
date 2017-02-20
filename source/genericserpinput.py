@@ -52,6 +52,8 @@ class genericInput(SerpentInputFile):
         self.convratio=None
         self.betaEff=None
 
+        self.includefiles = []
+
         self.xslibfiles='''set acelib "sss_endfb7u.xsdata"
         set nfylib "sss_endfb7.nfy"
         set declib "sss_endfb7.dec"\n\n'''
@@ -120,6 +122,10 @@ class genericInput(SerpentInputFile):
 
         for opt in self.otheropts:
             serpinp.write(opt)
+
+        for f in self.includefiles:
+            if f not in os.listdir('.'):
+                raise Exception("include file '.' not found in wdir".format(f))
         
         serpinp.close()
 

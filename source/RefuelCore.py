@@ -3,9 +3,10 @@ if __name__ == '__main__':
 
 debug=False
 reallydebug=False
+
 import getmass
 import getpass # this rhyme was unintentional although very nice.
-
+import copy
 
 # sometimes, a piece of code gets repeated so much that you HAVE
 # to make it its own function, even if it is small.
@@ -239,10 +240,7 @@ class RefuelorAbsorberFit(object):
                         raise Exception("The type of curve fit should either be 'Refuel' or 'Absorber'")
 
                 self.vcore=InputFile.fuelvolume
-                try:
-                    self.refuelenrichment=InputFile.refuelenrichment
-                except AttributeError:
-                    self.refuelenrichment=0.2
+                self.refuelenrichment=InputFile.refuelenrichment
                 self.fittype=fittype
 
                 #some values need to be intialized
@@ -1382,6 +1380,8 @@ class SerpentInputFile(object):
         self.convratio=None
         self.betaEff=None
 
+        self.includefiles = []
+
         self.xslibfiles='''set acelib "sss_endfb7u.xsdata"
         set nfylib "sss_endfb7.nfy"
         set declib "sss_endfb7.dec"\n\n'''
@@ -1610,55 +1610,33 @@ class SerpentInputFile(object):
 
         if enrichment > 1:
             raise Exception("enrichment can't go over 100%. takes a fraction, not percent.")
+
         #find the material called fuel
         self.refuelenrichment=enrichment
-        for mat in self.materials:
-            if mat.materialname==fuelname:
-                #ok, found the fuel, now make a copy of its isotopics.
-                isotopicscopy=mat.isotopic_content.copy() #this is a dictionary data type
-                fuelmassdensity=mat.massdensity
-                fuelatomdensity=mat.atomdensity
-                #now then, loop through that, and find the uranium 235 and 238 fractions.
-                #WARNING this assumes that the primary isotopes of uranium are 235 and 238. if 233 fuel is used (yeah, unlikely) this would mess up
-                ptot=0.0 #used for converting mass to atom fractions
 
-                #convert everything to atom fractions
-                #then, atom density stays constant when changing enrichment.
-                for iso in isotopicscopy.keys():
-                    if iso[:2]=='92':
-                        #then it is uranium for sure. flourine is always '90'.
-                        if iso=='92235':
-                            u235frac=initu235frac=isotopicscopy[iso]
-                        elif iso=='92238':
-                            u238frac=initu238frac=isotopicscopy[iso]
-                #now modify the copied isotopics to accurately reflect the specified enrichment
-                if u238frac <0 and u235frac <0:
-                    #assume the fuel enrichment is sufficiently low so that average amu of a U atom is ~238
-                    #convert enrichment to a mass fraction
-                    enrichment*=235./238.
-                totalU238orU235=u235frac+u238frac
-                #set new fractions of 235 and 238
-                u235frac=enrichment*totalU238orU235
-                u238frac=(1-enrichment)*totalU238orU235
-                isotopicscopy['92235']=u235frac
-                isotopicscopy['92238']=u238frac
-        self.AddMaterial(SerpentMaterial('empty', volume=volume, materialname='refuel'))
-        #now add the proper isotopes for the refuel
-        self.materials[-1].isotopic_content=isotopicscopy
-        #give it a density. if not defined in atom density, the mass density
-        #should be adjusted to reflect the change in enrichment.
-        if fuelmassdensity!=None and u235frac <0 and u238frac <0:
-            # u235frac, u238frac
-            self.materials[-1].massdensity=fuelmassdensity
-            self.materials[-1].density=self.materials[-1].massdensity * -1.0
-        elif fuelatomdensity !=None:
-            self.materials[-1].atomdensity=fuelatomdensity #constant for varying enrichment
-            self.materials[-1].massdensity=fuelmassdensity
-            self.materials[-1].density=fuelatomdensity
+        # get pointer to fuel
+        fuel = self.getMat(fuelname)
+
+        # save initial sum of uranium fractions
+        totUFracs = 0.0
+        for iso in fuel.isotopic_content.keys():
+            
+            if ZfromZAID(iso) == '92':
+                totUFracs += fuel.isotopic_content[iso]
+
         else:
-            self.materials[-1].atomdensity=None
-            self.materials[-1].density=-1.0*fuelmassdensity
-            self.materials[-1].massdensity=fuelmassdensity
+            raise Exception("no uranium found in fuel material")
+
+        if totUFracs < 0.0:
+            print 'it seems that the fuel material definition was given in terms of mass fracs'
+            print 'enrichment is defined here in terms of atom fractions, so please use that.'
+            raise Exception('^^^')
+
+        # now, the new refuel material is created
+        self.materials.append( copy.copy(fuel) )
+        self.materials[-1].isotopic_content['92235'] = enrichment * totUFracs
+        self.materials[-1].isotopic_content['92238'] = (1.0 - enrichment) * totUFracs
+
         return None
 
     def SetConstantVolumeFlow(self, mat1, mat2, rate):

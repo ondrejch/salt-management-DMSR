@@ -639,8 +639,7 @@ class SerpentMaterial(object):
             #for now, lets approximate as being equal density to normal fuel flibe
             self.massdensity=.88*SerpentMaterial.flibedensity + .12*(4.5 - 2.5*enrichment)
         elif salt_type=='GdF3':
-            if materialname==None:
-                self.materialname='GdF3'
+            self.materialname='GdF3' if materialname is None else materialname
             #isotopic data from:
             # http://education.jlab.org/itselemental/iso064.html
             self.isotopic_content['64152']=.25*.002

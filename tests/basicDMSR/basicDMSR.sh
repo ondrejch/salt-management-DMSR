@@ -1,7 +1,7 @@
 #!/bin/bash
         #PBS -V
-        #PBS -q corei7
-        #PBS -l nodes=4:ppn=8
+        #PBS -q gen5
+        #PBS -l nodes=10:ppn=8
         
 
         #### Executable Line

@@ -21,9 +21,10 @@ def parseSaltMgrOptions(filename):
     otheropts = [] # all other options
 
     # --- some options will be in the form of a list. init. ---
-    optdict['maintenance']=[] # maintain concentration of thorium, keep F excess low, etc
-    optdict['constflows'] =[] # used for stuff like offgasing, possibly removal of precious metals
-    optdict['runsettings']=dict.fromkeys(['PPN','queue','num_nodes','mode']) # set pop <blah>
+    optdict['maintenance'] = [] # maintain concentration of thorium, keep F excess low, etc
+    optdict['constflows'] = [] # used for stuff like offgasing, possibly removal of precious metals
+    optdict['runsettings'] = dict.fromkeys(['PPN','queue','num_nodes','mode']) # set pop <blah>
+    optdict['volumeTreatments'] = [] # volume treatments for materials
 
     # default running mode in runsettings:
     optdict['runsettings']['mode'] = 'queue'
@@ -133,8 +134,29 @@ def parseSaltMgrOptions(filename):
                     # name of input file as it appears in the q
                     optdict['inputFileName'] = sline[2]
 
-                else:
+                elif sline[1] == 'volumeTreatment':
 
+                    # is the material going to have a bleedoff tank,
+                    # or increase in volume as stuff gets added?
+                    # specified here.
+                    mat = sline[2]
+                    vType = sline[3] #treatment type
+
+                    # possible types
+                    available_vType = ['compressible','bleedOff','bucket']
+
+                    # input check
+                    if vType not in available_vType:
+                        print available_vType
+                        raise Exception("""{} is not a supported volume 
+                                treatment type. please try using one of 
+                                the above options.""".format(vType))
+
+                    optdict['volumeTreatments'].append( (mat, vType) )
+
+                else:
+                    print line
+                    print sline
                     raise Exception('unknown keyword {}'.format(sline[2]))
 
             elif '<' in sline and 'keff' in sline:

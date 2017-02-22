@@ -1,5 +1,5 @@
 #    core type   size (m)   pitch (cm)   salt frac     init enrich    salt type
-core DMSR        4.0        34.0         .225           .01            dflibe
+core  DMSR        4.0        34.0         .225           .01            dflibe
 
 # keff bounding
 
@@ -11,9 +11,9 @@ set refuel     moreEnrichedFuel                  0.2
 set absorber   gadoliniumFluoride
 
 # run settings
-set PPN 48
-set queue super
-set num_nodes 2
+set PPN 8
+set queue gen5
+set num_nodes 10
 set dayStepping uniform 1
 set power 300e6
 set maxBurnTime 30 days
@@ -35,12 +35,6 @@ maintain excessFluoride in fuel via Umetal at 0.0
 # offgasing
 #           elements      ratio (s^-1)   flow type     from_mat    to_mat
 constflow   Xe,Kr,He,Ne   0.2             1             fuel      offgas
-
-# reactivity dropping flow must be specified
-reactivityDropFlow GdF3 fuel all
-
-# reactivity rising flow must be specified
-reactivityRiseFlow refuel fuel all
 
 # set max number of iterations for calculating refuel rates
 maxIter 10

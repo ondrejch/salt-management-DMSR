@@ -79,7 +79,7 @@ except:
 
 # Now take that, and deplete!
 # load a serpent input file, or generate one from the core writer?
-if optdict['core'][0] == 'serpentInputFile':
+if optdict['core'][0] == 'serpentInput':
    
     # first off, create a new generic serpent input file object
     myCore=genericserpentinput.genericInput(num_nodes=optdict['runsettings']['num_nodes'],
@@ -154,12 +154,11 @@ elif optdict['core'][0] == 'oldObject':
     myCore = pickle.load(filehandle)
     filehandle.close()
 
-elif optdict['core'][0] == 'serpentInput':
-
-    raise Exception(' havent written code for this yet lol ')
-
 else:
     raise Exception('bad error here')
+
+
+
 
 
 # change the input file name if one was specified
@@ -281,6 +280,10 @@ for a,b,c,mat1,mat2 in optdict['constflows']:
 # set the burn time increment of the input file.
 myCore.SetBurnTime(daystep)
 
+# check to be sure all depletable materials
+# have their volume treatment methods set:
+for mat in myCore.materials:
+
 # BURN BABY BURN
 while burnttime < maxburntime:
 
@@ -299,7 +302,6 @@ while burnttime < maxburntime:
         elif flowt ==2:
             myCore.AddFlow(mat1, mat2, nuc[0], num[0], 2)
             assert nuc[0] == 'all' #constant volume must mean all flow
-            raise Exception('OK, does anyone actually know what type 2 flows do??')
 
     # ------------------------------------------
     # ---         Salt Maintenance           ---
@@ -423,6 +425,17 @@ while burnttime < maxburntime:
             raise Exception('unknown quantity {}'.format(quantity))
 
 
+    # next, the refuel or absorber addition rates get set.
+    # along with this, the treatment of adding material is handled.
+    # there are three approaches:
+    # 1) do nothing
+    # 2) drain to an excess tank
+    # 3) increase the volume of the material at the end of the depletion step, like a bucket
+    
+    # first, set the fuel addition.
+    myCore.SetConstantVolumeFlow(
+
+
     # now that all flows are set:
     # --- RUN DAT INPUT FILE ---
     myCore.WriteJob()
@@ -487,10 +500,10 @@ while burnttime < maxburntime:
             if refuelrates_to_try[i] > 10.:
                 print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."
                 print "Reducing flow to reasonable guess value for data collection"
-                refuelrates_to_try[i] = np.random.random_sample(1)[0] * 30.
+                refuelrates_to_try[i] = np.random.random_sample(1)[0] * 5.0
             elif downRho_to_try[i] > 0.3:
                 print 'too much absorber being attempted to be added, reducing'
-                downRho_to_try[i] = np.random.random_sample(1)[0] * 10.0
+                downRho_to_try[i] = np.random.random_sample(1)[0] * 1.0
 
             # create new directories to run each of the tests in
             # by default, for now, they are named test<testnumber>
@@ -516,7 +529,7 @@ while burnttime < maxburntime:
             # then recalculate how much material should come out to balance whatever comes in.
             testcore.SetConstantVolumeFlow('fuel','excessfueltank',
                                            refuelrates_to_try[i]+
-                                           absorberaddition_rates_to_try[i])
+                                           downRho_to_try[i])
             testcore.num_nodes=4 #this could be dynamically changed
             testcore.SetInputFileName('{}{}'.format(inpName,i))
 

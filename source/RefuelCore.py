@@ -1887,13 +1887,16 @@ class SerpentInputFile(object):
             #alter some text. if no temperature is defined for a material, do not use tmp or tms
             # this is relevant for material tanks that are outside the neutronics simulation
             mat.tmp_or_tms=self.tmp_or_tms
+            if str(mat.tempK).rstrip() in ['','None']:
+
+                if mat.tempK not in [300.0,600.0,900.0,None]:
+                    print 'Warning, temp treatment abandoned on {} to avoid Serpent temperature treatment error'.format(mat.materialname)
+
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
-            # any MSRs that have depletion have temperature treatment removed
-            if self.BurnTime != []: #str(mat.tempK).rstrip() in ['','None']:
-                mat.tmp_or_tms='' #empty string
-                mat.tempK=''
-                print 'Warning, temp treatment abandoned to avoid Serpent temperature treatment error'
+            mat.tmp_or_tms='' #empty string
+            mat.tempK=''
+
             if mat.burn==True:
                 burntext="burn 1"
             else:
@@ -2131,6 +2134,7 @@ class SerpentInputFile(object):
         """
         sigmalist=[]
         self.kefflist=[]
+        self.keffsigmalist=[] #uncertainties
         if not self.submitted_once:
             raise Exception("The job has not been submitted yet.")
 
@@ -2149,7 +2153,7 @@ class SerpentInputFile(object):
                     continue
                 elif line[0]=='ABS_KEFF' and foundkeff0:
                     self.kefflist.append(float(line[6])) #MUST be converted to a float. error happens otherwise.
-                    sigmalist.append(float(line[7]))
+                    self.keffsigmalist.append(float(line[7]))
                 elif line[0]=='ABS_KEFF':
                     foundkeff0=True #ok to record the next one
 
@@ -2160,7 +2164,7 @@ class SerpentInputFile(object):
                 return None
 
         if returnrelerror:
-            return (self.kefflist[-1] , sigmalist[-1] )
+            return (self.kefflist[-1] , self.keffsigmalist[-1] )
         else:
             return self.kefflist[-1] #last value
 
@@ -2342,3 +2346,33 @@ class SerpentInputFile(object):
         for mat in self.materials:
 
             mat.initDensity = mat.atomdensity
+
+    def getVolFlowInto(self, matname):
+
+        """ gets total volumetric inflow of material into matname.
+            returns a float."""
+
+        totalInflow = 0.0 # init
+
+        for mat1, mat2, num in self.volumetricflows:
+
+            if mat2 == matname:
+
+                totalInflow += num * self.getMat(mat1).volume
+
+        return totalInflow
+
+    def getVolFlowOutOf(self, matname):
+
+        """ returns the total volumetric flow of material out of matname
+            returns a float. """
+
+        totalOutFlow = 0.0
+
+        for mat1, mat2, num in self.volumetricflows:
+
+            if mat1 == matname:
+
+                totalOutFlow += num * self.getMat(matname).volume
+
+        return totalOutFlow

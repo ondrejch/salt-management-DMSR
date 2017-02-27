@@ -286,7 +286,7 @@ def parseSaltMgrOptions(filename):
 
                 # max iteration number when solving for flows to 
                 # properly maintain reactivity
-                maxiter = sline[1] 
+                optdict['maxIter'] = sline[1] 
 
             elif sline[0] == 'reactivityRiseFlow':
 
@@ -294,6 +294,16 @@ def parseSaltMgrOptions(filename):
                 optdict['upRhoFrom'] = sline[1]
                 optdict['upRhoTo']   = sline[2]
                 optdict['upRhoIsotopes'] = sline[3] # comma separated, no space
+
+            elif sline[0] == 'mainPop':
+
+                # neutron pop for main iterations
+                optdict['mainPop'] = ( int(sline[1]), int(sline[2]), int(sline[3]) )
+
+            elif sline[0] == 'iterPop':
+
+                # neutron pop for test iterations
+                optdict['iterPop'] = ( int(sline[1]), int(sline[2]), int(sline[3]) )
 
             elif sline[0] == '#' or line=='\n':
 

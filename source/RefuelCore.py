@@ -480,7 +480,7 @@ class RefuelorAbsorberFit(object):
 
                 return reactivity
 
-        def fitcurve(self, xdata, ydata, printparams=False):
+        def fitcurve(self, xdata, ydata, printparams=False, sigmas=None):
                  """This determines the arbitrary coefficients used in this object, A, b, and c. They get saved into self.params, too.
                  
                  Arguments:
@@ -489,11 +489,10 @@ class RefuelorAbsorberFit(object):
 
                  Keyword args:
                     printparams -- Boolean. Prints curve fit parameters found if true.
+                    sigmas -- uncertainty in keff. these automatically get translated
+                                into reactivity uncertainties
 
                 Returns none. """
-
-                 #self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,sigma=sigma, p0=(1,1,1), bounds=([0,0,0],[np.inf, np.inf, np.inf]) )
-                 #it actually seems like including sigma values are causing some kind of trouble. Now testing without sigma.
 
                  #first things first, clean the data. in other words, remove "none" values.
                  for i in range(len(xdata)):
@@ -509,9 +508,19 @@ class RefuelorAbsorberFit(object):
                          print self.refuelfitfunction(np.array(xdata, dtype=np.float128), 1.0,1.0,1.0)
                  xdata=np.array(xdata)
                  ydata=np.array(ydata)
-                 #self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,p0=(1.,20.,20.),  bounds=((0.0,0.0,0.0), (1.5,1e3,1e3)),max_nfev=5000000, xtol=1e-13, ftol=1e-13, gtol=1e-13,x_scale=1e3, jac='3-point', method='dogbox')
 
-                 self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,(.01,.001,2000.), maxfev=5000000,diag=(np.abs(1./xdata.mean()),np.abs(1./ydata.mean())), xtol=1e-14, ftol=1e-14 )
+                 # sigmas passed in should be uncertainties in keff. These then
+                 # get translated to uncertainties in rho.
+                 if sigmas is not None:
+                     sigmas = np.array(sigmas) # coerce to np array
+                     sigmas = np.abs( sigmas * (1.0-ydata)**2) # found via error prop.
+
+                 # the uncertainties get some default value.
+                 sigmas =sigmas if sigmas is not None else  np.ones(len(xdata))
+
+
+
+                 self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,(.01,.001,2000.), maxfev=5000000,diag=(np.abs(1./xdata.mean()),np.abs(1./ydata.mean())), xtol=1e-14, ftol=1e-14, sigma = sigmas )
 
                  #also grab two data points that can be used in finding a zero to this function numerically later
                  self.guesses=xdata[:2]
@@ -1426,6 +1435,9 @@ class SerpentInputFile(object):
             perlscriptinputhandle.write('/ct{0}/{1}/case{2}/fs{3}/p{4}/enr{5}/{6}\n'.format(self.core_size, self.salt_type, self.case, self.salt_fraction,self.pitch, self.initial_enrichment, self.tempK))
             perlscriptinputhandle.write("{0},{1},{2}".format(self.num_particles, self.num_cycles, self.num_skipped_cycles))
 
+        # add te expected MSRs2_geom.inp include file to the list of known include files
+        self.includefiles.append('MSRs2_geom.inp')
+
         #now the perl script has to write the core.
         #this is NOT the final input file to serpent. merely a template to get isotopics and geometry from the core writer. This avoids reproduction of work.
         mywd=os.getcwd()
@@ -1755,7 +1767,7 @@ class SerpentInputFile(object):
             # delete the old flow if it exists
             delindex=0
             makedeletion=False
-            for m1,m2,rflow in self.ratioflows:
+            for m1,m2,nuc,rflow in self.ratioflows:
                 if m1==mat1 and m2==mat2:
                     makedeletion=True
                     break
@@ -1889,8 +1901,8 @@ class SerpentInputFile(object):
             mat.tmp_or_tms=self.tmp_or_tms
             if str(mat.tempK).rstrip() in ['','None']:
 
-                if mat.tempK not in [300.0,600.0,900.0,None]:
-                    print 'Warning, temp treatment abandoned on {} to avoid Serpent temperature treatment error'.format(mat.materialname)
+                if mat.tempK not in [300.0,600.0,900.0,None,'']:
+                    print 'Warning, temp treatment abandoned on {} at {} K to avoid Serpent temperature treatment error'.format(mat.materialname,mat.tempK)
 
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
@@ -2049,10 +2061,13 @@ class SerpentInputFile(object):
         self.directory=directory #necessary to know where to find results
         with open(directory+'/'+self.inputfilename, 'w') as inputhandle:
             inputhandle.write(inputfiletext)
-        # run dat
-        #the qsub command in modified to send output and errors from qsub to non-standardly named files
 
-    def SubmitJob(self,directory='.', mode='queue'):
+        # in addition, copy any include files into the possibly new directory.
+        for fname in self.includefiles:
+            if fname not in os.listdir('.'+'/'+directory):
+                subprocess.call(['cp','.'+'/'+fname,directory])
+
+    def SubmitJob(self, mode='queue'):
         """ does exactly what you'd think
         queue mode will submit to torque/maui style queueing systems with the specified queue,
         nodes, PPN, etc.
@@ -2061,7 +2076,7 @@ class SerpentInputFile(object):
         if mode=='queue':
 
             # submit to torque / maui style queuing
-            command='qsub'+' -o '+ directory+'/'+self.inputfilename+'.log -j oe ' + directory+'/'+self.inputfilename+'.sh'
+            command='qsub'+' -o '+ self.directory+'/'+self.inputfilename+'.log -j oe ' + self.directory+'/'+self.inputfilename+'.sh'
             print subprocess.check_output(command, shell=True) # the qsub script is just the name of the input file plus '.sh'
 
         elif mode=='local':

@@ -41,7 +41,7 @@ def mix(mat1,mat2,frac1):
     # --- isotopics ---
     iso1=mat1.isotopic_content
     iso2=mat2.isotopic_content
-    sum1=0.0 #sum of mat1 atomfracs
+    sum1=0.0 #sum of mat1 atomfracs, init
     sum2=0.0 # ^^
 
     # sum all atom fractions, quit if mass fractions

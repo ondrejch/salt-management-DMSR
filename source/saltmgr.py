@@ -11,6 +11,7 @@ import copy
 import scipy.optimize
 import shutil
 import numpy as np
+import subprocess
 from RefuelCore import ZfromZAID
 from parseInputSaltMgr import parseSaltMgrOptions
 
@@ -118,13 +119,6 @@ if optdict['core'][0] == 'serpentInput':
             # these must be copied for any test refuel cases ran.
 
             self.includefiles.append(sline[1])
-
-
-        elif sline[0]=='set' and sline[1]=='pop':
-
-            # change the kcode settings
-            myCore.ChangeKcodeSettings(sline[2],sline[3],sline[4])
-
 
         else:
 
@@ -235,9 +229,6 @@ Umetaladditionrate=0.0
 burnsteps=[]
 material_densities=[]
 successful_keffs=[]
-successful_refuelrates=[]
-successful_downRhoRates=[]
-successful_Umetaladditionrates=[]
 downRhotestRhos=[]
 refueltestrhos=[]
 attempted_downRhoRates=[]
@@ -284,11 +275,23 @@ myCore.SetBurnTime(daystep)
 # have their volume treatment methods set:
 for mat in myCore.materials:
 
+    if mat.materialname not in [m for m,t in optdict['volumeTreatments']] and mat.burn:
+
+        # default action now is to assume material is treated compressibly
+        print 'assuming {} is treated compressibly, it shouldnt be present in'.format(
+                mat.materialname)
+        print 'any neutronics calculations if so!'
+        optdict['volumeTreatments'].append( (mat.materialname, 'compressible') )
+
 # BURN BABY BURN
 while burnttime < maxburntime:
 
     # set reactor power level
     myCore.SetPowerNormalization('power',optdict['power'])
+
+    # set the neutron population to the desired values
+    a,b,c = optdict['mainPop'] # unpack kcode parameters
+    myCore.ChangeKcodeSettings(a,b,c)
 
     # set all of the constant material flows, firstly
     for nuc,num,flowt,mat1,mat2 in optdict['constflows']:
@@ -341,7 +344,7 @@ while burnttime < maxburntime:
 
             # now, if totalToAdd is negative, you need to add an oxidizing agent, or do nothing
             # assuming your fuel becomes more oxidizing with time (TerraPower claims theirs doesnt
-            # do this, personal comm. Jeff Latkowski )
+            # do this)
             if totalToAdd <= 0.0:
 
                 print 'fuel is in a reducing state. letting continue with zero reducing agent addition'
@@ -433,12 +436,62 @@ while burnttime < maxburntime:
     # 3) increase the volume of the material at the end of the depletion step, like a bucket
     
     # first, set the fuel addition.
-    myCore.SetConstantVolumeFlow(
+    myCore.SetConstantVolumeFlow(upRhoFrom, upRhoTo, refuelrate)
+
+    # now, loop through all constant flows, and give each proper outflow /
+    # volume treatment
+
+    # this dictionary checks that all depleting materials had V treatment covered
+    matIsVTreated = dict.fromkeys( [mat.materialname for mat in myCore.materials], False)
+
+    # at this point, we only need to check if the vType is one that requires an excess tank
+    for mat, vType in optdict['volumeTreatments']:
+
+        if vType == 'bleedOff':
+
+            # This one requires an excess tank. Add it if needed.
+            if '{}ExcessTank'.format(mat) not in [mat1.materialname for mat1 in myCore.materials]:
+
+                myCore.materials.append( RefuelCore.SerpentMaterial('empty', volume =1e6, materialname=
+                                       '{}ExcessTank'.format(mat))                                 )
+
+            # OK, now the necessary flow can be set out as needed.
+            # first, check that the materials in the problem that are
+            # bleedOff type DO NOT FORM A CASCADE. OTHERWISE, MORE
+            # CODING IS TO BE DONE.
+
+            # calculate net flow into material
+            # set that amount out into its excess tank to compensate
+            myCore.SetConstantVolumeFlow(mat, '{}ExcessTank'.format(mat), 0.0)
+            netFlow = myCore.getVolFlowInto(mat) - myCore.getVolFlowOutOf(mat)
+            myCore.SetConstantVolumeFlow(mat, '{}ExcessTank'.format(mat), netFlow)
+
+
+    # now do a double check that all mass is being properly conserved.
+    # currently, this should fail on cascading flows, but we dont have a
+    # need for those ATM. this code blocks cascades from failing.
+    for mat1, mat2, num in myCore.volumetricflows:
+
+        for mat, vType in optdict['volumeTreatments']:
+
+            if mat == mat1 and vType=='bleedOff':
+
+                # double check inflows/outflows
+                netFlow = myCore.getVolFlowInto(mat) - myCore.getVolFlowOutOf(mat)
+
+                if abs(netFlow) > 1e-9: #arbitrary, small tolerance
+
+                    print "net flow of {} ccm/s into material".format(netFlow)
+                    print myCore.volumetricflows
+
+                    raise Exception(" reasonable density is not being conserved on {}".format(mat))
 
 
     # now that all flows are set:
     # --- RUN DAT INPUT FILE ---
     myCore.WriteJob()
+    # add on fission source passing:
+    subprocess.call(['echo "set csw fissSource.dat" >> {}'.format(myCore.inputfilename)], shell=True)
     myCore.SubmitJob(mode = optdict['runsettings']['mode'] )
 
     # wait if doing queue computing
@@ -457,17 +510,17 @@ while burnttime < maxburntime:
         attempted_refuel_rates.append( refuelrate )
         refuel_sigmas.append(relerror)
 
-    elif downRhorate > 0.:
+    elif downRhoRate > 0.:
 
         # record downRho rates and rhos if adding reactivity fall flow
-        downRhotestrhos.append( (keff-1.)/keff )
+        downRhotestRhos.append( (keff-1.)/keff )
         attempted_downRhoRates.append(downRhoRate)
         downRho_sigmas.append(relerror)
 
     elif refuelrate == 0.0 and downRhoRate==0.0:
 
         # record both if nothing is being addded
-        downRhotestrhos.append( (keff-1.)/keff )
+        downRhotestRhos.append( (keff-1.)/keff )
         attempted_downRhoRates.append(downRhoRate)
         downRho_sigmas.append(relerror)
         refueltestrhos.append( (keff-1.)/keff )
@@ -527,18 +580,22 @@ while burnttime < maxburntime:
             # NOTE if salt management is bringing other materials in, this will have to be 
             # included in this outflow. Maybe a method should be created that will clear outflows,
             # then recalculate how much material should come out to balance whatever comes in.
-            testcore.SetConstantVolumeFlow('fuel','excessfueltank',
-                                           refuelrates_to_try[i]+
-                                           downRho_to_try[i])
-            testcore.num_nodes=4 #this could be dynamically changed
+            # clear old outflow, recalculate:
+            testcore.SetConstantVolumeFlow('fuel','fuelExcessTank', 0.0)
+            testcore.SetConstantVolumeFlow('fuel','fuelExcessTank',
+                        myCore.getVolFlowInto('fuel')-myCore.getVolFlowOutOf('fuel') )
+            testcore.num_nodes=1 #this could be dynamically changed
             testcore.SetInputFileName('{}{}'.format(inpName,i))
 
-            # move into the new test directory
-            os.chdir('test{}'.format(i))
-            testcore.WriteJob()
-            testcore.SubmitJob(mode = optdict['runsettings']['mode'] )
+            # change the testcore kcode settings to those for test cases
+            a,b,c = optdict['iterPop']
+            testcore.ChangeKcodeSettings(a,b,c)
 
-            os.chdir('..')
+            # move into the new test directory
+            testcore.WriteJob(directory='test{}'.format(i))
+            subprocess.call(['echo "src myFS sf "../fissSource.dat" 1" >> {}'.format(
+                             testcore.inputfilename)], shell=True)
+            testcore.SubmitJob(mode = optdict['runsettings']['mode'] )
 
         # now wait for all files to finish if doing queuing
         if optdict['runsettings']['mode'] == 'queue':
@@ -561,8 +618,9 @@ while burnttime < maxburntime:
             attempted_downRhoRates.extend(downRho_to_try)
 
             # make a new reactivity fit object
-            myfit = RefuelorAbsorberFit(myCore, fittype="Refuel")
-            myfit.fitcurve(attempted_downRhoRates, downRhotestrhos)
+            myfit = RefuelCore.RefuelorAbsorberFit(myCore, fittype="Refuel")
+            myfit.fitcurve(attempted_downRhoRates, downRhotestRhos,
+                           sigmas=downRho_sigmas)
 
             # make a new guess to the absorber rate now
             downRhoRate = myfit.guessfunctionzero()
@@ -596,16 +654,16 @@ while burnttime < maxburntime:
                 keff, sigma = core.ReadKeff(returnrelerror=True)
                 rho = ( keff - 1.0) / keff
                 refueltestrhos.append(rho)
-                refuel_sigma.append(sigma)
+                refuel_sigmas.append(sigma)
 
             # add refuel rates to the longer list (not this set of trials)
             attempted_refuel_rates.extend(refuelrates_to_try)
 
             # init fit object
-            myfit=RefuelorAbsorberFit(inputfile)
+            myfit=RefuelCore.RefuelorAbsorberFit(myCore)
 
             # fit the data to curve
-            myfit.fitcurve(attempted_refuel_rates, refueltestrhos)
+            myfit.fitcurve(attempted_refuel_rates, refueltestrhos, sigmas=refuel_sigmas )
 
             # zero the curve: ie zero reactivity
             refuelrate = myfit.guessfunctionzero()
@@ -664,13 +722,15 @@ while burnttime < maxburntime:
 
         #save the input file's info
         burnsteps.append(burnttime)
-        successful_keffs.append(inputfile.ReadKeff())
-        inputfile.keff=inputfile.ReadKeff()
-        inputfile.convratio = inputfile.ReadConvRatio()
-        inputfile.betaEff = inputfile.ReadBetaEff()
+        successful_keffs.append(myCore.ReadKeff())
+        myCore.keff=myCore.ReadKeff()
+        myCore.convratio = myCore.ReadConvRatio()
+        myCore.betaEff = myCore.ReadBetaEff()
+
+        # need to add in reading in uncertainties for all of these
+
         successful_refuelrates.append(refuelrate)
         successful_absorberrates.append(absorberadditionrate)
-        successful_Umetaladditionrates.append(Umetaladditionrate)
 
         # grabbing the max damage flux to graphite only automatically works with
         # the DMSR core writer mode
@@ -690,10 +750,42 @@ while burnttime < maxburntime:
         # copy burnt materials into current input
         myCore.CopyBurntMaterials()
 
+        # now, increase the volume of bucket type materials:
+        for mat, vType in optdict['volumeTreatments']:
+
+            if vType == 'bucket':
+
+                # these materials grow in volume to compensate for
+                # any net inflow. atom density is accordingly reduced
+                # and renormalized for easy isotope abund. calculations.
+                
+                # calculate net inflow
+                netInflow = myCore.getVolFlowInto(mat) - myCore.getVolFlowOutOf(mat)
+
+                # now the material's volume grows by that much times time, and all atom densities accordingly shrink
+                oldVolume = myCore.getMat(mat).volume
+                matPointer = myCore.getMat(mat)
+
+                # change in volume
+                dV = netInflow * float( daystep * 24 * 3600 )
+
+                # first, all atom densities are expanded accordingly
+                # c_1 v_1 = c_2 v_2
+                for iso in matPointer.isotopic_content.keys():
+
+                    matPointer.isotopic_content[iso] *= oldVolume / (oldVolume + dV)
+
+                # now update overall atom density
+                matPointer.atomdensity *= oldVolume / (oldVolume + dV)
+
+                # and lastly, update to new volume
+                matPointer.volume += dV
+
+
     else:
         raise Exception("keff was read incorrectly. was not a number.")
 
-    if iternum > maxiter:
+    if iternum > optdict['maxIter']:
 
         raise Exception("Exiting. Hit maximum refuel solution iterations.")
 

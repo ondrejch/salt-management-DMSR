@@ -7,6 +7,7 @@ reallydebug=False
 import getmass
 import getpass # this rhyme was unintentional although very nice.
 import copy
+import multiphysicsCore # using new geometry writer for DMSRs, that's all.
 
 # sometimes, a piece of code gets repeated so much that you HAVE
 # to make it its own function, even if it is small.
@@ -951,10 +952,10 @@ class SerpentMaterial(object):
 
             #sum atomic weights over composition
             for iso in self.isotopic_content.keys():
-                mmass += getmass.getIsoMass(iso)
+                mmass += getmass.getIsoMass(iso) * self.isotopic_content[iso]
 
             # set the atom density, (cmb)^-1
-            self.density=self.atomdensity=  self.massdensity / mmass * .602214086
+            self.density = self.atomdensity = self.massdensity / mmass * .602214086
 
             return None #done
 
@@ -1438,11 +1439,20 @@ class SerpentInputFile(object):
         # add te expected MSRs2_geom.inp include file to the list of known include files
         self.includefiles.append('MSRs2_geom.inp')
 
+
         #now the perl script has to write the core.
         #this is NOT the final input file to serpent. merely a template to get isotopics and geometry from the core writer. This avoids reproduction of work.
         mywd=os.getcwd()
         installd=mywd.split("salt-management-DMSR",1)[0]
         print subprocess.call(['perl', '{0}salt-management-DMSR/source/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
+
+        # OK, now, the old geometry writer doesn't work for cores with >10000 channels. So,
+        # rewrite it using the lattice writer from DMSR-multiphysics
+        #mymultphys = multiphysicsCore.DMSR(self.core_size, 10, 10)
+        #mymultphys . writeChannels(self.pitch, self.salt_fraction)
+        #os.remove('MSRs2_geom.inp')
+        #mymultphys . writeGeometry('MSRs2_geom.inp') # overwrite old geometry
+        #del mymultphys # get that thing out of my sight!!!
 
         #now initialize the list of materials that are present in the input file. This is a list of objects of the SerpentMaterial class that is defined at the top of this file.
         self.materials=[]
@@ -1689,7 +1699,16 @@ class SerpentInputFile(object):
         # moving into the core is not the same as it once was, because the density
         # of the source fell over the first depletion step.
 
-        adjustedFlowRate = rate * self.materials[mat1index].initDensity / self.materials[mat1index].atomdensity
+        try:
+            adjustedFlowRate = rate * self.materials[mat1index].initDensity / self.materials[mat1index].atomdensity
+        except TypeError:
+            print 'rate'
+            print rate
+            print 'mat1 init rho'
+            print self.materials[mat1index].initDensity
+            print 'current rho'
+            print self.materials[mat1index].atomdensity
+            raise Exception("something wasnt prespecified correctly")
 
         #now the flow can be added on, and the volume argument is translated into the ratio that serpent takes
         ratioflow=adjustedFlowRate / (self.materials[mat1index]).volume #serpent flows are based on fractions of the material per second
@@ -2329,9 +2348,12 @@ class SerpentInputFile(object):
             if skip:
                 print "{0} not found in bumat file. skipping.".format(matname)
                 continue
+            # need to pass along initDensity data
+            iDens = self.materials[indx].initDensity
             self.materials[indx]=SerpentMaterial('serpentoutput',materialname=matname,materialfile=bumatfilename,volume=matvol, directory=self.directory)
             self.materials[indx].SetTemp(mattemp)
             self.materials[indx].SetAsBurnable()
+            self.materials[indx].initDensity = iDens
 
     def getMat(self, matname):
         """ Ok, it is ridiculous that I didn't make this method earlier.

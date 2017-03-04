@@ -1,7 +1,7 @@
 #!/bin/bash
         #PBS -V
         #PBS -q gen5
-        #PBS -l nodes=10:ppn=8
+        #PBS -l nodes=5:ppn=8
         
 
         #### Executable Line

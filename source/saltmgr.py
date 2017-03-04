@@ -211,15 +211,21 @@ myCore.saveInitialDensities()
 
 # --- initialization ---
 
-#--------------
-#temporary:
-initialguessrefuelrate= 0.5 # need to create a better guess on this
+
+
+myCore.SetPowerNormalization('power',optdict['power'])
+fuel = myCore.getMat('fuel') # pointer to fuel
+
+# power should be given in watts
+Qbar = 192.9 # MeV / fission; duderstadt thermal fiss
+initialguessrefuelrate= optdict['power'] / (1.602e-13) / Qbar / fuel.isotopic_content['92235'] * 1e-24
+
+refuelrate=initialguessrefuelrate # set initial refuel rate
+
 #---------------
 burnttime = 0
 show_new_Umetal_addition_model_difference=True
 refuelrates=[] #empty list
-refuelrate=initialguessrefuelrate
-
 
 downRhoRates=[]
 Umetaladditionrates=[]
@@ -593,7 +599,7 @@ while burnttime < maxburntime:
 
             # move into the new test directory
             testcore.WriteJob(directory='test{}'.format(i))
-            subprocess.call(['echo "src myFS sf "../fissSource.dat" 1" >> {}'.format(
+            subprocess.call(['echo "src myFS sf \\"fissSource.dat\\" 1" >> {}'.format(testcore.directory+'/'+
                              testcore.inputfilename)], shell=True)
             testcore.SubmitJob(mode = optdict['runsettings']['mode'] )
 
@@ -618,9 +624,9 @@ while burnttime < maxburntime:
             attempted_downRhoRates.extend(downRho_to_try)
 
             # make a new reactivity fit object
-            myfit = RefuelCore.RefuelorAbsorberFit(myCore, fittype="Refuel")
+            myfit = RefuelCore.RefuelorAbsorberFit(myCore, fittype="Absorber")
             myfit.fitcurve(attempted_downRhoRates, downRhotestRhos,
-                           sigmas=downRho_sigmas)
+                           sigmas=downRho_sigmas, printparams=True)
 
             # make a new guess to the absorber rate now
             downRhoRate = myfit.guessfunctionzero()
@@ -660,10 +666,10 @@ while burnttime < maxburntime:
             attempted_refuel_rates.extend(refuelrates_to_try)
 
             # init fit object
-            myfit=RefuelCore.RefuelorAbsorberFit(myCore)
+            myfit=RefuelCore.RefuelorAbsorberFit(myCore, fittype="Refuel")
 
             # fit the data to curve
-            myfit.fitcurve(attempted_refuel_rates, refueltestrhos, sigmas=refuel_sigmas )
+            myfit.fitcurve(attempted_refuel_rates, refueltestrhos, sigmas=refuel_sigmas , printparams=True)
 
             # zero the curve: ie zero reactivity
             refuelrate = myfit.guessfunctionzero()
@@ -707,6 +713,10 @@ while burnttime < maxburntime:
 
         # bump up the iteration counter on solving for correct rates at this timestep
         iternum += 1
+    
+        if iternum > int(optdict['maxIter']):
+
+            raise Exception("Exiting. Hit maximum refuel solution iterations.")
 
     # yay, keff was in desired bounds!
     elif lowerkeffbound <= keff or upperkeffbound >= keff:
@@ -784,10 +794,6 @@ while burnttime < maxburntime:
 
     else:
         raise Exception("keff was read incorrectly. was not a number.")
-
-    if iternum > optdict['maxIter']:
-
-        raise Exception("Exiting. Hit maximum refuel solution iterations.")
 
 endtime = time.asctime()
 print "job started at {} and finished at {}".format(starttime, endtime)

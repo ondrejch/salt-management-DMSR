@@ -1,0 +1,46 @@
+#    core type   size (m)   pitch (cm)   salt frac     init enrich    salt type
+core  DMSR        4.0        1.0         .15          0.037396            dnafzrf
+
+# keff bounding
+0.995 < keff < 1.01
+
+# refuel material specification:
+#              uses same composition as fuel     but at higher enrichment
+set refuel     moreEnrichedFuel                  0.2
+set absorber   gadoliniumFluoride
+
+# run settings
+set PPN 8
+set queue gen5
+set num_nodes 10
+set dayStepping uniform 7
+set power 300e6
+set maxBurnTime 10 years
+set inputFileName nafzrfburn
+set numTestCases 5
+
+# some refuel settings
+reactivityRiseFlow refuel fuel all
+reactivityDropFlow absorber fuel all
+
+# volume treatments must be set
+set volumeTreatment fuel bleedOff
+
+# refuel iteration setting
+mainPop 10000 500 100
+iterPop 6000  500 100
+
+
+# salt management commands
+maintain excessFluoride in fuel via Umetal at 0.0
+
+# as an example, maintaining thorium concentration looks like this:
+# keep Th concentration at .07 a/cmb
+# maintain conc in fuel via Thmetal on 90232 at 0.07
+
+# offgasing
+#           elements      ratio (s^-1)   flow type     from_mat    to_mat
+constflow   Xe,Kr,He,Ne   0.2             1             fuel      offgas
+
+# set max number of iterations for calculating refuel rates
+maxIter 10

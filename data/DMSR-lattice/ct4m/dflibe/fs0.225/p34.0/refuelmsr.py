@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../../../../../../source')
 from RefuelCore import SerpentMaterial,SerpentInputFile, RefuelorAbsorberFit, inversequadraticinterp, secant
 import time #for pauses
 import numpy as np
@@ -19,7 +18,7 @@ reallydebug=False
 #-------------------------------------------#
 
 #make a serpent input file for an arbitrary MSR core
-inputfile=SerpentInputFile(core_size="4m", salt_type="dflibe", case=1, salt_fraction=0.225, pitch=34.0, initial_enrichment=.012097, num_nodes=9, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
+inputfile=SerpentInputFile(core_size="4.0", salt_type="dflibe", case=1, salt_fraction=0.225, pitch=34.0, initial_enrichment=.012097, num_nodes=15, PPN=8, queue='gen5', pmem=None) #this calls the core writer perl script, and reads in material and geometry data
 
 #change the input name from MSRs2
 inputfile.SetInputFileName('FLiBe4mcore')
@@ -27,6 +26,11 @@ inputfile.SetInputFileName('FLiBe4mcore')
 #give it a power level
 powerlevel=300e6
 inputfile.SetPowerNormalization('power',powerlevel) #300 megawatt core
+
+# get atom densities
+for mat in inputfile.materials:
+    mat.converToAtomDens()
+inputfile.saveInitialDensities()
 
 #set the burn increment
 timeincrement=7.
@@ -53,30 +57,36 @@ inputfile.AddMaterial(SerpentMaterial('empty', materialname='offgastank', volume
 inputfile.AddMaterial(SerpentMaterial('empty', materialname='excessfueltank',volume=1e6))
 inputfile.AddMaterial(SerpentMaterial('GdF3', materialname='absorbertank', volume=1e6))
 
+
+for mat in inputfile.materials:
+    mat.converToAtomDens()
+inputfile.saveInitialDensities()
+
+
 #now, lets create an initial guess for the refuel rate.
 #-----------------------
-mev_per_joule=6.242e12
-avogadros=6.022e23
-avg_heat_per_fission=194.0 #MeV
-fissionrate=powerlevel*mev_per_joule/avg_heat_per_fission
-#now calculate the mass of u235 being consumed.
-#btw, this estimate ignores any free fuel from conversion.
-u235massconsumptionrate=fissionrate/avogadros*235
-#now if we know the mass density of the refuel mix, the needed addition rate of new fuel can be calc'd
-for mat in inputfile.materials:
-        if mat.materialname=='refuel':
-                #relying on the fuel actually being in mass density terms, which is usually the
-                #case for the perl core writer
-                refueldensity=mat.massdensity
-                #now find the mass fraction of u235
-                for iso in mat.isotopic_content.keys():
-                        if iso=='92235':
-                                u235massfrac=-1*mat.isotopic_content[iso]
-#yay, the data has been collected
-#this is the mass of refuel mix being consumed per second
-refuelconsumptionrate=u235massconsumptionrate/u235massfrac
+#mev_per_joule=6.242e12
+#avogadros=6.022e23
+#avg_heat_per_fission=194.0 #MeV
+#fissionrate=powerlevel*mev_per_joule/avg_heat_per_fission
+##now calculate the mass of u235 being consumed.
+##btw, this estimate ignores any free fuel from conversion.
+#u235massconsumptionrate=fissionrate/avogadros*235
+##now if we know the mass density of the refuel mix, the needed addition rate of new fuel can be calc'd
+#for mat in inputfile.materials:
+#        if mat.materialname=='refuel':
+#                #relying on the fuel actually being in mass density terms, which is usually the
+#                #case for the perl core writer
+#                refueldensity=mat.massdensity
+#                #now find the mass fraction of u235
+#                for iso in mat.isotopic_content.keys():
+#                        if iso=='92235':
+#                                u235massfrac=-1*mat.isotopic_content[iso]
+##yay, the data has been collected
+##this is the mass of refuel mix being consumed per second
+#refuelconsumptionrate=u235massconsumptionrate/u235massfrac
 #now convert to a volume flow rate for the answer
-initialguessrefuelrate=refuelconsumptionrate/refueldensity #units of ccm/s
+initialguessrefuelrate=0.001 #refuelconsumptionrate/refueldensity #units of ccm/s
 
 
 #----------------------------------------------#
@@ -100,9 +110,6 @@ upperkeffbound=1.002
 show_new_Umetal_addition_model_difference=True
 refuelrates=[] #empty list
 refuelrate=initialguessrefuelrate
-#--------------
-#temporary:
-refuelrate=0.40774835852993285
 #---------------
 absorberadditionrates=[]
 Umetaladditionrates=[]
@@ -188,7 +195,8 @@ while burnttime<maxburntime:
         #first off, be sure there is still a Umetal material still in the input. If not, more must be added.
         for mat in inputfile.materials: #finding the Umetal material data
                 if mat.materialname=='Umetal':
-                        Umetal=mat break
+                        Umetal=mat 
+                        break
         if Umetal==None:
                 #this indicates a uranium metal should be added to the input file
                 # this happens when serpent does not include material output for Umetal, so it must be re-added
@@ -210,7 +218,7 @@ while burnttime<maxburntime:
                 print "no U metal addition because there isn't depletion yet"
                 fluorineexcess=None
         if burnttime > 0:
-                fluorineexcess=inputfile.CalcExcessFluorine()
+                fluorineexcess=inputfile.getMat('fuel').CalcExcessFluorine()
         if burnttime > 0 and fluorineexcess > 0.0: # and refuelrate > 0.0:
                 #it is easier to calculate this if we know how many moles of uranium per ccm are in the Umetal material
                 Umetal_molar_density=float(Umetal.atomdensity)/0.602214086 # moles / ccm
@@ -246,6 +254,7 @@ while burnttime<maxburntime:
         inputfile.SetRatioFlow('fuel','offgastank',['Xe','Kr','Ar','Ne','He','Ra'],.02) #noble gas bleedoff. see paper for derivation of .02.
 
         #submit job
+        inputfile.WriteJob()
         inputfile.SubmitJob()
 
         #wait
@@ -293,7 +302,7 @@ while burnttime<maxburntime:
                         if refuelrates_to_try[i] > 10.:
                                 print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."
                                 print "Reducing flow to reasonable guess value for data collection"
-                                refuelrates_to_try[i] = np.random.random_sample(1)[0] * 30.
+                                refuelrates_to_try[i] = np.random.random_sample(1)[0] * 1.0
                         elif absorberaddition_rates_to_try[i] > 0.5:
                                 print "too much absorber being added. damping."
                                 absorberaddition_rates_to_try[i] = np.random.random_sample(1)[0] * 0.5
@@ -306,6 +315,7 @@ while burnttime<maxburntime:
                         file.ChangeKcodeSettings(10000,500,100) #these get run at lower resolution, but with more cases
                         file.num_nodes=3
                         file.SetInputFileName('Flibetest{0}'.format(i))
+                        file.WriteJob()
                         file.SubmitJob()
 
                 #now wait for the jobs to finish

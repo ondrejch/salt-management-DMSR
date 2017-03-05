@@ -2417,3 +2417,80 @@ class SerpentInputFile(object):
                 totalOutFlow += num * self.getMat(matname).volume
 
         return totalOutFlow
+
+    def getFuelEnrichment(self):
+
+        """ returns the atom enrichment of the fuel. fractional units.
+            args:
+            None
+            Output:
+            float """
+
+        # get pointer to fuel
+        fuel = self.getMat('fuel')
+
+        # total atom fraction of all uranium
+        ufracs = 0.0
+        u235frac = None
+
+        # loop through fuel isotopes
+        for iso in fuel.isotopic_content.keys():
+
+            # is it uranium?
+            if ZfromZAID(iso) == '92':
+                ufracs += fuel.isotopic_content[iso]
+
+            # is it 235-U?
+            if iso == '92235':
+                u235frac = fuel.isotopic_content[iso]
+
+        if u235frac is None:
+            raise Exception("no U-235 found in fuel")
+
+        if ufracs < 0.0 or u235frac < 0.0:
+            raise Exception('just convert stuff to atom densities')
+
+        return u235frac / ufracs
+
+    def setFuelEnrichment(self, newEnrich):
+        
+        """ sets the fuel's enrichment to something new.
+        args:
+        newEnrich --- float. new fuel enrichment.
+        output:
+        None
+        """
+
+        # input check
+        newEnrich = float(newEnrich)
+        assert newEnrich > 0.0
+
+        # fuel pointer
+        fuel = self.getMat('fuel')
+
+        # init
+        ufracs = {} # all U isotope fractions
+        u235frac = None
+
+        # loop through fuel isotopes
+        for iso in fuel.isotopic_content.keys():
+
+            # is it uranium?
+            if ZfromZAID(iso) == '92':
+                ufracs[iso]=fuel.isotopic_content[iso]
+
+        if any([fra < 0.0 for fra in ufracs.values()]):
+            raise Exception('just convert stuff to atom densities')
+
+        ufracSum = sum([f for f in ufracs.values()]) # sum of all U isotope fractions
+        ufracSumNonU235 = sum([ f for s,f in ufracs.items() if s != '92235'  ]) # all other than U235 summed
+
+        # then keep all other uranium isotopes in the same proportions they once were
+        # all while preserving atom density. 
+        fuel.isotopic_content['92235'] = newEnrich * ufracSum
+        for iso, frac in ufracs.items():
+            if iso != '92235':
+                fuel.isotopic_content[iso] = (1.0 - newEnrich) * ufracSum * ufracs[iso] / ufracSumNonU235
+
+        return None
+

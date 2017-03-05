@@ -291,7 +291,9 @@ for mat in myCore.materials:
 
 if optdict['critSearch']:
 
-    i=0 # iteration count
+    print 'iterating on fuel enrichment to go critical.'
+
+    i=2 # iteration count
     reacs = []
     enrichments = []
     # add method: setFuelEnrich(asdf)
@@ -301,7 +303,7 @@ if optdict['critSearch']:
     test2 = copy.copy(myCore)
 
     # split up node number for crit search
-    nNodes = myCore.num_nodes / 2 #intentional int divis.
+    nNodes = int(myCore.num_nodes) / 2 #intentional int divis.
     if nNodes ==0:
         nNodes = 1
 
@@ -335,53 +337,42 @@ if optdict['critSearch']:
         reacs.append( (critSKeff-1.0) / critSKeff)
 
     # vary fuel enrichment until k is found within correct bounds.
+    test2.num_nodes = myCore.num_nodes # back to normal amount
     while not ( lowerkeffbound < critSKeff < upperkeffbound ):
 
         # run it
         test2.WriteJob()
         test2.SubmitJob()
 
-	##calculate new pugaf volfrac from secant method
-	#newpufrc=(pufrcs[i-2]*reacs[i-1]-pufrcs[i-1]*reacs[i-2])/
-	#		(reacs[i-1]-reacs[i-2])
-	#if newpufrc < 0.0:
-	#    print "got negative pufrc. damping."
-	#    newpufrc=pufrcs[-1]*0.9
+        # secant method
+        newEnrich = (enrichments[i-2]*reacs[i-1]-enrichments[i-1]*reacs[i-2]) /(
+                    reacs[i-1]-reacs[i-2] )
 
-	#elif newpufrc > 1.0:
-	#    print "got pufrc over one. damping."
-	#    newpufrc=pufrc[-1]*1.1
+        if newEnrich > 1.0:
+            print 'got enrich > 1, damping.'
+            newEnrich = enrichments[-1] * 1.1
+        elif newEnrich < 0.0:
+            print 'got enrich < 1, damping.'
+            newEnrich = enrichments[-1] * 0.9
 
-	#pufrcs.append(newpufrc )
-	#if pufrcs[-1] < 0.0 or pufrcs[-1] > 1.0:
-	#    raise Exception("invalid pufrac, {}".format(pufrcs[-1]))
+        enrichments.append(newEnrich)
 
-	## alter inputfile2 fuel material
-	#for j,mat in enumerate(inputfile2.materials):
-	#    if mat.materialname=='fuel':
-	#	delindex=j
-	#	break
-	#del inputfile2.materials[delindex]
-	#fuel2=mix(pugaf, flibe, pufrcs[-1])
-	#fuel2.materialname='fuel'
-	#fuel2.volume=fuelvolume
-	#inputfile2.materials.append(fuel2)
+        test2.setFuelEnrichment(newEnrich)
 
-	##submit/wait
-	#inputfile2.SubmitJob()
-	#while not inputfile2.IsDone():
-	#    time.sleep(3)
+        test2.WriteJob()
+        test2.SubmitJob()
 
-	##read rho
-	#k2=inputfile2.ReadKeff()
-	#reacs.append((k2-1.0)/k2)
+        while not test2.IsDone():
+            time.sleep(3)
 
-	##output
-	#print "attempted PuGaF volume fractions and reactivities:"
-	#print "volfracs:"
-	#print pufrcs
-	#print "reactivities:"
-	#print reacs
+        critSKeff = test2.ReadKeff()
+        reacs.append( (critSKeff - 1.0) / critSKeff)
+
+        print 'secant iterating for crit on fuel enrichment.'
+        print 'enrichments:'
+        print enrichments
+        print 'reactivities:'
+        print reacs
 
 	i += 1
 

@@ -44,3 +44,6 @@ constflow   Xe,Kr,He,Ne   0.2             1             fuel      offgas
 
 # set max number of iterations for calculating refuel rates
 maxIter 10
+
+# be sure to iterate to criticality
+set critSearch True

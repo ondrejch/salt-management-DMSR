@@ -960,7 +960,7 @@ class SerpentMaterial(object):
             return None #done
 
         # last case: both density and fractions given in mass terms
-        elif self.atomdensity is None and not all([self.isotopic_content[comp] >= 0.0 for comp in self.isotopic_content.keys()]):
+        elif self.atomdensity is None and all([self.isotopic_content[comp] <= 0.0 for comp in self.isotopic_content.keys()]):
 
             # normalize mass fractions.
             self.normalizeIsotopics()
@@ -1650,11 +1650,15 @@ class SerpentInputFile(object):
             raise Exception('^^^')
 
         # now, the new refuel material is created
-        self.materials.append( copy.copy(fuel) )
-        self.materials[-1].isotopic_content['92235'] = enrichment * totUFracs
-        self.materials[-1].isotopic_content['92238'] = (1.0 - enrichment) * totUFracs
-        self.materials[-1].volume = 1e6
-        self.materials[-1].materialname = 'refuel'
+        refuelADENS = fuel.atomdensity
+        self.materials.append(SerpentMaterial('empty', volume=1e6,
+                                materialname='refuel'))
+                
+        refuelisotopics =  copy.copy(fuel.isotopic_content)
+        refuelisotopics['92235'] = enrichment * totUFracs
+        refuelisotopics['92238'] = (1.0 - enrichment) * totUFracs
+        self.getMat('refuel').isotopic_content = refuelisotopics
+        self.getMat('refuel').atomdensity = refuelADENS
 
         return None
 
@@ -1720,7 +1724,7 @@ class SerpentInputFile(object):
         if ratioflow * float(self.BurnTime[0])*24.0*3600.0 > 1:
 
             print 'material {} will run out this depletion step, restocking to original density'.format(mat1)
-            mat1.restock()
+            self.getMat(mat1).restock()
 
         #if this is a flow between two materials that already exists, override the old one
         delindex=0

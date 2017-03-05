@@ -17,43 +17,43 @@ MAT_fuel_VOLUME = [ 1.63265E+07 1.63265E+07 ];
 MAT_fuel_BURNUP = [ 0.00000E+00 0.00000E+00 ];
 
 MAT_fuel_ADENS = [
-0.00000E+00 1.16587E-14 % lost data
+0.00000E+00 1.33706E-14 % lost data
 7.95906E-02 7.95907E-02 % total
 ];
 
 MAT_fuel_MDENS = [
 0.00000E+00 0.00000E+00 % lost data
-3.34948E+00 3.34944E+00 % total
+3.35304E+00 3.35300E+00 % total
 ];
 
 MAT_fuel_A = [
 0.00000E+00 0.00000E+00 % lost data
-6.29465E+11 4.98272E+19 % total
+3.23864E+11 6.04498E+19 % total
 ];
 
 MAT_fuel_H = [
 0.00000E+00 0.00000E+00 % lost data
-4.52038E-01 1.66525E+07 % total
+2.23101E-01 1.82647E+07 % total
 ];
 
 MAT_fuel_SF = [
 0.00000E+00 0.00000E+00 % lost data
-1.32870E+07 1.32864E+07 % total
+1.64079E+07 1.64108E+07 % total
 ];
 
 MAT_fuel_GSRC = [
 0.00000E+00 0.00000E+00 % lost data
-4.86875E+11 4.23797E+19 % total
+5.02279E+10 5.37089E+19 % total
 ];
 
 MAT_fuel_ING_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-2.90982E+04 3.00678E+11 % total
+1.46206E+04 3.07062E+11 % total
 ];
 
 MAT_fuel_INH_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-5.22878E+06 4.33916E+11 % total
+2.60259E+06 4.41610E+11 % total
 ];
 
 MAT_refuel_VOLUME = [ 1.00000E+06 1.00000E+06 ];
@@ -62,32 +62,32 @@ MAT_refuel_BURNUP = [ 0.00000E+00 0.00000E+00 ];
 
 MAT_refuel_ADENS = [
 0.00000E+00 0.00000E+00 % lost data
-7.95906E-02 7.95906E-02 % total
+7.95906E-02 7.95902E-02 % total
 ];
 
 MAT_refuel_MDENS = [
 0.00000E+00 0.00000E+00 % lost data
-3.34948E+00 3.34948E+00 % total
+3.34948E+00 3.34947E+00 % total
 ];
 
 MAT_refuel_A = [
 0.00000E+00 0.00000E+00 % lost data
-3.85549E+10 6.72508E+10 % total
+3.85549E+10 6.72505E+10 % total
 ];
 
 MAT_refuel_H = [
 0.00000E+00 0.00000E+00 % lost data
-2.76874E-02 2.93491E-02 % total
+2.76874E-02 2.93489E-02 % total
 ];
 
 MAT_refuel_SF = [
 0.00000E+00 0.00000E+00 % lost data
-8.13833E+05 8.13833E+05 % total
+8.13833E+05 8.13830E+05 % total
 ];
 
 MAT_refuel_GSRC = [
 0.00000E+00 0.00000E+00 % lost data
-2.98212E+10 2.98212E+10 % total
+2.98212E+10 2.98210E+10 % total
 ];
 
 MAT_refuel_ING_TOX = [
@@ -97,7 +97,7 @@ MAT_refuel_ING_TOX = [
 
 MAT_refuel_INH_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-3.20264E+05 3.20294E+05 % total
+3.20264E+05 3.20293E+05 % total
 ];
 
 MAT_Umetal_VOLUME = [ 1.00000E+06 1.00000E+06 ];
@@ -150,22 +150,22 @@ MAT_offgastank_BURNUP = [ 0.00000E+00 0.00000E+00 ];
 
 MAT_offgastank_ADENS = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 3.70658E-06 % total
+0.00000E+00 4.48491E-06 % total
 ];
 
 MAT_offgastank_MDENS = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 6.94112E-04 % total
+0.00000E+00 7.03344E-04 % total
 ];
 
 MAT_offgastank_A = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 6.08725E+18 % total
+0.00000E+00 6.11145E+18 % total
 ];
 
 MAT_offgastank_H = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 2.11187E+06 % total
+0.00000E+00 2.11914E+06 % total
 ];
 
 MAT_offgastank_SF = [
@@ -175,17 +175,17 @@ MAT_offgastank_SF = [
 
 MAT_offgastank_GSRC = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 5.82908E+18 % total
+0.00000E+00 5.85377E+18 % total
 ];
 
 MAT_offgastank_ING_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 5.06989E+11 % total
+0.00000E+00 5.07799E+11 % total
 ];
 
 MAT_offgastank_INH_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 3.20598E+11 % total
+0.00000E+00 3.21142E+11 % total
 ];
 
 MAT_excessfueltank_VOLUME = [ 1.00000E+06 1.00000E+06 ];
@@ -194,42 +194,42 @@ MAT_excessfueltank_BURNUP = [ 0.00000E+00 0.00000E+00 ];
 
 MAT_excessfueltank_ADENS = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 8.77063E-11 % total
+0.00000E+00 2.12765E-08 % total
 ];
 
 MAT_excessfueltank_MDENS = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 3.69102E-09 % total
+0.00000E+00 8.96348E-07 % total
 ];
 
 MAT_excessfueltank_A = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 6.58277E+01 % total
+0.00000E+00 6.48070E+03 % total
 ];
 
 MAT_excessfueltank_H = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 3.17339E-11 % total
+0.00000E+00 3.77624E-09 % total
 ];
 
 MAT_excessfueltank_SF = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 8.96818E-04 % total
+0.00000E+00 2.68656E-01 % total
 ];
 
 MAT_excessfueltank_GSRC = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 3.28620E+01 % total
+0.00000E+00 8.22413E+02 % total
 ];
 
 MAT_excessfueltank_ING_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 1.97691E-06 % total
+0.00000E+00 2.41282E-04 % total
 ];
 
 MAT_excessfueltank_INH_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-0.00000E+00 3.52940E-04 % total
+0.00000E+00 4.26177E-02 % total
 ];
 
 MAT_absorbertank_VOLUME = [ 1.00000E+06 1.00000E+06 ];
@@ -325,45 +325,45 @@ TOT_VOLUME = [ 2.13265E+07 2.13265E+07 ];
 TOT_BURNUP = [ 0.00000E+00 0.00000E+00 ];
 
 TOT_ADENS = [
-0.00000E+00 8.92534E-15 % lost data
+0.00000E+00 1.02359E-14 % lost data
 6.97358E-02 6.97361E-02 % total
 ];
 
 TOT_MASS = [
 0.00000E+00 0.00000E+00 % lost data
-8.24620E+07 8.24619E+07 % total
+8.25200E+07 8.25200E+07 % total
 ];
 
 TOT_A = [
 0.00000E+00 0.00000E+00 % lost data
-9.05575E+11 5.59145E+19 % total
+5.99974E+11 6.65613E+19 % total
 ];
 
 TOT_H = [
 0.00000E+00 0.00000E+00 % lost data
-6.42444E-01 1.87643E+07 % total
+4.13507E-01 2.03839E+07 % total
 ];
 
 TOT_SF = [
 0.00000E+00 0.00000E+00 % lost data
-2.70714E+07 2.70707E+07 % total
+3.01922E+07 3.01951E+07 % total
 ];
 
 TOT_GSRC = [
 0.00000E+00 0.00000E+00 % lost data
-5.33968E+11 4.82088E+19 % total
+9.73211E+10 5.95627E+19 % total
 ];
 
 TOT_ING_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-4.15704E+04 8.07668E+11 % total
+2.70928E+04 8.14861E+11 % total
 ];
 
 TOT_INH_TOX = [
 0.00000E+00 0.00000E+00 % lost data
-7.44948E+06 7.54516E+11 % total
+4.82329E+06 7.62754E+11 % total
 ];
 
-BU = [ 0.00000E+00 4.66719E-02 ];
+BU = [ 0.00000E+00 4.66118E-02 ];
 
 DAYS = [ 0.00000E+00 7.00000E+00 ];

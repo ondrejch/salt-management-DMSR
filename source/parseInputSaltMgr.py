@@ -29,6 +29,9 @@ def parseSaltMgrOptions(filename):
     # default running mode in runsettings:
     optdict['runsettings']['mode'] = 'queue'
 
+    # default, no crit search before depletion
+    optdict['critSearch'] = False
+
     for line in inpfile:
         
         # split line
@@ -133,6 +136,11 @@ def parseSaltMgrOptions(filename):
 
                     # name of input file as it appears in the q
                     optdict['inputFileName'] = sline[2]
+
+                elif sline[1] == 'critSearch':
+
+                    # whether to converge to k=1 by varying fuel enrichment at first.
+                    optdict['critSearch'] = bool(sline[2]) #anything will turn it on
 
                 elif sline[1] == 'volumeTreatment':
 

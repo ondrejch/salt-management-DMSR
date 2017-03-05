@@ -27,11 +27,6 @@ inputfile.SetInputFileName('FLiBe4mcore')
 powerlevel=300e6
 inputfile.SetPowerNormalization('power',powerlevel) #300 megawatt core
 
-# get atom densities
-for mat in inputfile.materials:
-    mat.converToAtomDens()
-inputfile.saveInitialDensities()
-
 #set the burn increment
 timeincrement=7.
 inputfile.SetBurnTime(timeincrement) #burn in seven day increments
@@ -49,6 +44,11 @@ refuel_tank_volume=1e6 #ccm
 refuel_enrich = .2 
 umetal_enrich = .00 #using approximately depleted uranium as a reducing agent
 
+# get atom densities
+for mat in inputfile.materials:
+    mat.converToAtomDens()
+inputfile.saveInitialDensities()
+
 #add some materials to the input file that are needed for the refueling process.
 # refuel material, room for xenon and noble gases to bleed off, room for fuel displaced by the addition of fresh fuel, and some burnable absorber
 inputfile.AddRefuelMaterial(refuel_enrich, refuel_tank_volume)
@@ -57,9 +57,10 @@ inputfile.AddMaterial(SerpentMaterial('empty', materialname='offgastank', volume
 inputfile.AddMaterial(SerpentMaterial('empty', materialname='excessfueltank',volume=1e6))
 inputfile.AddMaterial(SerpentMaterial('GdF3', materialname='absorbertank', volume=1e6))
 
-
+# get atom densities
 for mat in inputfile.materials:
-    mat.converToAtomDens()
+    if mat.atomdensity == None:
+        mat.converToAtomDens()
 inputfile.saveInitialDensities()
 
 
@@ -101,8 +102,8 @@ burnttime=0
 num_test_cases=5
 
 #Keff bounds:
-lowerkeffbound=.998
-upperkeffbound=1.002
+lowerkeffbound=.99
+upperkeffbound=1.01
 
 #---------------------------#
 #       Initialization      #

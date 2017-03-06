@@ -188,7 +188,7 @@ if optdict['refuel'][0] == 'moreEnrichedFuel':
 elif optdict['refuel'][0] == 'sameAsFuel':
 
     # sometimes the fuel and refuel materials are the exact same
-    myCore.materials.append( copy.copy( myCore.getMat('fuel') ))
+    myCore.materials.append( copy.deepcopy( myCore.getMat('fuel') ))
     myCore.materials[-1].materialname = 'refuel'
     myCore.materials[-1].volume = 1e6
 
@@ -296,11 +296,10 @@ if optdict['critSearch']:
     i=2 # iteration count
     reacs = []
     enrichments = []
-    # add method: setFuelEnrich(asdf)
 
     # run initial two cases for secant method crit search
-    test1 = copy.copy(myCore)
-    test2 = copy.copy(myCore)
+    test1 = copy.deepcopy(myCore)
+    test2 = copy.deepcopy(myCore)
 
     # split up node number for crit search
     nNodes = int(myCore.num_nodes) / 2 #intentional int divis.
@@ -377,7 +376,7 @@ if optdict['critSearch']:
 	i += 1
 
 # set core to correct init enrichment
-myCore.setFuelEnrich(enrichments[-1])
+myCore.setFuelEnrichment(enrichments[-1])
 
 
 # BURN BABY BURN
@@ -635,7 +634,7 @@ while burnttime < maxburntime:
     if lowerkeffbound > keff or upperkeffbound < keff:
 
         # run test cases!
-        testinputfiles = [copy.copy(myCore) for x in range(num_test_cases)] # copy some!
+        testinputfiles = [copy.deepcopy(myCore) for x in range(num_test_cases)] # copy some!
 
         # try some new refuel rates to collect data
         refuelrates_to_try=np.random.random_sample(num_test_cases) * refuelrate*2.5

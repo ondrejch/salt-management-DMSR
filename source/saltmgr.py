@@ -375,8 +375,8 @@ if optdict['critSearch']:
 
 	i += 1
 
-# set core to correct init enrichment
-myCore.setFuelEnrichment(enrichments[-1])
+    # set core to correct init enrichment
+    myCore.setFuelEnrichment(enrichments[-1])
 
 
 # BURN BABY BURN

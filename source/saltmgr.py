@@ -350,10 +350,10 @@ if optdict['critSearch']:
 
         if newEnrich > 1.0:
             print 'got enrich > 1, damping.'
-            newEnrich = enrichments[-1] * 1.1
-        elif newEnrich < 0.0:
-            print 'got enrich < 1, damping.'
-            newEnrich = enrichments[-1] * 0.9
+            newEnrich = (1.0 - enrichments[-1])/2.0 +  enrichments[-1]
+        elif newEnrich <= 0.0:
+            print 'got enrich <= 0, damping.'
+            newEnrich = enrichments[-1] * 0.5
 
         enrichments.append(newEnrich)
 

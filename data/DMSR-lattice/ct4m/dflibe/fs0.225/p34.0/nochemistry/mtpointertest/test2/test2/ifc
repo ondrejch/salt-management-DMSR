@@ -1,9 +1,0 @@
-
-necluster.engr.utk.edu: 
-                                                                                  Req'd    Req'd       Elap
-Job ID                  Username    Queue    Jobname          SessID  NDS   TSK   Memory   Time    S   Time
------------------------ ----------- -------- ---------------- ------ ----- ------ ------ --------- - ---------
-814797.necluster.engr.  tecklebe    corei7   nestle_submit     23334     1      1    --  720:00:00 R 120:39:36
-814798.necluster.engr.  tecklebe    corei7   nestle_submit     23375     1      1    --  720:00:00 R 120:34:22
-814799.necluster.engr.  tecklebe    corei7   nestle_submit     23406     1      1    --  720:00:00 R 120:34:12
-816804.necluster.engr.  gridley     gen5     FLiBe4mcore.sh    13424    15    120    --  720:00:00 R  00:03:23

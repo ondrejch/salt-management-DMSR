@@ -255,8 +255,8 @@ if optdict['critSearch']:
     # submit jobs, wait
     test1.WriteJob()
     test2.WriteJob()
-    test1.SubmitJob()
-    test2.SubmitJob()
+    test1.SubmitJob(mode = optdict['runsettings']['mode'])
+    test2.SubmitJob(mode = optdict['runsettings']['mode'])
 
     # grab init target Rho, usually 0 but sometimes you want
     # to kick things off with zero refueling and rho>0.
@@ -293,7 +293,7 @@ if optdict['critSearch']:
         test2.setFuelEnrichment(newEnrich)
 
         test2.WriteJob()
-        test2.SubmitJob()
+        test2.SubmitJob(mode = optdict['runsettings']['mode'])
 
         while not test2.IsDone():
             time.sleep(3)

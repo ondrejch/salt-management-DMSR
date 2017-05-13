@@ -1,5 +1,0 @@
-816048.necluster.engr.utk.edu
-Traceback (most recent call last):
-  File "mttest.py", line 34, in <module>
-    os.system('qstat -f {} > {}nodeinfo'.format(jobID))
-IndexError: tuple index out of range

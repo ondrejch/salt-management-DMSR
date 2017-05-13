@@ -2147,7 +2147,7 @@ class SerpentInputFile(object):
         elif mode=='local':
 
            # submit to local machine, no distributed memory parallelism
-           command = 'sss2.1.28-reprofix -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, directory + '/'+ self.inputfilename)
+           command = 'sss2.1.28-reprofix -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, self.directory + '/'+ self.inputfilename)
            print subprocess.check_output(command, shell=True)
 
         else:

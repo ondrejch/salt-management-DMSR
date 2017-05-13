@@ -1,6 +1,10 @@
 # This python function can grab isotope masses from the NIST isotopic data file found in this directory.
 
 # definitely should have written something that uses regexes......too late :(
+import os
+# where is data file? This finds it.
+dir_path = os.path.dirname(os.path.realpath(__file__)) 
+datafile = dir_path + '/nistmasses.txt' # isotopic masses
 
 
 def getIsoMass(zaid):
@@ -29,7 +33,6 @@ def getIsoMass(zaid):
 
     # now search the data file
     # should be the isotope mass one from the NIST website
-    datafile='/home/gridley/salt-management-DMSR/source/nistmasses.txt'
     with open(datafile, 'r') as f:
         current_z='  '
         while current_z != z:
@@ -75,7 +78,6 @@ def getNaturalMass(zaid, z):
 
     abundances = {}
     # add abundances by {zaid:abundance} pairs
-    datafile='/home/gridley/salt-management-DMSR/source/nistmasses.txt'
     with open(datafile, 'r') as f:
         current_z='  '
         while current_z != z:

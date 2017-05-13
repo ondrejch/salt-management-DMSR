@@ -7,8 +7,6 @@ def getIsoMass(zaid):
     """ grabs an isotopes mass in AMU. zaid should be in serpent format"""
     zaid = str(zaid) #coerce as string. serves as error checker/conversion
 
-
-
     #get z/a value
     if len(zaid) ==4:
         z=zaid[0]
@@ -22,6 +20,8 @@ def getIsoMass(zaid):
         #leading zero maybe
         if a[0]=='0':
             a=a[-2:]
+    else:
+        raise Exception("Unidentifiable isotope {}".format(zaid) )
 
     # check if the nuclide is natural
     if '000' in zaid:

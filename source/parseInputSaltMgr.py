@@ -15,7 +15,7 @@ def parseSaltMgrOptions(filename):
 
     # init some variables that are necessary for running
     optdict = dict.fromkeys(['maintenance','keffbounds','refuel','absorber','core',
-                             'maxiter', 'constflows','fuel','runsettings','maxBurnTime',
+                             'maxIter', 'constflows','fuel','runsettings','maxBurnTime',
                              'power','numTestCases','daystep','inputFileName','runMode'])
 
     otheropts = [] # all other options
@@ -31,6 +31,11 @@ def parseSaltMgrOptions(filename):
 
     # default, no crit search before depletion
     optdict['critSearch'] = False
+
+    # start k at higher than critical,
+    # then coast down into the desired reactivity range if
+    # this is set higher than usual
+    optdict['initTargetRho'] = 0.0
 
     for line in inpfile:
         
@@ -62,6 +67,15 @@ def parseSaltMgrOptions(filename):
                         
                         #this implies making a copy of the fuel material and renaming
                         optdict['refuel']=('sameAsFuel', -1.0)
+
+                elif sline[1] == 'initTargetRho':
+
+                    optdict['initTargetRho'] = float(sline[2])
+                    if optdict['initTargetRho'] < 0.0:
+                        raise Exception("initTargetRho should not be < 1")
+
+                    # this would imply starting a crit search up.
+                    optdict['critSearch'] = True
 
                 elif sline[1] == 'absorber':
 
@@ -350,5 +364,11 @@ def parseSaltMgrOptions(filename):
         raise Exception(" must set inputFileName ")
     elif optdict['daystep'] is None:
         raise Exception(" must set daystep ")
+
+    # check for redundant volume treatments:
+    for i,(mat, vtype) in enumerate(optdict['volumeTreatments']):
+        for j,(mat1, vtype1) in enumerate(optdict['volumeTreatments']):
+            if mat1 == mat and i!=j:
+                raise Exception("redundant volumetreatment on mat {} found".format(mat1))
 
     return optdict

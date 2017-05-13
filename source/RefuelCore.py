@@ -8,7 +8,8 @@ import getmass
 import getpass # this rhyme was unintentional although very nice.
 import copy
 import multiphysicsCore # using new geometry writer for DMSRs, that's all.
-
+from math import fsum # numerically stable addition of a list of numbers
+import time
 # sometimes, a piece of code gets repeated so much that you HAVE
 # to make it its own function, even if it is small.
 def ZfromZAID(zaid):
@@ -286,11 +287,11 @@ class RefuelorAbsorberFit(object):
                         self.fuel_atomfrac_u238=u238frac
 
                 #save the gadolinium concentration to object instance data
-                if gdfracs != None:
-                        if all(gdfracs < 0.0):
+                if gdfracs is not None:
+                        if all([gdf < 0.0 for gdf in gdfracs]):
                                 self.fuel_massfrac_gd=gdfracs * -1
                                 self.fuel_atomfrac_gd = None
-                        elif all(gdfracs > 0.0):
+                        elif all([gdf > 0.0 for gdf in gdfracs]):
                                 self.fuel_atomfrac_gd=gdfracs
                                 self.fuel_massfrac_gd = None
                         else:
@@ -514,14 +515,28 @@ class RefuelorAbsorberFit(object):
                  # get translated to uncertainties in rho.
                  if sigmas is not None:
                      sigmas = np.array(sigmas) # coerce to np array
-                     sigmas = np.abs( sigmas * (1.0-ydata)**2) # found via error prop.
+                     sigmas = np.abs( sigmas * (1.0- ydata) **2) # found via error prop.
 
                  # the uncertainties get some default value.
                  sigmas =sigmas if sigmas is not None else  np.ones(len(xdata))
 
+                 if self.params is not None:
+                     paramsguess = self.params
+                 else:
+                     paramsguess = (.01,.001,2000.)
 
+                 self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,paramsguess, maxfev=5000000,diag=(np.abs(1./xdata.mean()),np.abs(1./ydata.mean())), xtol=1e-14, ftol=1e-14, sigma = sigmas )
 
-                 self.params,self.covariance=curve_fit(self.refuelfitfunction, xdata, ydata,(.01,.001,2000.), maxfev=5000000,diag=(np.abs(1./xdata.mean()),np.abs(1./ydata.mean())), xtol=1e-14, ftol=1e-14, sigma = sigmas )
+                 # check output of curve fit
+                 if np.any( np.isnan( np.array( self.params))):
+                     print 'failed curve fit. dumping data for debug.'
+                     print '-----xdata-------'
+                     print xdata
+                     print '-----ydata-------'
+                     print ydata
+                     print '----sigmas-------'
+                     print sigmas
+                     raise Exception("One or more curve fit parameters were nan.")
 
                  #also grab two data points that can be used in finding a zero to this function numerically later
                  self.guesses=xdata[:2]
@@ -551,11 +566,29 @@ class RefuelorAbsorberFit(object):
                  #now loop on dat
                  allowableerror=np.float_(1e-9) # max distance away from zero
                  error=np.float_(1) #arb initial value
+                 nancount = 0 # dont eat up 50 GB of RAM again...
                  while error>allowableerror:
                          #pack the values
                          guesses=np.array([guess0,guess1,guess2])
                          results=self.refuelfitfunction(guesses, A, b, c)
                          newguess=inversequadraticinterp(guesses, results)
+
+                         # check for nan
+                         if np.isnan( newguess ) or np.isinf( newguess ):
+                             nancount += 1
+                             print 'got nan for a guess, guessing some small number <1'
+                             guess0 = np.random.random_sample(1)[0]
+                             guess1 = np.random.random_sample(1)[0]
+                             guess2 = np.random.random_sample(1)[0]
+
+                             if nancount > 100:
+                                 print 'got 100 nan counts, exiting. That curve fit must be disgusting.'
+                                 quit()
+
+                             continue
+                         nancount = 0
+
+                         print newguess, error
                          error=abs(self.refuelfitfunction(newguess, A, b, c))
                          guess0=guess1
                          guess1=guess2
@@ -649,23 +682,32 @@ class SerpentMaterial(object):
             #for now, lets approximate as being equal density to normal fuel flibe
             self.massdensity=.88*SerpentMaterial.flibedensity + .12*(4.5 - 2.5*enrichment)
         elif salt_type=='GdF3':
+
             self.materialname='GdF3' if materialname is None else materialname
-            #isotopic data from:
-            # http://education.jlab.org/itselemental/iso064.html
-            self.isotopic_content['64152']=.25*.002
-            self.isotopic_content['64154']=.25*.0218
-            self.isotopic_content['64155']=.25*.1480
-            self.isotopic_content['64156']=.25*.2047
-            self.isotopic_content['64157']=.25*.1565
-            self.isotopic_content['64158']=.25*.2484
-            self.isotopic_content['64160']=.25*.2186
-            self.isotopic_content['9019']=.75
             self.massdensity=7.1 #g/cm^3  http://www.chemicalbook.com/ChemicalProductProperty_US_CB1389061.aspx
-            self.atomdensity=self.massdensity / (157.25 + 3* 18.998403 ) * 0.602214086 * 3 #atoms / cm-b. also note 3 atoms per ionic unit.
+            gdMolar = getmass.getIsoMass('64000')
+            self.atomdensity=self.massdensity / (gdMolar + 3* 18.998403 ) * 0.602214086 * 3 #atoms / cm-b. also note 3 atoms per ionic unit.
+
             self.density=self.atomdensity
             if self.massdensity != 7.1:
                 raise Exception("If you changed the mass density of GdF3, be sure to change it in RGd in refuelmsr.py too")
             self.tempK=None
+
+            #isotopic data from:
+            # http://education.jlab.org/itselemental/iso064.html
+            mmass = (gdMolar + 3* 18.998403 )
+            wfGd = gdMolar / mmass
+            wfF  = 3* 18.998403 / mmass
+            self.isotopic_content['64152']=.002  * wfGd
+            self.isotopic_content['64154']=.0218 * wfGd
+            self.isotopic_content['64155']=.1480 * wfGd
+            self.isotopic_content['64156']=.2047 * wfGd
+            self.isotopic_content['64157']=.1565 * wfGd
+            self.isotopic_content['64158']=.2484 * wfGd
+            self.isotopic_content['64160']=.2186 * wfGd
+            self.isotopic_content['9019']= wfF
+
+            self.converToAtomDens() # i like atom density way better
 
         elif salt_type=='pureNaFKF':
             # pure NaFKF in natural isotopic ratios.
@@ -907,9 +949,9 @@ class SerpentMaterial(object):
         elif self.massdensity==None:
             self.density=self.atomdensity
 
-        # lastly, initialize a Z value to oxidation number dictionary.
-        # defaults to allll noble.
-        self.Z2ox = dict.fromkeys([str(i+1) for i in range(118)],0)
+        # give an empty Z2ox dict by default. maps z value to expected oxidation number.
+        self.Z2ox = {}
+
       
     def normalizeIsotopics(self):
         """ Makes sure that all of the isotopes in the isotopic fractions
@@ -1416,7 +1458,7 @@ class SerpentInputFile(object):
 
         #The name of the input file being used should be, by default, 'MSRs2'. This should be able to be changed if necessary.
         self.inputfilename='MSRs2'
-        self.geometry_name='MSRs2_geom.inp'
+        self.includefiles=['MSRs2_geom.inp']
         
         #There should be a default temperature of the molten salt. By default it will be 900 K.
         self.tempK=tempK
@@ -1436,9 +1478,6 @@ class SerpentInputFile(object):
             perlscriptinputhandle.write('/ct{0}/{1}/case{2}/fs{3}/p{4}/enr{5}/{6}\n'.format(self.core_size, self.salt_type, self.case, self.salt_fraction,self.pitch, self.initial_enrichment, self.tempK))
             perlscriptinputhandle.write("{0},{1},{2}".format(self.num_particles, self.num_cycles, self.num_skipped_cycles))
 
-        # add te expected MSRs2_geom.inp include file to the list of known include files
-        self.includefiles.append('MSRs2_geom.inp')
-
 
         #now the perl script has to write the core.
         #this is NOT the final input file to serpent. merely a template to get isotopics and geometry from the core writer. This avoids reproduction of work.
@@ -1448,6 +1487,7 @@ class SerpentInputFile(object):
 
         # OK, now, the old geometry writer doesn't work for cores with >10000 channels. So,
         # rewrite it using the lattice writer from DMSR-multiphysics
+        # so we can use our patched version of Serpent ;)
         #mymultphys = multiphysicsCore.DMSR(self.core_size, 10, 10)
         #mymultphys . writeChannels(self.pitch, self.salt_fraction)
         #os.remove('MSRs2_geom.inp')
@@ -1461,6 +1501,10 @@ class SerpentInputFile(object):
         self.materials[0].SetAsBurnable()
         self.materials.append(SerpentMaterial('serpentoutput',materialname='mod',materialfile='MSRs2.inp'))
         self.materials.append(SerpentMaterial('serpentoutput',materialname='tank',materialfile='MSRs2.inp'))
+
+        # double the fuel volume in order to capture the fuel region that is just above the core (like the TEI design)
+        print 'doubling fuel volume in order to approximate above-core region'
+        self.getMat('fuel').volume *= 2.0
 
         #Find the volume of fuel in the core for this input file. 
         self.fuelvolume=None
@@ -1486,18 +1530,6 @@ class SerpentInputFile(object):
             new_name -- string. new name of the input file.
         """
         self.inputfilename=new_name
-
-    def SetGeometryFileName(self, new_name):
-        """changes the name of the geometry file used in doing the simulation.
-
-         this is needed is several geometries are simultaneously simulated.
-
-        Args:
-            new_name -- what to rename MSRs2_geom.inp to. string.
-        """
-
-        subprocess.call(['mv',self.geometry_name,new_name])
-        self.geometry_name=new_name
 
     def SetSalt(self,salt_type):
         """Sets the salt fed to the core writer script. Must be any salt supported in the perl core writer.
@@ -1651,10 +1683,10 @@ class SerpentInputFile(object):
 
         # now, the new refuel material is created
         refuelADENS = fuel.atomdensity
-        self.materials.append(SerpentMaterial('empty', volume=1e6,
+        self.materials.append(SerpentMaterial('empty', volume=volume,
                                 materialname='refuel'))
                 
-        refuelisotopics =  copy.copy(fuel.isotopic_content)
+        refuelisotopics =  copy.deepcopy(fuel.isotopic_content)
         refuelisotopics['92235'] = enrichment * totUFracs
         refuelisotopics['92238'] = (1.0 - enrichment) * totUFracs
         self.getMat('refuel').isotopic_content = refuelisotopics
@@ -1743,6 +1775,15 @@ class SerpentInputFile(object):
         # step. If so, restock the material!
         self.volumetricflows.append((mat1,mat2,ratioflow))
 
+        # final check: is this enough to empty the entire tank regardless of what it is
+        # filled with?
+        if rate * float(self.BurnTime[0]) * 24. * 3600. > self.getMat(mat1).volume:
+            print "this flow is large enough to empty the whole tank in one step."
+            print "If you could increase the tank volume, that'd be great."
+            raise Exception("see above message")
+
+        return None
+
     def AddFlow(self, mat1, mat2, nuc, num, flowtype):
         """ primarily used by saltmgr.py.
         adds a flow of type flowtype containing nuclides nuc with time constants num.
@@ -1803,7 +1844,6 @@ class SerpentInputFile(object):
 
             return None
             
-        
     def SetRatioFlow(self, mat1, mat2, elements, flows):
         """Adds what is essentially a decay constant term to the Bateman equations, with the material it "decays" into being mat2.
  
@@ -1845,7 +1885,6 @@ class SerpentInputFile(object):
             del self.ratioflows[delindex]
         self.ratioflows.append( (mat1, mat2, elements, flows) )
 
-
     def popMaterial(self, matname):
         """Removes and returns a material with material name matname
         Input:
@@ -1880,9 +1919,9 @@ class SerpentInputFile(object):
         else:
             pmemtext='#PBS -l pmem='+self.pmem + '\n'
         if self.num_nodes==1:
-            runtext="sss2 -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
+            runtext="sss2.1.28-reprofix -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
         else:
-            runtext="mpirun -npernode 1 sss2 -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
+            runtext="mpirun -npernode 1 sss2.1.28-reprofix -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
         qsubtext="""#!/bin/bash
         #PBS -V
         #PBS -q {0}
@@ -1915,7 +1954,11 @@ class SerpentInputFile(object):
         #begin writing the input file.
         inputfiletext=[]
         inputfiletext.append('set title "MSR"\n\n')
-        inputfiletext.append('include "{0}"\n\n'.format(self.geometry_name))
+        for f in self.includefiles:
+            if 'geom' in f:
+                # only keep geometry files
+                inputfiletext.append('include "{}"\n'.format(f) )
+        inputfiletext.append('\n')
 
         #now add all materials
         for mat in self.materials:
@@ -1944,15 +1987,14 @@ class SerpentInputFile(object):
                 mat_text="vol {0}".format(mat.volume)
             else:
                 mat_text=""
-            try:
-                    # try to use atom density if possible
-                    if mat.atomdensity!=None and mat.atomdensity!=0.0:
-                        den=mat.atomdensity
-                    else:
-                        den=mat.density
-                    inputfiletext.append('mat {0} {1} {2} {3} {4} {5} {6}\n'.format(mat.materialname, den,mat.tmp_or_tms,mat.tempK,burntext,modtext,mat_text))
-            except AttributeError:
-                    raise Exception("for material {0}, no attr".format(mat.materialname))
+
+            # try to use atom density if possible
+            if mat.atomdensity!=None and mat.atomdensity!=0.0:
+                den=mat.atomdensity
+            else:
+                den='-'+str(mat.massdensity)
+            inputfiletext.append('mat {0} {1} {2} {3} {4} {5} {6}\n'.format(mat.materialname, den,mat.tmp_or_tms,mat.tempK,burntext,modtext,mat_text))
+
             #now add isotopes
             for iso in mat.isotopic_content.keys():
                 if iso=='1001':
@@ -2034,8 +2076,8 @@ class SerpentInputFile(object):
                         mat1,mat2,num=flow
                         if float(num) != 0.0:
                             inputfiletext.append('mflow flow{0}\n'.format(flowindex))
-                            inputfiletext.append('all {0}\n'.format(num))#constant volume flows are almost certainly not chemical processes, and will include the whole of the material
-                            reproschemetext+='rc {0} {1} flow{2} 2 %2 indicates constant flow\n'.format(mat1,mat2,flowindex)
+                            inputfiletext.append('all {0:.15e}\n'.format(num))#constant volume flows are almost certainly not chemical processes, and will include the whole of the material
+                            reproschemetext+='rc {} {} flow{} 2 %2 indicates constant flow\n'.format(mat1,mat2,flowindex)
                             flowindex+=1
                         inputfiletext.append('\n')
                 if self.ratioflows!=[]:
@@ -2105,7 +2147,7 @@ class SerpentInputFile(object):
         elif mode=='local':
 
            # submit to local machine, no distributed memory parallelism
-           command = 'sss2 -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, directory + '/'+ self.inputfilename)
+           command = 'sss2.1.28-reprofix -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, directory + '/'+ self.inputfilename)
            print subprocess.check_output(command, shell=True)
 
         else:
@@ -2153,8 +2195,12 @@ class SerpentInputFile(object):
         #Now, check for the *_res.m file in the directory of interest. If it is not present, this indicates that the
         # serpent calculation failed.
         if self.inputfilename+'_res.m' not in os.listdir(self.directory):
-            print subprocess.call(['tail',self.inputfilename+'serpentoutput.txt','-n','30'])
-            raise Exception("Serpent did not exit normally.Printed above should be the error.")
+            # double check, give it a sec
+            time.sleep(10) # up to 10 secs to fully write it out?
+            if self.inputfilename+'_res.m' not in os.listdir(self.directory):
+                print subprocess.call(['tail',self.inputfilename+'serpentoutput.txt','-n','30'])
+                print self.inputfilename+'_res.m not found in current wdir'
+                raise Exception("Serpent did not exit normally.Printed above should be the error.")
         return True
 
     def ReadKeff(self, returnrelerror=False):
@@ -2177,10 +2223,10 @@ class SerpentInputFile(object):
             raise Exception("The job has not been submitted yet.")
 
     #make sure that that the 0 time burnup step is not recorded
-        if self.BurnTime==[]:
-            foundkeff0=True #the first value is the one you care about
-        else:
-            foundkeff0=False #depletion was done, so you want the last one
+        #if self.BurnTime==[]:
+        #    foundkeff0=True #the first value is the one you care about
+        #else:
+        #    foundkeff0=False #depletion was done, so you want the last one
 
         with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
             for line in resultfile.readlines():
@@ -2189,15 +2235,17 @@ class SerpentInputFile(object):
                 line=line.split()
                 if line==[]:
                     continue
-                elif line[0]=='ABS_KEFF' and foundkeff0:
+                elif line[0]=='ABS_KEFF':
                     self.kefflist.append(float(line[6])) #MUST be converted to a float. error happens otherwise.
                     self.keffsigmalist.append(float(line[7]))
-                elif line[0]=='ABS_KEFF':
-                    foundkeff0=True #ok to record the next one
 
-            if self.kefflist==[]:
+            if self.kefflist==[] :
+                print self.directory
                 raise Exception("No keff values were found. Check serpent output for errors.")
-            if (len(self.kefflist) != len(self.BurnTime)) and self.BurnTime!=[] :
+            if len(self.kefflist) != 2 and self.BurnTime != []:
+                raise Exception("not enough keff values were found. should be 2. found {}".format(len(self.kefflist)))
+
+            if (len(self.kefflist) != len(self.BurnTime)+1) and self.BurnTime!=[] :
                 print "Looks like {0} didn't finish burning. Returning none as Keff.".format(self.inputfilename)
                 return None
 
@@ -2224,7 +2272,7 @@ class SerpentInputFile(object):
                 if line==[]:
                     continue
                 elif line[0]=='ADJ_MEULEKAMP_BETA_EFF':
-                    self.betalist.append(float(line[6]))
+                    self.betalist.append (  (line[6:-1])   )
             if self.betalist==[]:
                 raise Exception("No beta eff values were found. Check serpent output for errors.")
             if allconvs:
@@ -2251,6 +2299,8 @@ class SerpentInputFile(object):
                         continue
                     elif line[0]=='CONVERSION_RATIO':
                         self.convratiolist.append(float(line[6]))
+                        self.convratioSigma = float(line[7])
+                        break
                 if self.convratiolist==[]:
                     raise Exception("No conv ratio values were found. Check serpent output for errors.")
                 if allconvs:
@@ -2352,12 +2402,14 @@ class SerpentInputFile(object):
             if skip:
                 print "{0} not found in bumat file. skipping.".format(matname)
                 continue
-            # need to pass along initDensity data
+            # need to pass along initDensity data, and also Z2ox data
             iDens = self.materials[indx].initDensity
+            z2ox1 = self.materials[indx].Z2ox
             self.materials[indx]=SerpentMaterial('serpentoutput',materialname=matname,materialfile=bumatfilename,volume=matvol, directory=self.directory)
             self.materials[indx].SetTemp(mattemp)
             self.materials[indx].SetAsBurnable()
             self.materials[indx].initDensity = iDens
+            self.materials[indx].Z2ox = z2ox1
 
     def getMat(self, matname):
         """ Ok, it is ridiculous that I didn't make this method earlier.
@@ -2393,15 +2445,18 @@ class SerpentInputFile(object):
         """ gets total volumetric inflow of material into matname.
             returns a float."""
 
-        totalInflow = 0.0 # init
+        totalInflow = 0.0 # init ROUNDOFF 
+        flows = []
 
         for mat1, mat2, num in self.volumetricflows:
 
             if mat2 == matname:
 
-                totalInflow += num * self.getMat(mat1).volume
+                # totalInflow += num * self.getMat(mat1).volume
+                flows.append(num)
 
-        return totalInflow
+
+        return fsum(flows) * self.getMat(mat1).volume
 
     def getVolFlowOutOf(self, matname):
 
@@ -2409,14 +2464,17 @@ class SerpentInputFile(object):
             returns a float. """
 
         totalOutFlow = 0.0
-
+        
+        flows = []
         for mat1, mat2, num in self.volumetricflows:
 
             if mat1 == matname:
 
-                totalOutFlow += num * self.getMat(matname).volume
+                #totalOutFlow += num * self.getMat(matname).volume TOO MUCH ROUNDOFF
+                flows.append(num)
 
-        return totalOutFlow
+        return fsum(flows) * self.getMat(matname).volume 
+
 
     def getFuelEnrichment(self):
 

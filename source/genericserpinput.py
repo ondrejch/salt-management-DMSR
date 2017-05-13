@@ -15,7 +15,7 @@ class genericInput(SerpentInputFile):
 
     """
 
-    def __init__(self,num_nodes=None,PPN=None,pmem=None,queue=None,direc='.'):
+    def __init__(self, optdict):
         """Initialization. Returns a SerpentInputFile object.
 
         Arguments:
@@ -35,12 +35,14 @@ class genericInput(SerpentInputFile):
         self.BurnTime=[]
         self.maxdamageflux=None
         self.PowerNormalization=''
-        self.directory=direc #default directory to run and store data in
+        self.directory='.' #default directory to run and store data in
         #initially there is no reprocessing
         self.volumetricflows=[]  #the variable "flows" holds all mass flow info.
         self.ratioflows=[]
         self.includefiles=[]
         self.otheropts = []
+
+
         
         #this is a variable that tells if an attempt has been made to submit the job
         self.submitted_once=False
@@ -52,41 +54,41 @@ class genericInput(SerpentInputFile):
         self.convratio=None
         self.betaEff=None
 
-        self.includefiles = []
-
         self.xslibfiles='''set acelib "sss_endfb7u.xsdata"
         set nfylib "sss_endfb7.nfy"
         set declib "sss_endfb7.dec"\n\n'''
         #assign default qsub settings if none were specified. else assign the specified settings.
-        if num_nodes!=None:
-            self.num_nodes=num_nodes
+        if optdict['runsettings']['num_nodes']!=None:
+            self.num_nodes=optdict['runsettings']['num_nodes']
         else:
             #num_nodes refers to the function argument. self.num_nodes is the instance variable being assigned.
             self.num_nodes=SerpentInputFile.default_num_nodes
             print "using default number of nodes for qsub script, {0} nodes".format(SerpentInputFile.default_num_nodes)
-        if PPN!=None:
-            self.PPN=PPN
+        if optdict['runsettings']['PPN']!=None:
+            self.PPN=optdict['runsettings']['PPN']
         else:
             self.PPN=SerpentInputFile.default_PPN
             print "using the default number of PPN for qsub, {0} PPN".format(SerpentInputFile.default_PPN)
-        if pmem!=None:
-            self.pmem=pmem
-        else:
-            self.pmem=SerpentInputFile.default_pmem
-            print "using default requested amount of memory, {0} ".format(SerpentInputFile.default_pmem)
-        if queue!=None:
-            self.queue=queue
+        self.pmem=SerpentInputFile.default_pmem
+        if optdict['runsettings']['queue']!=None:
+            self.queue=optdict['runsettings']['queue']
         else:
             self.queue=SerpentInputFile.default_queue
             print "using default queue, {0}".format(SerpentInputFile.default_queue)
 
 
         #The name of the input file being used should be, by default, 'MSRs2'. This should be able to be changed if necessary.
-        self.inputfilename='MSRs2'
-        
-        #There should be a default temperature of the molten salt. By default it will be 900 K.
-        self.tempK=tempK
+        self.inputfilename=optdict['inputFileName']
 
+        # look in the inputfile, record all includefiles.
+        with open(optdict['core'][1], 'r') as infh:
+            for line in infh:
+                sline = line.split()
+                if sline == []:
+                    continue
+                if sline[0] == 'include':
+                    self.includefiles.append(sline[1].split('"')[1])
+        
         #The serpent input file has to be run eventually. There will be a boolean attached to this object that shows whether the serpent job
         #has finished running on the cluster yet.
         self.job_done=False
@@ -94,13 +96,35 @@ class genericInput(SerpentInputFile):
         #now initialize the list of materials that are present in the input file. This is a list of objects of the SerpentMaterial class.
         self.materials=[]
 
+        # loop through the main input file + all include files to search
+        # for materials
+        for inp in self.includefiles + [ optdict['core'][1] ]:
+            with open(inp, 'r') as inpH:
+                for line in inpH:
+                    sline = line.split()
+                    if sline == []:
+                        continue
+                    if sline[0] == 'mat':
+                        self.materials.append(SerpentMaterial('serpentoutput',
+                                                              materialname=sline[1],
+                                                              materialfile= inp ) )
+
         #Find the volume of fuel in the core for this input file. 
         self.fuelvolume=None
         for mat in self.materials:
             if mat.materialname=='fuel':
                 self.fuelvolume=mat.volume
         if self.fuelvolume==None:
-            raise Exception("There was an error in reading in the volume of the fuel material from the corewriter output.")
+            print 'no volume found on fuel material. be sure to name it "fuel"!'
+            print 'Bye.'
+            quit()
+
+        # grab num_particles, etc from the optdict, save them.
+        self.num_particles = optdict['mainPop'][0]
+        self.num_cycles = 500
+        self.num_skipped_cycles = 100
+
+        self.holeradius=1.286 # random test value
 
         #default to use TMP for temperature XS interpolation
         self.tmp_or_tms='tmp'
@@ -115,17 +139,13 @@ class genericInput(SerpentInputFile):
 
     def WriteJob(self, directory='.',usebumodethree=False):
         """ partially overrides RefuelCore.SerpentInputFile.SubmitJob """
-        SerpentInputFile.WriteJob(self,directory='.',usebumodethree=usebumodethree)
+        SerpentInputFile.WriteJob(self,directory=directory,usebumodethree=usebumodethree)
 
         # now need to append other serpent options
-        serpinp = open(self.inputfilename, 'a') #append mode
+        serpinp = open(directory+'/'+self.inputfilename, 'a') #append mode
 
         for opt in self.otheropts:
             serpinp.write(opt)
 
-        for f in self.includefiles:
-            if f not in os.listdir('.'):
-                raise Exception("include file '.' not found in wdir".format(f))
-        
         serpinp.close()
 

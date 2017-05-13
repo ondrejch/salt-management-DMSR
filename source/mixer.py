@@ -3,7 +3,7 @@
 # for that at the moment.
 from RefuelCore import SerpentMaterial
 
-def mix(mat1,mat2,frac1):
+def mix(mat1,mat2,frac1, matname = 'newmix'):
     """This function takes two SerpentMaterials, and mixes them!
     The new density is approximated by assuming that atom density mixes
     linearly between the two materials.
@@ -12,7 +12,12 @@ def mix(mat1,mat2,frac1):
     ---
     mat1 -- Serpent material 1
     mat2 -- Serpent material 2
-    frac1 -- volume fraction of material 1 (fraction of 2 is 1-frac1)"""
+    frac1 -- volume fraction of material 1 (fraction of 2 is 1-frac1)
+    
+    Kwargs
+    ---
+    matname --- optional new material name
+    """
 
     #input check:
     mat1isgood=type(mat1)==SerpentMaterial
@@ -34,9 +39,10 @@ def mix(mat1,mat2,frac1):
 
     # initialize final material
     mat3=SerpentMaterial('empty')
+    mat3.materialname = matname
 
     # calculate new atom density
-    mat3.atomdensity=frac1*mat1.atomdensity + (1.0-frac1)*mat2.atomdensity
+    mat3.atomdensity=mat3.density=frac1*mat1.atomdensity + (1.0-frac1)*mat2.atomdensity
 
     # --- isotopics ---
     iso1=mat1.isotopic_content

@@ -1,7 +1,0 @@
-src myFS sf ../fissSource.dat 1
-src myFS sf ../fissSource.dat 1
-src myFS sf ../fissSource.dat 1
-src myFS sf ../fissSource.dat 1
-src myFS sf ../fissSource.dat 1
-src myFS sf "../fissSource.dat" 1
-src myFS sf "../fissSource.dat" 1

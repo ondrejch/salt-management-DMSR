@@ -11,6 +11,9 @@ import os
 import pickle
 from getmass import getIsoMass
 
+# DPI for plots
+dpi = 96.
+
 parser = argparse.ArgumentParser(description='plot the results of refuelmsr.py using object data')
 parser.add_argument('inputdirs', metavar='f', type=str, nargs='+', help='name of the inputfileslog directory')
 args=parser.parse_args()
@@ -41,7 +44,7 @@ for d in inputdirs:
         lgnd.append('NaFKF')
 
 #construct plots with titles
-fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True)
+fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True, figsize = (1272./dpi,1342./dpi) )
 ax1.set_title("$k_{eff}$ vs. time")
 ax1.set_ylim([.9, 1.1])
 ax3.set_title("Addition of GdF$_3$ burnable absorber")
@@ -51,7 +54,7 @@ ax2.set_ylabel('Refuel rate ($\\frac{kg}{day}$)')
 ax3.set_ylabel('Addition rate ($\\frac{kg}{day}$)')
 ax3.set_xlabel('Time (days)')
 
-fig2, ax4 = plt.subplots(1)
+fig2, ax4 = plt.subplots(1, figsize =(1272./dpi,1342./dpi) )
 ax4.set_title('In-core enrichment vs. time')
 ax4.set_xlabel('Time (days)')
 ax4.set_ylabel('Enrichment')
@@ -187,5 +190,5 @@ for logfilename in inputdirs:
 
 ax1.legend(lgnd, prop={'size':18}, loc=0)
 ax4.legend(lgnd, prop={'size':18}, loc=0)
-plt.show()
-
+fig.savefig('flows.png')
+fig2.savefig('enrich.png')

@@ -1943,6 +1943,7 @@ module load mpi
 module load serpent
 
 {4}
+sleep 1
 grep ABS_KEFF {5} > {6}
         """.format(self.queue, self.num_nodes, self.PPN, pmemtext, runtext, results_file, done_file)
         with open(directory+'/'+'{0}.sh'.format(self.inputfilename), 'w') as qsubfilehandle:
@@ -2147,6 +2148,11 @@ grep ABS_KEFF {5} > {6}
         nodes, PPN, etc.
         local mode runs on the local computer."""
 
+        # First delete the done file
+        done_file = "{0}.done" .format(self.directory+"/"+self.inputfilename)
+        if os.path.isfile(done_file):
+            os.remove(done_file)
+
         if mode=='queue':
 
             # submit to torque / maui style queuing
@@ -2173,8 +2179,10 @@ grep ABS_KEFF {5} > {6}
         """
         
         done_file = "{0}.done".format(self.directory+"/"+self.inputfilename) # File created once the Serpent job is finished
-        
-        return os.path.isfile(done_file)
+        is_done = os.path.isfile(done_file)
+        # print " *** IsDone {0}  --->  {1}".format(done_file, is_done)
+
+        return is_done
         
 
     def IsDone_OLD(self,getstatus=False):
@@ -2247,17 +2255,22 @@ grep ABS_KEFF {5} > {6}
         #    foundkeff0=True #the first value is the one you care about
         #else:
         #    foundkeff0=False #depletion was done, so you want the last one
-
-        with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
-            for line in resultfile.readlines():
-                if line=='':
-                    continue
-                line=line.split()
-                if line==[]:
-                    continue
-                elif line[0]=='ABS_KEFF':
-                    self.kefflist.append(float(line[6])) #MUST be converted to a float. error happens otherwise.
-                    self.keffsigmalist.append(float(line[7]))
+        try:
+            with open(self.directory+'/'+self.inputfilename+'_res.m','r') as resultfile:
+                for line in resultfile.readlines():
+                    if line=='':
+                        continue
+                    line=line.split()
+                    if line==[]:
+                        continue
+                    elif line[0]=='ABS_KEFF':
+                        self.kefflist.append(float(line[6])) #MUST be converted to a float. error happens otherwise.
+                        self.keffsigmalist.append(float(line[7]))
+        except IOError:
+            print "Couldn't find the output file in the current directory, {}".format(os.getcwd())
+            print "Here are the files in the directory as seen by this script:"
+            print os.listdir('.')
+            raise IOError("^^^")
 
             if self.kefflist==[] :
                 print self.directory

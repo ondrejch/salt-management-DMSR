@@ -117,7 +117,7 @@ for logfilename in inputdirs:
             if mat.materialname=='fuel':
                 #need to record enrichment
                 enrichments.append(mat.isotopic_content['92235']/(mat.isotopic_content['92235']+mat.isotopic_content['92238']))
-
+        foundAbsorber = False
         #now all the flow rates must be read in and recorded
         for mat1, mat2, ratioflow in p.volumetricflows:
             #this is the refuel rate. only the lambda value in the
@@ -141,12 +141,19 @@ for logfilename in inputdirs:
                 Umetalrates.append(ratioflow*vol1)
             elif mat1=='absorber' and mat2=='fuel':
                 absorberrates.append(ratioflow*vol1)
+                foundAbsorber = True
 
         #absolute day value is not stored, only the incremental time the
         # file was burnt. So, increment.
         for s in p.BurnTime:
             day+=float(s)
         fh.close()
+
+        # sometimes the absorber rate was zero and the flow didn't appear,
+        # so this means that the flow was zero. Cases like this happen after
+        # restarting the simulation without absorber addition.
+        if not foundAbsorber:
+            absorberrates.append(0.0)
 
 
     # --- convert all flows to kg per day ---

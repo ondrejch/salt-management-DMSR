@@ -124,7 +124,8 @@ for mat in myCore.materials:
         mat.converToAtomDens()
     except:
         print mat
-        raise Exception(" couldnt convert to ADENS ")
+        mat.converToAtomDens() # have it throw the error again, but more output
+
 
 # need to add a refuel material, whatever it may be
 #
@@ -257,6 +258,10 @@ if optdict['critSearch']:
     test2.WriteJob()
     test1.SubmitJob(mode = optdict['runsettings']['mode'])
     test2.SubmitJob(mode = optdict['runsettings']['mode'])
+
+    # grab init target Rho, usually 0 but sometimes you want
+    # to kick things off with zero refueling and rho>0.
+    dRho = optdict['initTargetRho']
 
     # grab init target Rho, usually 0 but sometimes you want
     # to kick things off with zero refueling and rho>0.

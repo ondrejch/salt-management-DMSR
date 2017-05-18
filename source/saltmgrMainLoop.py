@@ -327,7 +327,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
     if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not myCore.coastDown:
 
-        print("KEFF TEST FAILED.\n")
+        print("KEFF TEST FAILED. (x{})\n".format(runDatObj.iternum))
 
         # run test cases!
         testinputfiles = [copy.deepcopy(myCore) for x in range(optdict['numTestCases'])] # copy some!

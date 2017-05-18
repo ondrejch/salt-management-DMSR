@@ -274,9 +274,9 @@ sub HolePunch {                 # writes holes in graphite
  
 sub TankSurf { 			# writes surfaces of the tank
   our $salt_volume = 0; #Initialize, increment whenever salt-containing features are added
-  our $tthick  =  3;		# 3cm thick hastN
-  our $srthick =  5;		# surrounding radial salt thickness
-  our $radrefl =  25;       # surrounding radial graphite reglector thickness
+  our $tthick  =  5;		# 5cm thick hastN
+  our $srthick =  15;		# surrounding radial salt thickness
+  our $radrefl =  30;       # surrounding radial graphite reglector thickness
   our $shthick =  15; 		# surrounding axial salt thickness
   our $htank;			# top/bottom hast-n plate [cm]
   our $hsalt;			# top/bottom salt surface [cm]

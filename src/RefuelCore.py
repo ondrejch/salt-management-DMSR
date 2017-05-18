@@ -4,6 +4,7 @@ if __name__ == '__main__':
 debug=False
 reallydebug=False
 
+import os
 import getmass
 import getpass # this rhyme was unintentional although very nice.
 import copy
@@ -1483,7 +1484,9 @@ class SerpentInputFile(object):
         #this is NOT the final input file to serpent. merely a template to get isotopics and geometry from the core writer. This avoids reproduction of work.
         mywd=os.getcwd()
         installd=mywd.split("salt-management-DMSR",1)[0]
-        print subprocess.call(['perl', '{0}salt-management-DMSR/src/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
+        #print subprocess.call(['perl', '{0}/salt-management-DMSR/src/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
+        #print subprocess.call(['perl', '{0}/corewriter.pl'.format(self.directory)]) #print is there so that the print()'s in the perl script get printed
+        print subprocess.call(['corewriter.pl']) #print is there so that the print()'s in the perl script get printed
 
         # OK, now, the old geometry writer doesn't work for cores with >10000 channels. So,
         # rewrite it using the lattice writer from DMSR-multiphysics
@@ -1922,20 +1925,26 @@ class SerpentInputFile(object):
             runtext="sss2.1.28-reprofix -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
         else:
             runtext="mpirun -npernode 1 sss2.1.28-reprofix -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
-        qsubtext="""#!/bin/bash
-        #PBS -V
-        #PBS -q {0}
-        #PBS -l nodes={1}:ppn={2}
-        {3}
+        results_file = "{0}_res.m".format(directory+"/"+self.inputfilename)
+        done_file    = "{0}.done" .format(directory+"/"+self.inputfilename)
+        qsubtext     = """#!/bin/bash
+#PBS -V
+#PBS -q {0}
+#PBS -l nodes={1}:ppn={2}
+{3}
 
-        #### Executable Line
-        cd ${{PBS_O_WORKDIR}}
+# Change to the qsub directory
+cd ${{PBS_O_WORKDIR}}
 
-        module load mpi
-        module load serpent
+# Remove done-indicating file prior to serpent run
+if [[ -e {6} ]] ; then rm -f {6} ; fi
 
-        {4}
-        """.format(self.queue,self.num_nodes,self.PPN,pmemtext,runtext)
+module load mpi
+module load serpent
+
+{4}
+grep ABS_KEFF {5} > {6}
+        """.format(self.queue, self.num_nodes, self.PPN, pmemtext, runtext, results_file, done_file)
         with open(directory+'/'+'{0}.sh'.format(self.inputfilename), 'w') as qsubfilehandle:
             qsubfilehandle.write(qsubtext)
         #remove old output in case a file of the same name is being run twice. This prevents failed jobs from appearing as successful.
@@ -2147,19 +2156,30 @@ class SerpentInputFile(object):
         elif mode=='local':
 
            # submit to local machine, no distributed memory parallelism
-           command = 'sss2.1.28-reprofix -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, self.directory + '/'+ self.inputfilename)
+           #command = 'sss2.1.28-reprofix -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, self.directory + '/'+ self.inputfilename)
+           command = self.directory+'/'+self.inputfilename+'.sh' # run the job file directly
            print subprocess.check_output(command, shell=True)
 
         else:
 
             raise Exception('unknown run mode {}'.format(mode))
 
-        self.submitted_once=True #it has now been submittedq
+        self.submitted_once=True # job has now been submitted
 
         return None
 
     def IsDone(self,getstatus=False):
-        """Checks if an attempt has been made to submit the job. If not, an exception is raised, because this would be a code error.
+        """Checks for .done file in the job directory, which indicated the run is over. 
+        """
+        
+        done_file = "{0}.done".format(self.directory+"/"+self.inputfilename) # File created once the Serpent job is finished
+        
+        return os.path.isfile(done_file)
+        
+
+    def IsDone_OLD(self,getstatus=False):
+        """*** REPLACED BY IsDone() above *** 
+        Checks if an attempt has been made to submit the job. If not, an exception is raised, because this would be a code error.
 
         If the job has been submitted, the output of qstat is checked for if the name of this input file.
         A bool True is returned if the job is done, and vice-versa.

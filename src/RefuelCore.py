@@ -1483,7 +1483,7 @@ class SerpentInputFile(object):
         #this is NOT the final input file to serpent. merely a template to get isotopics and geometry from the core writer. This avoids reproduction of work.
         mywd=os.getcwd()
         installd=mywd.split("salt-management-DMSR",1)[0]
-        print subprocess.call(['perl', '{0}salt-management-DMSR/source/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
+        print subprocess.call(['perl', '{0}salt-management-DMSR/src/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
 
         # OK, now, the old geometry writer doesn't work for cores with >10000 channels. So,
         # rewrite it using the lattice writer from DMSR-multiphysics

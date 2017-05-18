@@ -4,6 +4,8 @@ if __name__ == '__main__':
 debug=False
 reallydebug=False
 
+serpent_executable = 'sss2.1.28-reprofix' # TODO - input file option
+
 import os
 import getmass
 import getpass # this rhyme was unintentional although very nice.
@@ -1922,9 +1924,9 @@ class SerpentInputFile(object):
         else:
             pmemtext='#PBS -l pmem='+self.pmem + '\n'
         if self.num_nodes==1:
-            runtext="sss2.1.28-reprofix -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
+            runtext="{3} -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory, serpent_executable)
         else:
-            runtext="mpirun -npernode 1 sss2.1.28-reprofix -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory)
+            runtext="mpirun -npernode 1 {3} -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory, serpent_executable)
         results_file = "{0}_res.m".format(directory+"/"+self.inputfilename)
         done_file    = "{0}.done" .format(directory+"/"+self.inputfilename)
         qsubtext     = """#!/bin/bash
@@ -2162,7 +2164,7 @@ grep ABS_KEFF {5} > {6}
         elif mode=='local':
 
            # submit to local machine, no distributed memory parallelism
-           #command = 'sss2.1.28-reprofix -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, self.directory + '/'+ self.inputfilename)
+           #command = '{3} -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, self.directory + '/'+ self.inputfilename, serpent_executable)
            command = self.directory+'/'+self.inputfilename+'.sh' # run the job file directly
            print subprocess.check_output(command, shell=True)
 

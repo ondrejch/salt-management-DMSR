@@ -1915,18 +1915,18 @@ class SerpentInputFile(object):
         Keyword args:
             directory -- the directory that the input file will be written into and ran. Convenient to change if testing many different cores/salts.
         """
-        #firstly, update directories that materials look for their burnt versions in, if needed
+        # First, update directories that materials look for their burnt versions in, if needed
         for mat in self.materials:
             mat.directory=directory
-        #Write the qsub script.
+        # Write the qsub script.
         if self.pmem==None:
             pmemtext=''
         else:
             pmemtext='#PBS -l pmem='+self.pmem + '\n'
-        if self.num_nodes==1:
-            runtext="{3} -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory, serpent_executable)
+        if int(self.num_nodes)==1:
+            runtext="{3} -omp {0} {2}/{1} > {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory, serpent_executable)
         else:
-            runtext="mpirun -npernode 1 {3} -omp {0} {2}/{1} | tee {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory, serpent_executable)
+            runtext="mpirun -npernode 1 {3} -omp {0} {2}/{1} > {2}/{1}serpentoutput.txt".format(self.PPN, self.inputfilename, directory, serpent_executable)
         results_file = "{0}_res.m".format(directory+"/"+self.inputfilename)
         done_file    = "{0}.done" .format(directory+"/"+self.inputfilename)
         qsubtext     = """#!/bin/bash
@@ -1935,14 +1935,15 @@ class SerpentInputFile(object):
 #PBS -l nodes={1}:ppn={2}
 {3}
 
-# Change to the qsub directory
-cd ${{PBS_O_WORKDIR}}
+if [[ $PBS_O_SERVER == necluster.engr.utk.edu ]] ; then
+	# Change to the qsub directory
+	cd ${{PBS_O_WORKDIR}}
+	module load mpi
+	module load serpent
+fi
 
 # Remove done-indicating file prior to serpent run
 if [[ -e {6} ]] ; then rm -f {6} ; fi
-
-module load mpi
-module load serpent
 
 {4}
 sleep 1

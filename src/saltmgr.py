@@ -231,7 +231,7 @@ if optdict['critSearch']:
 
     # split up node number for crit search
     nNodes = int(myCore.num_nodes) / 2 #intentional int divis.
-    if nNodes ==0:
+    if nNodes == 0:
         nNodes = 1
 
     test1.num_nodes = nNodes

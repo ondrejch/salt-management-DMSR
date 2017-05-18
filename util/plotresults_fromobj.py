@@ -11,6 +11,9 @@ import os
 import pickle
 from getmass import getIsoMass
 
+# DPI for plots
+dpi = 96.
+
 parser = argparse.ArgumentParser(description='plot the results of refuelmsr.py using object data')
 parser.add_argument('inputdirs', metavar='f', type=str, nargs='+', help='name of the inputfileslog directory')
 args=parser.parse_args()
@@ -41,7 +44,7 @@ for d in inputdirs:
         lgnd.append('NaFKF')
 
 #construct plots with titles
-fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True)
+fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True, figsize = (1272./dpi,1342./dpi) )
 ax1.set_title("$k_{eff}$ vs. time")
 ax1.set_ylim([.9, 1.1])
 ax3.set_title("Addition of GdF$_3$ burnable absorber")
@@ -51,7 +54,7 @@ ax2.set_ylabel('Refuel rate ($\\frac{kg}{day}$)')
 ax3.set_ylabel('Addition rate ($\\frac{kg}{day}$)')
 ax3.set_xlabel('Time (days)')
 
-fig2, ax4 = plt.subplots(1)
+fig2, ax4 = plt.subplots(1, figsize =(1272./dpi,1342./dpi) )
 ax4.set_title('In-core enrichment vs. time')
 ax4.set_xlabel('Time (days)')
 ax4.set_ylabel('Enrichment')
@@ -114,7 +117,7 @@ for logfilename in inputdirs:
             if mat.materialname=='fuel':
                 #need to record enrichment
                 enrichments.append(mat.isotopic_content['92235']/(mat.isotopic_content['92235']+mat.isotopic_content['92238']))
-
+        foundAbsorber = False
         #now all the flow rates must be read in and recorded
         for mat1, mat2, ratioflow in p.volumetricflows:
             #this is the refuel rate. only the lambda value in the
@@ -138,12 +141,19 @@ for logfilename in inputdirs:
                 Umetalrates.append(ratioflow*vol1)
             elif mat1=='absorber' and mat2=='fuel':
                 absorberrates.append(ratioflow*vol1)
+                foundAbsorber = True
 
         #absolute day value is not stored, only the incremental time the
         # file was burnt. So, increment.
         for s in p.BurnTime:
             day+=float(s)
         fh.close()
+
+        # sometimes the absorber rate was zero and the flow didn't appear,
+        # so this means that the flow was zero. Cases like this happen after
+        # restarting the simulation without absorber addition.
+        if not foundAbsorber:
+            absorberrates.append(0.0)
 
 
     # --- convert all flows to kg per day ---
@@ -187,5 +197,5 @@ for logfilename in inputdirs:
 
 ax1.legend(lgnd, prop={'size':18}, loc=0)
 ax4.legend(lgnd, prop={'size':18}, loc=0)
-plt.show()
-
+fig.savefig('flows.png')
+fig2.savefig('enrich.png')

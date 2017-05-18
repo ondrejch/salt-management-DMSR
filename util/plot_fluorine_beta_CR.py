@@ -12,6 +12,7 @@ import argparse
 import matplotlib.pyplot as plt
 from matplotlib import rc
 
+dpi = 96.
 
 parser = argparse.ArgumentParser(description='plot some key results of refuelmsr.py')
 parser.add_argument('inputfileslog', metavar='f', type=str, nargs='+', help='name of directory containing pickle data for input files')
@@ -27,17 +28,16 @@ originaldir=os.getcwd()
 #assuming integer values
 #also, data is grabbed from the files
 #---------------------------
-
-fig = plt.figure()
+fig = plt.figure( figsize = (1272. / dpi, 1342. / dpi) )
 ax=fig.add_subplot(111)
 
-fig2 = plt.figure()
+fig2 = plt.figure(figsize = (1272. / dpi, 1342. / dpi))
 ax2 = fig2.add_subplot(111)
 
-fig3= plt.figure()
+fig3= plt.figure(figsize = (1272. / dpi, 1342. / dpi) )
 ax3=fig3.add_subplot(111)
 
-fig4=plt.figure()
+fig4=plt.figure(figsize = (1272. / dpi, 1342. / dpi))
 ax4=fig4.add_subplot(111)
 
 ax3.set_title("Conversion ratio over time")
@@ -141,4 +141,7 @@ for a in [ax,ax2,ax3,ax4]:
     a.legend(["CRAM","TTA"], loc=0)
 
 
-plt.show()
+fig.savefig('fexcess.png')
+#fig2.savefig('fexcess.png')
+fig3.savefig('convratio.png')
+fig4.savefig('betaeff.png')

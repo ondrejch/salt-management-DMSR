@@ -1950,7 +1950,7 @@ grep ABS_KEFF {5} > {6}
         """.format(self.queue, self.num_nodes, self.PPN, pmemtext, runtext, results_file, done_file)
         with open(directory+'/'+'{0}.sh'.format(self.inputfilename), 'w') as qsubfilehandle:
             qsubfilehandle.write(qsubtext)
-        os.chmod(directory+'/'+'{0}.sh'.format(self.inputfilename), 750) # make script executable
+        os.chmod(directory+'/'+'{0}.sh'.format(self.inputfilename), 0750) # make script executable
         #remove old output in case a file of the same name is being run twice. This prevents failed jobs from appearing as successful.
         from os import listdir
         if "{0}_res.m".format(self.inputfilename) in listdir(directory):

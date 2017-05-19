@@ -11,7 +11,13 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 from matplotlib import rc
+import scipy.ndimage.filters as fil
 
+
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':24})
+## for Palatino and other serif fonts use:
+#rc('font',**{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
 dpi = 96.
 
 parser = argparse.ArgumentParser(description='plot some key results of refuelmsr.py')
@@ -78,12 +84,15 @@ for logfilename in logfiles:
     excess_F_moles_doligez=[]
     convratios=[]
     betaEffs=[]
+    betaEffsUncer = []
     for dayval in days:
         fh=open("inputday{0}.dat".format(dayval), 'r')
         p=pickle.load(fh)
-        excess_F_moles_upper.append( p.CalcExcessFluorine(printfexcess=False) )
+        fuel = p.getMat('fuel')
+        excess_F_moles_upper.append( fuel.CalcExcessFluorine(printfexcess=False) )
         convratios.append(p.convratio)
-        betaEffs.append(p.betaEff)
+        betaEffs.append(float(p.betaEff[0]))
+        betaEffsUncer.append(float(p.betaEff[1]))
         #need some code to check that bumat output is indeed printing atom densities beside each nuclide
         atomdensitysum=0.0
         for mat in p.materials:
@@ -97,10 +106,6 @@ for logfilename in logfiles:
     #Set up plotting options:
     #------------------------
     #use latex markup
-    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':24})
-    ## for Palatino and other serif fonts use:
-    #rc('font',**{'family':'serif','serif':['Palatino']})
-    rc('text', usetex=True)
     if usegauss:
         import scipy.ndimage.filters as fil
         #override with filtered data
@@ -126,7 +131,15 @@ for logfilename in logfiles:
     print float(sum(convratios)) /  float(len(convratios))
 
     #delayed neutron fraction plot
+    betaEffs = np.array(betaEffs)
+    betaEffsUncer = np.array(betaEffsUncer)
     ax4.plot(days, betaEffs)
+
+    #override with filtered data
+    betaEffsTop =    fil.gaussian_filter1d(betaEffs+betaEffs*betaEffsUncer,1)
+    betaEffsBottom = fil.gaussian_filter1d(betaEffs-betaEffs*betaEffsUncer,1)
+
+    ax4.fill_between(days,betaEffsBottom,betaEffsTop,alpha = 0.5)
     ax4.set_title("Effective Delayed Neutron Fraction")
     prntstr=[]
     for item in np.diff(excess_F_moles_lower):
@@ -136,9 +149,6 @@ for logfilename in logfiles:
 
     #now go back to the original location
     os.chdir(originaldir)
-#lgnd
-for a in [ax,ax2,ax3,ax4]:
-    a.legend(["CRAM","TTA"], loc=0)
 
 
 fig.savefig('fexcess.png')

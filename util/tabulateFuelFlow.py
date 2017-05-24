@@ -23,7 +23,8 @@ for f in ls:
     day = int(numstr)
     days.append(day)
 days.sort()
-print("# Day, Refuel Rate (kg/day), Total (kg)")
+print("# Day, Refuel Rate (kg/day), Total (kg), Absorber Rate (kg/day)")
+print('#warning, assuming GdF3 is absorber')
 
 cumsum = 0.0
 for day in days:
@@ -36,12 +37,15 @@ for day in days:
     for mat1, mat2, num in core.volumetricflows:
         if mat1=='refuel' and mat2=='fuel':
             vFlowRefuel = num * core.getMat('refuel').volume #ccm/s
+        elif mat1=='absorber' and mat2=='fuel':
+            vFlowAbs = num * core.getMat('absorber').volume
 
     mFlowRefuel = refuelDens * vFlowRefuel /1000.0*3600.0*24.0
+    mFlowAbs    = 7.0 * vFlowAbs / 1000.0 * 3600.0 * 24.0
 
     if day != 0:
         cumsum += lastFlowRefuel * daystep
 
     lastFlowRefuel = mFlowRefuel
 
-    print("{} , {} , {}".format(day,mFlowRefuel,cumsum))
+    print("{} , {} , {}, {}".format(day,mFlowRefuel,cumsum,mFlowAbs))

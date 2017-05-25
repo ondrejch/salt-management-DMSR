@@ -622,7 +622,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
             # preemptively adjust refuel rate from the last available curve fit
             # first off, the last day ran must be found:
-            with open(runDatObj.outdir+'/inputday{}.dat'.format(int(runDatObj.burnttime-2*myCore.daystep)) as fh:
+            with open(runDatObj.outdir+'/inputday{}.dat'.format(int(runDatObj.burnttime-2*myCore.daystep))) as fh:
                 oldCore = pickle.load(fh)
 
             # get delta rho over last step

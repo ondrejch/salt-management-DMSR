@@ -557,7 +557,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
             print 'switching to adding burnable poison'
             runDatObj.refuelrate = 0.0
-            runDatObj.downRhoRate = runDatObj.initialguessrefuelrate * 0.001# could add better guessing here
+            runDatObj.downRhoRate = runDatObj.initialguessrefuelrate * 0.0001# could add better guessing here
 
         elif runDatObj.downRhoRate < 0.0:
 

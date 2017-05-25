@@ -598,7 +598,18 @@ class RefuelorAbsorberFit(object):
                          guess2=newguess
                  print "Found zero to the refuel fit function with an error of {0}".format(error)
                  return guess2
+    def getAdjustment(self,drho):
+        """ Gives an adjusted refuel rate based on small changes round the refuel rate that maintains criticality."""
+        rate0 = self.guessfunctionzero()
+        a,b,c = tuple(self.params)
 
+        # get linearized slope at root
+        m = self.refuelfitfunction(rate0*1.01,a,b,c) / (.01*rate0)
+
+        deltaFlow = drho / m
+
+        # new flow:
+        return rate0 + deltaFlow
 
 class SerpentMaterial(object):
     """Holds material data for a serpent input file. This can be any material, really.

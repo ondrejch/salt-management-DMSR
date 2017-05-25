@@ -617,6 +617,25 @@ def mainLoop(optdict, myCore,runDatObj):
         # copy burnt materials into current input
         myCore.CopyBurntMaterials()
 
+        # do derivative controlling if refueling
+        if runDatObj.refuelrate > 0.0:
+
+            # preemptively adjust refuel rate from the last available curve fit
+            # first off, the last day ran must be found:
+            with open(runDatObj.outdir+'/inputday{}.dat'.format(int(runDatObj.burnttime-2*myCore.daystep)) as fh:
+                oldCore = pickle.load(fh)
+
+            # get delta rho over last step
+            kFinal = myCore.keff
+            kInit  = oldCore.keff
+            deltaRho = (kFinal-1.0)/kFinal - (kInit-1.0) / kInit
+
+            # now, look at the old curve fit in order to find response to increasing refuel rate
+            oldRefuel = runDatObj.refuelrate
+            runDatObj.refuelrate = myfit.getAdjustment(deltaRho)
+
+            print 'refuel rate was adjusted from {} ccm/s to {} ccm/s to compensate rate of change'.format(oldRefuel, runDatObj.refuelrate)
+
         # now, increase the volume of bucket type materials:
         for mat, vType in optdict['volumeTreatments']:
 

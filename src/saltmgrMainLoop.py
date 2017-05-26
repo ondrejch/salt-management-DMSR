@@ -618,7 +618,7 @@ def mainLoop(optdict, myCore,runDatObj):
         myCore.CopyBurntMaterials()
 
         # do derivative controlling if refueling
-        if runDatObj.refuelrate > 0.0:
+        if runDatObj.refuelrate > 0.0 and int(runDatObj.burnttime-2*myCore.daystep)) > 0:
 
             # preemptively adjust refuel rate from the last available curve fit
             # first off, the last day ran must be found:

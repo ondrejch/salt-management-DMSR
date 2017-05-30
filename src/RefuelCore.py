@@ -610,7 +610,7 @@ class RefuelorAbsorberFit(object):
             deltaFlow = drho / m
 
             # new flow:
-            return rate0 + deltaFlow
+            return rate0 - deltaFlow
 
 class SerpentMaterial(object):
     """Holds material data for a serpent input file. This can be any material, really.

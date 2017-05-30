@@ -13,6 +13,9 @@ from parseInputSaltMgr import parseSaltMgrOptions
 
 def mainLoop(optdict, myCore,runDatObj):
 
+    if 'haveTriedZero' not in dir(runDatObj):
+        runDatObj.haveTriedZero = False
+
 
     # set reactor power level
     myCore.SetPowerNormalization('power',optdict['power'])
@@ -536,6 +539,8 @@ def mainLoop(optdict, myCore,runDatObj):
             if runDatObj.iternum == 3:
 
                 runDatObj.refuelrate = 0.0
+                runDatObj.downRhoRate = 0.0
+                runDatObj.haveTriedZero = True
 
             # lastly, print out info for this iteration
             print "----------Iteration {0} at {1} days------------".format(runDatObj.iternum,runDatObj.burnttime)
@@ -553,7 +558,7 @@ def mainLoop(optdict, myCore,runDatObj):
         # next, if a negative rho lowering flow is specified or a 
         # negative refuel rate, this means that reactivity should be moving in
         # the other direction. switch em up!
-        if runDatObj.refuelrate < 0.0:
+        if runDatObj.refuelrate < 0.0 and runDatObj.haveTriedZero:
 
             print 'switching to adding burnable poison'
             runDatObj.refuelrate = 0.0
@@ -565,10 +570,19 @@ def mainLoop(optdict, myCore,runDatObj):
            runDatObj.downRhoRate = 0.0
            runDatObj.refuelrate = runDatObj.initialguessrefuelrate # reasonable, but could be better
 
+        else:
+            print 'trying zero flow'
+            runDatObj.refuelrate = 0.0
+            runDatObj.downRhoRate = 0.0
+            runDatObj.haveTriedZero = True
+
     # yay, keff was in desired bounds!
     elif (optdict['keffbounds'][0] <= keff and optdict['keffbounds'][1] >= keff) or myCore.coastDown:
 
         print("KEFF TEST OK!!!\n")
+
+        #reset zero attempt bool
+        runDatObj.haveTriedZero = False
 
         # if keff has dropped below optdict['keffbounds'][0], turn coastdown off.
         if keff <= optdict['keffbounds'][0]:

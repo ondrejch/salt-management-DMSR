@@ -43,9 +43,11 @@ for day in days:
     mFlowRefuel = refuelDens * vFlowRefuel /1000.0*3600.0*24.0
     mFlowAbs    = 7.0 * vFlowAbs / 1000.0 * 3600.0 * 24.0
 
+    keff = core.keff
+
     if day != 0:
         cumsum += lastFlowRefuel * daystep
 
     lastFlowRefuel = mFlowRefuel
 
-    print("{} , {} , {}, {}".format(day,mFlowRefuel,cumsum,mFlowAbs))
+    print("{} ,{},  {} , {}, {}".format(day,keff,mFlowRefuel,cumsum,mFlowAbs))

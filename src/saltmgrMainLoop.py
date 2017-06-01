@@ -645,7 +645,7 @@ def mainLoop(optdict, myCore,runDatObj):
             deltaRho = (kFinal-1.0)/kFinal - (kInit-1.0) / kInit
 
             # now, look at the old curve fit in order to find response to increasing refuel rate
-            oldRefuel = runDatObj.refuelrate
+            oldRefuel = copy.copy(runDatObj.refuelrate) # copy, otherwise this is a reference
             if'myfitr' in locals():
                 runDatObj.refuelrate = myfit.getAdjustment(deltaRho)
             else:

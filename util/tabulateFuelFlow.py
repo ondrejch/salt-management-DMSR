@@ -50,4 +50,4 @@ for day in days:
 
     lastFlowRefuel = mFlowRefuel
 
-    print("{: 4d} \t{:8.6f} \t{:6.3f} \t{:7.1f} \t{:8.6f}".format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs))
+    print("{: 4d} \t{:8.6f} \t{:8.6f} \t{:7.1f} \t{:8.6f}".format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs))

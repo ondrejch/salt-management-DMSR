@@ -37,6 +37,8 @@ def parseSaltMgrOptions(filename):
     # this is set higher than usual
     optdict['initTargetRho'] = 0.0
 
+    optdict['coastDown'] = False
+
     for line in inpfile:
         
         # split line
@@ -50,6 +52,13 @@ def parseSaltMgrOptions(filename):
         try:
             # now go through all options
             if sline[0] == 'set':
+
+                if sline[1]=='coastDown':
+                    if sline[2] not in ['True', 'False']:
+                        raise Exception('coastDown must be True or False')
+
+                    else:
+                        optdict['coastDown'] = True
 
                 # this is for setting options
                 if sline[1]=='refuel':

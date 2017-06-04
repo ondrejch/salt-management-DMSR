@@ -324,6 +324,9 @@ if optdict['initTargetRho'] > 0.0:
     # until the initial fission product rho drop is done. 
     myCore.coastDown = True
 
+if optdict['coastDown']:
+    myCore.coastDown = True
+
 #loop through all materials that may be mixed with the salt, and give them the appropriate Z to 
 # oxidation number mapping. this can be dynamically changed if needed.
 for mat in myCore.materials:

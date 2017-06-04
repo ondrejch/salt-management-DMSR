@@ -2038,8 +2038,10 @@ grep ABS_KEFF {5} > {6}
                 if mat.tempK is None:
                     raise Exception(" give {} a temperature please".format(mat.materialname))
                 inputfiletext.append('{0}{1}  {2}\n'.format(iso,mat.xstemplib,mat.isotopic_content[iso]))
-            if mat.materialname=="mod":
-                inputfiletext.append('therm grmod 950 grj2.18t grj2.20t\n')
+            if mat.materialname=="mod" or mat.materialname=='graph':
+                modname = mat.materialname
+                extralibs = '' if self.getMat(modname).tempK > 951.0 else 'grj2.22t grj2.24t'
+                inputfiletext.append('therm grmod {} grj2.18t grj2.20t \n'.format(self.getMat(modname).tempK ,extralibs ))
             inputfiletext.append("\n")
         inputfiletext.append("mat dummy 0.0 burn 1 vol 1 \n")
         inputfiletext.append("92235.09c 0.0\n\n")

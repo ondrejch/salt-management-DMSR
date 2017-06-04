@@ -2041,6 +2041,9 @@ grep ABS_KEFF {5} > {6}
             if mat.materialname=="mod" or mat.materialname=='graph':
                 modname = mat.materialname
                 extralibs = '' if self.getMat(modname).tempK > 951.0 else 'grj2.22t grj2.24t'
+                mod = self.getMat(modname)
+                # give  a default mod temperature
+                mod.tempK = 950. if mod.tempK in ['',None,'None'] else mod.tempK
                 inputfiletext.append('therm grmod {} grj2.18t grj2.20t \n'.format(self.getMat(modname).tempK ,extralibs ))
             inputfiletext.append("\n")
         inputfiletext.append("mat dummy 0.0 burn 1 vol 1 \n")

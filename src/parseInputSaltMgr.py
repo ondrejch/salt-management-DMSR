@@ -53,12 +53,6 @@ def parseSaltMgrOptions(filename):
             # now go through all options
             if sline[0] == 'set':
 
-                if sline[1]=='coastDown':
-                    if sline[2] not in ['True', 'False']:
-                        raise Exception('coastDown must be True or False')
-
-                    else:
-                        optdict['coastDown'] = True
 
                 # this is for setting options
                 if sline[1]=='refuel':
@@ -85,6 +79,16 @@ def parseSaltMgrOptions(filename):
 
                     # this would imply starting a crit search up.
                     optdict['critSearch'] = True
+
+
+                elif sline[1]=='coastDown':
+                    if sline[2] not in ['True', 'False']:
+                        raise Exception('coastDown must be True or False')
+
+                    else:
+                        optdict['coastDown'] = True
+
+
 
                 elif sline[1] == 'absorber':
 

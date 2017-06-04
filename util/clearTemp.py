@@ -5,10 +5,14 @@
 
 import pickle as pk
 
-with open('runData.dat') as fh:
-    run = pk.load( fh )
+def clearTemp(filename):
+    with open(filename) as fh:
+        run = pk.load( fh )
 
-run.clearTemps()
+    run.clearTemps()
 
-with open('runData.dat', 'w') as fh:
-    pk.dump( run, fh)
+    with open(filename, 'w') as fh:
+        pk.dump( run, fh)
+
+if __name__=='__main__':
+    clearTemp('runData.dat')

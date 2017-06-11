@@ -76,8 +76,7 @@ def mainLoop(optdict, myCore,runDatObj):
             # assuming your fuel becomes more oxidizing with time (TerraPower claims theirs doesnt
             # do this)
             if totalToAdd <= 0.0:
-
-                print 'fuel is in a reducing state. letting continue with zero reducing agent addition'
+                print('fuel is in a reducing state. letting continue with zero reducing agent addition')
                 myCore.SetConstantVolumeFlow(additive, controlmaterial, 0.0 )
 
             else:
@@ -323,14 +322,14 @@ def mainLoop(optdict, myCore,runDatObj):
     else:
 
         # something's wrong...
-        print runDatObj.downRhoRate,runDatObj.refuelrate
+        print(runDatObj.downRhoRate,runDatObj.refuelrate)
         raise Exception("absorber addition rate or refuel rate took on an unreasonable value")
 
     # --- now, where did keff land? ---
 
-    if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not myCore.coastDown:
+    if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not (myCore.coastDown and runDatObj.refuelrate == 0.0):
 
-        print("KEFF TEST FAILED. (x{})\n".format(runDatObj.iternum))
+        print("KEFF= {}, TEST FAILED. (x{})\n".format(keff,runDatObj.iternum))
 
         # run test cases!
         testinputfiles = [copy.deepcopy(myCore) for x in range(optdict['numTestCases'])] # copy some!
@@ -346,11 +345,11 @@ def mainLoop(optdict, myCore,runDatObj):
 
             # do some sanity checks. let's not collapse the core into a neutron star, etc.
             if refuelrates_to_try[i] > 10.:
-                print "there is way too much fresh fuel being added. this is because of a curve fit with poor data."
-                print "Reducing flow to reasonable guess value for data collection"
+                print("There is way too much fresh fuel being added. this is because of a curve fit with poor data.\n")
+                print("Reducing flow to reasonable guess value for data collection.\n")
                 refuelrates_to_try[i] = np.random.random_sample(1)[0] * 20.0
             elif downRho_to_try[i] > 0.3:
-                print 'too much absorber being attempted to be added, reducing'
+                print("Too much absorber being attempted to be added, reducing.\n")
                 downRho_to_try[i] = np.random.random_sample(1)[0] * 0.06
 
             # create new directories to run each of the tests in
@@ -364,7 +363,7 @@ def mainLoop(optdict, myCore,runDatObj):
             # create new test directory
             os.mkdir('test{}'.format(i))
 
-            #set the refuel rates
+            # set the refuel rates
             # refuels will be 0 if adding absorber, and vice-versa
             # will need to make this able to accept other reactivity control modes,
             # eg uranium removal
@@ -457,7 +456,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
             # if the downRhoRate is too high, be sure to make it reasonable
             if runDatObj.downRhoRate > 0.5:
-                print 'downrho rate too high, lowering'
+                print('downrho rate too high, lowering\n')
                 runDatObj.downRhoRate = np.random.random_sample(1)[0]*0.005
 
             # sometimes, nothing at all should be added.
@@ -472,13 +471,11 @@ def mainLoop(optdict, myCore,runDatObj):
                 runDatObj.downRhoRate = (np.random.random_sample(1)[0]) * .001
 
             # now print out some results
-            print "---------   Iteration {0} at {1} days   ------------".format(runDatObj.iternum, runDatObj.burnttime)
-            print "currently attempting to add burnable absorber.\n Absorber addition rate is {0} ccm/s.".format(
-                    runDatObj.downRhoRate)
-            print "attempted absorber addition rates are:"
-            print runDatObj.attempted_downRhoRates
-            print "resulting reactivities are:"
-            print runDatObj.downRhotestRhos
+            print("---------   Iteration {0} at {1} days   ------------\n".format(runDatObj.iternum, runDatObj.burnttime))
+            print("Currently attempting to add burnable absorber.\n Absorber addition rate is {0} ccm/s.\n".format(
+                    runDatObj.downRhoRate))
+            print("Attempted absorber addition rates are: {0}\n".format(runDatObj.attempted_downRhoRates))
+            print("Resulting reactivities are: {0}\n".format(runDatObj.downRhotestRhos))
 
         # this is the corresponding procedure for calculating refuel flows
         elif runDatObj.refuelrate != 0.0 or (runDatObj.refuelrate == 0.0 and runDatObj.downRhoRate == 0.0):
@@ -543,12 +540,10 @@ def mainLoop(optdict, myCore,runDatObj):
                 runDatObj.haveTriedZero = True
 
             # lastly, print out info for this iteration
-            print "----------Iteration {0} at {1} days------------".format(runDatObj.iternum,runDatObj.burnttime)
-            print "refuel rate attempted in this iteration is {0} ccm/s".format(runDatObj.refuelrate)
-            print "attempted refuel rates are:"
-            print runDatObj.attempted_refuel_rates
-            print "resulting reactivities are:"
-            print runDatObj.refueltestrhos
+            print("----------Iteration {0} at {1} days------------\n".format(runDatObj.iternum,runDatObj.burnttime))
+            print("refuel rate attempted in this iteration is {0} ccm/s\n".format(runDatObj.refuelrate))
+            print("attempted refuel rates are: {0}\n".format(runDatObj.attempted_refuel_rates))
+            print("resulting reactivities are: {0}\n".format(runDatObj.refueltestrhos))
 
         else:
 
@@ -560,26 +555,25 @@ def mainLoop(optdict, myCore,runDatObj):
         # the other direction. switch em up!
         if runDatObj.refuelrate < 0.0 and runDatObj.haveTriedZero:
 
-            print 'switching to adding burnable poison'
+            print('Switching to adding burnable poison\n')
             runDatObj.refuelrate = 0.0
             runDatObj.downRhoRate = runDatObj.initialguessrefuelrate * 0.0001# could add better guessing here
 
         elif runDatObj.downRhoRate < 0.0:
 
-           print 'switching to adding fresh fuel'
+           print('Switching to adding fresh fuel\n')
            runDatObj.downRhoRate = 0.0
            runDatObj.refuelrate = runDatObj.initialguessrefuelrate # reasonable, but could be better
 
         else:
-            print 'trying zero flow'
+            print('Trying zero flow\n')
             runDatObj.refuelrate = 0.0
             runDatObj.downRhoRate = 0.0
             runDatObj.haveTriedZero = True
 
     # yay, keff was in desired bounds!
-    elif (optdict['keffbounds'][0] <= keff and optdict['keffbounds'][1] >= keff) or myCore.coastDown:
-
-        print("KEFF TEST OK!!!\n")
+    elif (optdict['keffbounds'][0] <= keff and optdict['keffbounds'][1] >= keff) or (myCore.coastDown and runDatObj.refuelrate == 0.0):
+        print("KEFF TEST OK!!!: keff={0} <{1}, {2}> ; {3} \n".format(keff, optdict['keffbounds'][0], optdict['keffbounds'][1], myCore.coastDown))
 
         #reset zero attempt bool
         runDatObj.haveTriedZero = False
@@ -621,7 +615,6 @@ def mainLoop(optdict, myCore,runDatObj):
         # now, write out a copy of the current myCore object to the output directory.
         # allows easy sorting of data!
         with open(runDatObj.outdir+'/inputday{}.dat'.format(int(runDatObj.burnttime)),'w') as out:
-
             pickle.dump(myCore, out)
 
         # increment burnt time now that it's all saved, and continue.
@@ -689,3 +682,4 @@ def mainLoop(optdict, myCore,runDatObj):
         raise Exception("keff was read incorrectly. was not a number.")
 
     return None
+

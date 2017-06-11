@@ -49,7 +49,7 @@ for key in keysToTry:
     try:
         optdict[key]
     except KeyError:
-        print 'please specify a setting for {}'.format(key)
+        print('please specify a setting for {}'.format(key))
         quit()
 
 
@@ -95,6 +95,7 @@ fuel = myCore.getMat('fuel') # pointer to fuel, may need it.
 myCore.queue = optdict['runsettings']['queue']
 myCore.num_nodes = optdict['runsettings']['num_nodes']
 myCore.PPN = optdict['runsettings']['PPN']
+myCore.coastDown = optdict['coastDown']
 
 # deduce the old refuel rate from flows stored in myCore object
 for mat1, mat2, num in myCore.volumetricflows:
@@ -104,8 +105,8 @@ for mat1, mat2, num in myCore.volumetricflows:
 
 #---------------------------#
 starttime=time.asctime()
-print "resuming the refuelling simulation at {0}".format(starttime)
-print 'starting with flows from latest timestep in inputfileslog'
+print("Resuming the refuelling simulation at day {0} on {1}.".format(myRunData.burnttime,starttime))
+#print( "Starting with flows from latest timestep in inputfileslog")
 
 from saltmgrMainLoop import mainLoop
 while myRunData.burnttime < optdict['maxBurnTime']:
@@ -124,4 +125,6 @@ while myRunData.burnttime < optdict['maxBurnTime']:
         pickle.dump(myRunData, fh)
 
 endtime = time.asctime()
-print "job started at {} and finished at {}".format(starttime, endtime)
+print("job started at {} and finished at {}\n".format(starttime, endtime))
+
+

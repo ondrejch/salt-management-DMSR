@@ -86,7 +86,7 @@ def parseSaltMgrOptions(filename):
                         raise Exception('coastDown must be True or False')
 
                     else:
-                        optdict['coastDown'] = True
+                        optdict['coastDown'] = sline[2]
 
 
 
@@ -182,7 +182,7 @@ def parseSaltMgrOptions(filename):
 
                     # input check
                     if vType not in available_vType:
-                        print available_vType
+                        print(available_vType)
                         raise Exception("""{} is not a supported volume 
                                 treatment type. please try using one of 
                                 the above options.""".format(vType))
@@ -190,8 +190,8 @@ def parseSaltMgrOptions(filename):
                     optdict['volumeTreatments'].append( (mat, vType) )
 
                 else:
-                    print line
-                    print sline
+                    print(line)
+                    print(sline)
                     raise Exception('unknown keyword {}'.format(sline[2]))
 
             elif '<' in sline and 'keff' in sline:
@@ -270,8 +270,8 @@ def parseSaltMgrOptions(filename):
                     concentration = float(sline[7])
 
                 else:
-                    print sline[0]
-                    print sline[1]
+                    print(sline[0])
+                    print(sline[1])
                     raise Exception('{} is not a known maintenance option ATM'.format(quantity))
 
                 # then add this on to the list of maintenance commands
@@ -349,8 +349,7 @@ def parseSaltMgrOptions(filename):
                 raise Exception('unknown keyword: {}'.format(line))
 
         except IndexError:
-
-            print line
+            print(line)
             raise Exception("Not enough arguments given.")
 
 
@@ -384,4 +383,5 @@ def parseSaltMgrOptions(filename):
             if mat1 == mat and i!=j:
                 raise Exception("redundant volumetreatment on mat {} found".format(mat1))
 
+#    print("coastdown = {}".format(optdict['coastDown']))
     return optdict

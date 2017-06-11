@@ -599,6 +599,57 @@ class RefuelorAbsorberFit(object):
                  print "Found zero to the refuel fit function with an error of {0}".format(error)
                  return guess2
 
+        def guessfunctionvalue(self, tgtrho):
+                 """This function guesses the refuel rate needed to achieve tgtrho reactivity.
+
+                 Arguments:
+                    tgtrho - target reactivity [absolute]
+
+                 Returns the predicted volumetric flow rate of new fuel needed to attain reactivity=0"""
+                 if self.params is None or self.covariance is None:
+                         raise Exception('The curve has not been fit yet, and a refuel rate for zero reactivity cannot be guessed.')
+                 A, b, c=self.params
+                 A=np.float_(A)
+                 b=np.float_(b)
+                 c=np.float_(c)
+                 #now the secant/ inverse quadratic interp method is used to numerically get a zero
+                 # the two starting points can be taken from the xdata
+                 guess0=np.float_(self.guesses[0])
+                 guess1=np.float_(self.guesses[1])
+                 guess2=np.float_(secant([guess0,guess1],[self.refuelfitfunction(guess0, A, b, c)-tgtrho,self.refuelfitfunction(guess1, A, b, c)-tgtrho]))
+                 #now loop on dat
+                 allowableerror=np.float_(1e-9) # max distance away from zero
+                 error=np.float_(1) #arb initial value
+                 nancount = 0 # dont eat up 50 GB of RAM again...
+                 while error>allowableerror:
+                         #pack the values
+                         guesses=np.array([guess0,guess1,guess2])
+                         results=self.refuelfitfunction(guesses, A, b, c)
+                         newguess=inversequadraticinterp(guesses, results - tgtrho)
+
+                         # check for nan
+                         if np.isnan( newguess ) or np.isinf( newguess ):
+                             nancount += 1
+                             print 'got nan for a guess, guessing some small number <1'
+                             guess0 = np.random.random_sample(1)[0]
+                             guess1 = np.random.random_sample(1)[0]
+                             guess2 = np.random.random_sample(1)[0]
+
+                             if nancount > 100:
+                                 print 'got 100 nan counts, exiting. That curve fit must be disgusting.'
+                                 quit()
+
+                             continue
+                         nancount = 0
+
+                         print newguess, error
+                         error=abs(self.refuelfitfunction(newguess, A, b, c)-tgtrho)
+                         guess0=guess1
+                         guess1=guess2
+                         guess2=newguess
+                 print "Refuel fit function is {0} at rho={1] with an error of {2}".format(guess2, tgtrho, error)
+                 return guess2
+
         def getAdjustment(self,drho):
             """ Gives an adjusted refuel rate based on small changes round the refuel rate that maintains criticality."""
             rate0 = self.guessfunctionzero()

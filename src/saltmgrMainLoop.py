@@ -330,6 +330,7 @@ def mainLoop(optdict, myCore,runDatObj):
     if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not (myCore.coastDown and runDatObj.refuelrate == 0.0):
 
         print("KEFF= {}, TEST FAILED. (x{})\n".format(keff,runDatObj.iternum))
+        rhoerr = (keff-1.0)/keff
 
         # run test cases!
         testinputfiles = [copy.deepcopy(myCore) for x in range(optdict['numTestCases'])] # copy some!
@@ -443,7 +444,11 @@ def mainLoop(optdict, myCore,runDatObj):
             #    return None
 
             # make a new guess to the absorber rate now
-            runDatObj.downRhoRate = myfit.guessfunctionzero()
+            if runDatObj.iternum < 2:
+                runDatObj.downRhoRate = myfit.guessfunctionzero()
+            else:
+                runDatObj.downRhoRate = myfit.guessfunctionvalue(rhoerr)
+
             #else:
             #    # use invquad to hone in on what the real zero is:
             #    print 'transitioning to inv. quad. solver'

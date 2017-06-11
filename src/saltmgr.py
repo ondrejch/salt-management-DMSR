@@ -36,17 +36,17 @@ originaldir = os.getcwd() # get current working dir
 
 # clear old output directory <>? y or n?
 if outdir in os.listdir('.'):
-    print 'would you like to delete the old output directory, {}?'.format(outdir)
+    print('Would you like to delete the old output directory, {}?'.format(outdir))
     response = ''
     while response not in ['y','Y','n','N']:
         response=raw_input('y/n \n')
     if response in ['N','n']:
-        print "Bye."
+        print("Bye.")
         quit()
     elif response in ['y','Y']:
-        print 'forreal though? press enter to continue, ctrl-C to exit.'
+        print('For real though? press enter to continue, ctrl-C to exit.')
         raw_input()
-        print 'deleting old output directory'
+        print('Deleting old output directory')
     else:
         raise Exception('I SAID Y OR N, HOW DID YOU BREAK THIS')
 
@@ -62,7 +62,7 @@ for key in keysToTry:
     try:
         optdict[key]
     except KeyError:
-        print 'please specify a setting for {}'.format(key)
+        print('Please specify a setting for {}'.format(key))
         quit()
 
 # Now take that, and deplete!
@@ -97,13 +97,9 @@ else:
     raise Exception('bad error here')
 
 
-
-
-
 # change the input file name if one was specified
 inpName = optdict['inputFileName']
 myCore.SetInputFileName(inpName)
-
 
 # next, add some uranium metal to the input file if some was requested.
 for quantity, controlmaterial, additive, saltcomp,concentration in optdict['maintenance']:
@@ -176,13 +172,12 @@ if optdict['initTargetRho'] > 0.0:
     myRunData.refuelrate = 0.0
 
 starttime=time.asctime()
-print "Starting the refuelling simulation at {0}".format(starttime)
-print "First input file is being refuelled at {0} ccm/s.".format(myRunData.initialguessrefuelrate)
+print("Starting the refuelling simulation at {0}".format(starttime))
+print("First input file is being refuelled at {0} ccm/s.".format(myRunData.initialguessrefuelrate))
 
-#create a directory for storing InputFile pickles too. yum
+# create a directory for storing InputFile pickles too. yum
 if outdir not in os.listdir('.'):
     os.mkdir(outdir)
-
 
 # loop through all flows. If any materials are listed that are not actually
 # in the input file, assume they are empty tanks and add them.
@@ -190,12 +185,12 @@ for a,b,c,mat1,mat2 in optdict['constflows']:
 
     if mat1 not in [mat.materialname for mat in myCore.materials]:
 
-        print "adding material {} to input file. assuming empty tank of volume 1e9.".format(mat1)
+        print("Adding material {} to input file. assuming empty tank of volume 1e9.".format(mat1))
         myCore.materials.append(RefuelCore.SerpentMaterial('empty', volume = 1e9, materialname=mat1))
 
     elif mat2 not in [mat.materialname for mat in myCore.materials]:
 
-        print "adding material {} to input file. assuming empty tank of volume 1e9.".format(mat2)
+        print("Adding material {} to input file. assuming empty tank of volume 1e9.".format(mat2))
         myCore.materials.append(RefuelCore.SerpentMaterial('empty', volume = 1e9, materialname=mat2))
 
 # set the burn time increment of the input file.
@@ -209,9 +204,9 @@ for mat in myCore.materials:
     if mat.materialname not in [m for m,t in optdict['volumeTreatments']] and mat.burn:
 
         # default action now is to assume material is treated compressibly
-        print 'assuming {} is treated compressibly, it shouldnt be present in'.format(
-                mat.materialname)
-        print 'any neutronics calculations if so!'
+        print('Assuming {} is treated compressibly, it shouldnt be present in'.format(
+                mat.materialname))
+        print('any neutronics calculations if so!')
         optdict['volumeTreatments'].append( (mat.materialname, 'compressible') )
 
 # Now, set the number of power iterations, neutron populations, and skipped cycles.
@@ -219,7 +214,7 @@ myCore.num_particles,myCore.num_cycles,myCore.num_skipped_cycles = optdict['main
 
 if optdict['critSearch']:
 
-    print 'iterating on fuel enrichment to go critical.'
+    print('Iterating on fuel enrichment to go critical.')
 
     i=2 # iteration count
     reacs = []
@@ -287,10 +282,10 @@ if optdict['critSearch']:
                     reacs[i-1]-reacs[i-2] )
 
         if newEnrich > 1.0:
-            print 'got enrich > 1, damping.'
+            print('Got enrich > 1, damping.')
             newEnrich = (1.0 - enrichments[-1])/2.0 +  enrichments[-1]
         elif newEnrich <= 0.0:
-            print 'got enrich <= 0, damping.'
+            print('Got enrich <= 0, damping.')
             newEnrich = enrichments[-1] * 0.5
 
         enrichments.append(newEnrich)
@@ -306,11 +301,9 @@ if optdict['critSearch']:
         critSKeff = test2.ReadKeff()
         reacs.append( (critSKeff - 1.0) / critSKeff)
 
-        print 'secant iterating for crit on fuel enrichment.'
-        print 'enrichments:'
-        print enrichments
-        print 'reactivities:'
-        print reacs
+        print('Secant iterating for crit on fuel enrichment.'
+        print('enrichments: ', enrichments)
+        print('reactivities: ', reacs)
 
 	i += 1
 
@@ -324,8 +317,8 @@ if optdict['initTargetRho'] > 0.0:
     # until the initial fission product rho drop is done. 
     myCore.coastDown = True
 
-if optdict['coastDown']:
-    myCore.coastDown = True
+#if optdict['coastDown']:
+#    myCore.coastDown = True
 
 #loop through all materials that may be mixed with the salt, and give them the appropriate Z to 
 # oxidation number mapping. this can be dynamically changed if needed.
@@ -350,4 +343,5 @@ while myRunData.burnttime < optdict['maxBurnTime']:
         pickle.dump(myRunData, fh)
 
 endtime = time.asctime()
-print "job started at {} and finished at {}".format(starttime, endtime)
+print("Job started at {} and finished at {}".format(starttime, endtime))
+

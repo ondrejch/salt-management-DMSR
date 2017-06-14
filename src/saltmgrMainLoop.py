@@ -449,6 +449,9 @@ def mainLoop(optdict, myCore,runDatObj):
             else:
                 runDatObj.downRhoRate = myfit.guessfunctionvalue(rhoerr)
 
+            if runDatObj.iternum > 5 and rhoerr<0.0:
+                runDatObj.downRhoRate = myfit.guessfunctionvalue(rhoerr)*(runDatObj.iternum-3.0)/2.0
+
             #else:
             #    # use invquad to hone in on what the real zero is:
             #    print 'transitioning to inv. quad. solver'

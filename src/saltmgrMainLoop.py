@@ -327,7 +327,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
     # --- now, where did keff land? ---
 
-    if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not (myCore.coastDown and runDatObj.refuelrate == 0.0):
+    if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not myCore.coastDown and runDatObj.refuelrate==0.0:
 
         print("KEFF= {}, TEST FAILED. (x{})\n".format(keff,runDatObj.iternum))
         rhoerr = (keff-1.0)/keff
@@ -449,8 +449,7 @@ def mainLoop(optdict, myCore,runDatObj):
             else:
                 runDatObj.downRhoRate = myfit.guessfunctionvalue(rhoerr)
 
-            if runDatObj.iternum > 5 and rhoerr<0.0:
-                runDatObj.downRhoRate = myfit.guessfunctionvalue(rhoerr)*(runDatObj.iternum-3.0)/2.0
+            print("DownRho rate = {}", format(runDatObj.downRhoRate))
 
             #else:
             #    # use invquad to hone in on what the real zero is:
@@ -522,7 +521,16 @@ def mainLoop(optdict, myCore,runDatObj):
                 return None # don't zero the curve, just collect more data.
 
             # zero the curve: ie zero reactivity
-            runDatObj.refuelrate = myfit.guessfunctionzero()
+            if runDatObj.iternum < 2:
+                runDatObj.refuelrate = myfit.guessfunctionzero()
+            else:
+                runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)
+
+            if runDatObj.iternum > 5 and rhoerr<0.0:
+                runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)*(runDatObj.iternum-3.0)/2.0
+
+            print("Refuel rate= {}", format(runDatObj.refuelrate))
+
             #else:
             #    # use invquad to hone in on what the real zero is:
             #    print 'transitioning to inv. quad. solver'

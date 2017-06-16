@@ -518,6 +518,8 @@ def mainLoop(optdict, myCore,runDatObj):
                 y= [pair[1] for pair in data]
                 myfit.fitcurve(x,y, sigmas=runDatObj.refuel_sigmas , printparams=True)
             except:
+                print("Curve fit appears to have failed. This usually happens if not enough data was")
+                print("collected. Now randomly samplying a new guess.")
                 runDatObj.refuelrate = np.random.random_sample(1)[0] * runDatObj.initialguessrefuelrate
                 return None # don't zero the curve, just collect more data.
 

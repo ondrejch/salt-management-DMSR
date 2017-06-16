@@ -699,6 +699,8 @@ def mainLoop(optdict, myCore,runDatObj):
 
     else:
         raise Exception("keff was read incorrectly. was not a number.")
+        print(keff)
+        print(type(keff))
 
     return None
 

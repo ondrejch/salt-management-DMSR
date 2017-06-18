@@ -508,13 +508,14 @@ def mainLoop(optdict, myCore,runDatObj):
             
             try:
                 # filter for only the ten reactivities closest to 0
-                data = zip(runDatObj.attempted_refuel_rates, runDatObj.refueltestrhos)
-                data = sorted(data, key = lambda x: abs(x[1]) )  
-                if len(data) > 7:
-                    # filter top points
-                    data = data[:7]
-                x= [pair[0] for pair in data]
-                y= [pair[1] for pair in data]
+                #data = zip(runDatObj.attempted_refuel_rates, runDatObj.refueltestrhos)
+                #data = sorted(data, key = lambda x: abs(x[1]) )  
+                #if len(data) > 7:
+                #    # filter top points
+                #    data = data[:7]
+                #x= [pair[0] for pair in data]
+                #y= [pair[1] for pair in data]
+                x,y = runDatObj.attempted_refuel_rates, runDatObj.refueltestrhos
                 myfit.fitcurve(x,y, sigmas=runDatObj.refuel_sigmas , printparams=True)
             except Exception as error:
                 print error

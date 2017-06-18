@@ -647,7 +647,7 @@ class RefuelorAbsorberFit(object):
                          guess0=guess1
                          guess1=guess2
                          guess2=newguess
-                 print "Refuel fit function is {0} at rho={1] with an error of {2}".format(guess2, tgtrho, error)
+                 print "Refuel fit function is {0} at rho={1} with an error of {2}".format(guess2, tgtrho, error)
                  return guess2
 
         def getAdjustment(self,drho):

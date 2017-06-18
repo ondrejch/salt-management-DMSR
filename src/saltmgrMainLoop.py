@@ -327,7 +327,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
     # --- now, where did keff land? ---
 
-    if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not myCore.coastDown and runDatObj.refuelrate==0.0:
+    if (optdict['keffbounds'][0] > keff or optdict['keffbounds'][1] < keff) and not myCore.coastDown: # and runDatObj.refuelrate==0.0:
 
         print("KEFF= {}, TEST FAILED. (x{})\n".format(keff,runDatObj.iternum))
         rhoerr = (keff-1.0)/keff

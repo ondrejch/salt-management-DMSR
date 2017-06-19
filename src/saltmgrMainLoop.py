@@ -336,8 +336,12 @@ def mainLoop(optdict, myCore,runDatObj):
         testinputfiles = [copy.deepcopy(myCore) for x in range(optdict['numTestCases'])] # copy some!
 
         # try some new refuel rates to collect data
-        refuelrates_to_try=np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*20.0
-        downRho_to_try=np.random.random_sample(optdict['numTestCases']) * runDatObj.downRhoRate * 0.4
+        if runDatObj.refuelrate > 0.0:
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*20.0
+        else: 
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 2.0
+			
+        downRho_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.downRhoRate * 0.4
 
         # next, make sure all the guessed flows are reasonable
 

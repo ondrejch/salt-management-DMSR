@@ -337,7 +337,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # try some new refuel rates to collect data
         if runDatObj.refuelrate > 0.0:
-            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*20.0
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*5.0
         else: 
             refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 2.0
 			
@@ -413,7 +413,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # time to make some fits to the data we get.
         # firstly, grab keff. this code is restructed from the original refuelmsr.py.
-        if runDatObj.downRhoRate != 0.0:
+        if runDatObj.downRhoRate != 0.0 and my_rho < 0:
 
             # iterate through new data
             for core in testinputfiles:
@@ -577,7 +577,7 @@ def mainLoop(optdict, myCore,runDatObj):
         # next, if a negative rho lowering flow is specified or a 
         # negative refuel rate, this means that reactivity should be moving in
         # the other direction. switch em up!
-        if runDatObj.refuelrate < 0.0 and runDatObj.haveTriedZero:
+        if runDatObj.refuelrate < 0.0 and runDatObj.haveTriedZero and my_rho < 0:
 
             print('Switching to adding burnable poison\n')
             runDatObj.refuelrate = 0.0
@@ -589,7 +589,7 @@ def mainLoop(optdict, myCore,runDatObj):
            runDatObj.downRhoRate = 0.0
            runDatObj.refuelrate = runDatObj.initialguessrefuelrate # reasonable, but could be better
 
-        else:
+        elif not runDatObj.haveTriedZero:
             print('Trying zero flow\n')
             runDatObj.refuelrate = 0.0
             runDatObj.downRhoRate = 0.0

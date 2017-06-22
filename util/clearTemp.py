@@ -10,6 +10,7 @@ def clearTemp(filename):
         run = pk.load( fh )
 
     run.clearTemps()
+    run.iternum = 0
 
     with open(filename, 'w') as fh:
         pk.dump( run, fh)

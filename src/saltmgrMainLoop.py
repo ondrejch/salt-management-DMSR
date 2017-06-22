@@ -275,6 +275,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
     # now that all flows are set:
     # --- RUN DAT INPUT FILE ---
+    print("Refuel rate = {0}, absorber rate = {1}".format(runDatObj.refuelrate, runDatObj.downRhoRate))
     myCore.WriteJob()
     # add on fission source passing:
     subprocess.call(['echo "set csw fissSource.dat" >> {}'.format(myCore.inputfilename)], shell=True)
@@ -337,9 +338,9 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # try some new refuel rates to collect data
         if runDatObj.refuelrate > 0.0:
-            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*5.0
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*4.0
         else: 
-            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 2.0
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 1.0
 			
         downRho_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.downRhoRate * 0.4
 
@@ -413,7 +414,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # time to make some fits to the data we get.
         # firstly, grab keff. this code is restructed from the original refuelmsr.py.
-        if runDatObj.downRhoRate != 0.0 and my_rho < 0:
+        if runDatObj.downRhoRate != 0.0 and my_rho > 0:
 
             # iterate through new data
             for core in testinputfiles:
@@ -536,6 +537,8 @@ def mainLoop(optdict, myCore,runDatObj):
 
             if runDatObj.iternum > 5 and rhoerr<0.0:
                 runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)*(runDatObj.iternum-3.0)/2.0
+            if runDatObj.iternum > 5 and rhoerr>0.0:
+                runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)/(runDatObj.iternum-3.0)/2.0
 
             print("Refuel rate= {}", format(runDatObj.refuelrate))
 

@@ -13,9 +13,9 @@ from parseInputSaltMgr import parseSaltMgrOptions
 
 def mainLoop(optdict, myCore,runDatObj):
 
-    if 'haveTriedZero' not in dir(runDatObj):
-        runDatObj.haveTriedZero = False
-
+#    if 'haveTriedZero' not in dir(runDatObj):
+#        runDatObj.haveTriedZero = False
+    runDatObj.haveTriedZero = True
 
     # set reactor power level
     myCore.SetPowerNormalization('power',optdict['power'])
@@ -338,9 +338,9 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # try some new refuel rates to collect data
         if runDatObj.refuelrate > 0.0:
-            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*4.0
-        else: 
-            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 1.0
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.refuelrate*2.0
+        elif runDatObj.refuelrate == 0.0:
+            refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 0.8
 			
         downRho_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.downRhoRate * 0.4
 
@@ -539,6 +539,9 @@ def mainLoop(optdict, myCore,runDatObj):
                 runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)*(runDatObj.iternum-3.0)/2.0
             if runDatObj.iternum > 5 and rhoerr>0.0:
                 runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)/(runDatObj.iternum-3.0)/2.0
+            if runDatObj.refuelrate < 0.0:
+                runDatObj.refuelrate = 0.0
+                runDatObj.haveTriedZero = True
 
             print("Refuel rate= {}", format(runDatObj.refuelrate))
 
@@ -560,11 +563,11 @@ def mainLoop(optdict, myCore,runDatObj):
                 runDatObj.refuelrate = np.random.random_sample(1)[0] * runDatObj.initialguessrefuelrate
 
             # try zero refuel on every third iteration, just seems to speed stuff up well.
-            if runDatObj.iternum == 3:
-
-                runDatObj.refuelrate = 0.0
-                runDatObj.downRhoRate = 0.0
-                runDatObj.haveTriedZero = True
+#            if runDatObj.iternum == 3:
+#
+#                runDatObj.refuelrate = 0.0
+#                runDatObj.downRhoRate = 0.0
+#                runDatObj.haveTriedZero = True
 
             # lastly, print out info for this iteration
             print("----------Iteration {0} at {1} days------------\n".format(runDatObj.iternum,runDatObj.burnttime))

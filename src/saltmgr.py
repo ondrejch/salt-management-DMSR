@@ -301,7 +301,7 @@ if optdict['critSearch']:
         critSKeff = test2.ReadKeff()
         reacs.append( (critSKeff - 1.0) / critSKeff)
 
-        print('Secant iterating for crit on fuel enrichment.'
+        print('Secant iterating for crit on fuel enrichment.')
         print('enrichments: {}'.format(enrichments))
         print('reactivities: {}'.format(reacs))
 

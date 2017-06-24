@@ -4,7 +4,8 @@ if __name__ == '__main__':
 debug=False
 reallydebug=False
 
-serpent_executable = 'sss2.1.28-reprofix' # TODO - input file option
+#serpent_executable = 'sss2.1.28-reprofix' # TODO - input file option
+serpent_executable = 'sss2' # TODO - input file option
 
 import os
 import getmass
@@ -1461,7 +1462,7 @@ class SerpentInputFile(object):
             num_nodes -- number of nodes to run the input file on. integer.
             PPN -- processors per node. integer.
             pmem -- requested memory per processor.
-           queue -- torque queue to run on. string. e.g. "gen5" or "super"
+            queue -- torque queue to run on. string. e.g. "gen5" or "super"
             tempK -- defaults to 900. Temperature of the fuel salt by default.
         """
 

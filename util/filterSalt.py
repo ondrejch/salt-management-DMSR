@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 # Filters a core's salt load for a restart off irradiated salt.
 #
 # This will take either a directory, or a SerpentInputFile object. If a directory,

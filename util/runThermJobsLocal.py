@@ -25,8 +25,9 @@ for day in days:
     core.num_nodes = 1
     core.PPN = 40
     core.queue = "local"
-    core.num_particles = 10000
-#   core.pmem = "3600MB"
+    core.num_particles = 20000
+    core.num_cycles = 500
+    core.num_skipped_cycles = 50
     core.BurnTime = []
     core.volumetricflows = []
     core.ratioflows = []

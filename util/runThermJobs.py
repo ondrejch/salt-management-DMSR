@@ -7,6 +7,8 @@ import pickle as pk
 import RefuelCore
 import genericserpinput
 
+sampleN = 40               # run only every Nth element
+
 days = []
 flist = os.listdir('.')
 inputfiles = [fname for fname in flist if fname.startswith("input")]
@@ -18,7 +20,9 @@ for fname in inputfiles:
     days.append(dayInt)
 days.sort()
 
-for day in days:    
+days_run = days[0::sampleN]
+
+for day in days_run:    
     print("Processing day {}".format(day))
     with open('inputday{}.dat'.format(day)) as fh:
         core = pk.load(fh)

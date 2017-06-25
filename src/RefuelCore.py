@@ -2050,7 +2050,7 @@ grep ABS_KEFF {5} > {6}
 
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
-            if self.BurnTime != []
+            if self.BurnTime != []:
                 mat.tmp_or_tms='' #empty string
                 mat.tempK=''
 

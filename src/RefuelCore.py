@@ -1584,7 +1584,7 @@ class SerpentInputFile(object):
             raise Exception("There was an error in reading in the volume of the fuel material from the corewriter output.")
 
         #default to use TMP for temperature XS interpolation
-        self.tmp_or_tms='tmp'
+        self.tmp_or_tms='tmp' if tempK is not '' or tempK is not None else ''
 
     def SwitchToTMS(self):
         """Switches from TMP to TMS interpolation. 
@@ -2042,7 +2042,11 @@ grep ABS_KEFF {5} > {6}
         for mat in self.materials:
             #alter some text. if no temperature is defined for a material, do not use tmp or tms
             # this is relevant for material tanks that are outside the neutronics simulation
-            mat.tmp_or_tms=self.tmp_or_tms
+            try:
+                float(mat.tempK)
+                mat.tmp_or_tms=self.tmp_or_tms 
+            except:
+                pass
             if str(mat.tempK).rstrip() in ['','None']:
 
                 if mat.tempK not in [300.0,600.0,900.0,None,'']:

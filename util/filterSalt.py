@@ -60,21 +60,24 @@ highestNum = 0
 num = ''
 for f in ls:
     if 'inputfileslog' in f:
-        num = ''.join([ch for ch in f if f.isdigit()])
-        if num != '':
-            num = int(num)
+        num = [ch for ch in f if ch.isdigit()]
+        print("Found directory: {}, # {}".format(f,num))
+        if num != []:
+            num = int("".join(num))
             highestNum = num
 
 highestNum += 1
 
-os.mkdir('inputfileslog{}'.format(highestNum))
+newdir = 'inputfileslog{}'.format(highestNum)
+print("Creating new directory: {}".format(newdir))
+os.mkdir(newdir)
 os.chdir(inpLog)
 
 # find the day values, get the most burnt core
 days = []
 flist = os.listdir('.')
 for fname in flist:
-    day = [char for char in fname if char.isdigit()]
+    day = [ch for ch in fname if ch.isdigit()]
     if day == []:
         raise Exception('{} unexpectedly found in inputfileslog.'.format(fname))
     dayInt = int( "".join(day) )
@@ -84,12 +87,15 @@ days.sort()
 lastDay = days[-1]
 
 # now open up that last file, and its runData class
+print("Loading day: {}".format(lastDay))
 with open('inputday{}.dat'.format(lastDay)) as fh:
     core = pk.load(fh)
+    fh.close()
 
 clearTemp.clearTemp('../runData.dat')
 with open('../runData.dat') as fh:
     run = pk.load(fh)
+    fh.close()
 
 # now make changes to the core to filter the salt
 # first, change day value to 0
@@ -106,12 +112,15 @@ for iso in isodict.keys():
     if zval in filterScheme.keys():
         isodict[iso] *= filterScheme[zval]
 
+
+print("Salt cleaned, saving data to ../inputfileslog{}/inputday0.dat".format(highestNum))
 # now save all of the stuff back
 with open('../runData.dat','w') as fh:
     pk.dump(run,fh)
+    fh.close()
 
 os.chdir('../inputfileslog{}'.format(highestNum))
 with open('inputday0.dat','w') as fh:
     pk.dump(core,fh)
-
+    fh.close()
 

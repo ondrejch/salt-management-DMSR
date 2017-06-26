@@ -68,6 +68,8 @@ for f in ls:
 
 highestNum += 1
 
+print filterScheme.keys()
+
 newdir = 'inputfileslog{}'.format(highestNum)
 print("Creating new directory: {}".format(newdir))
 os.mkdir(newdir)
@@ -101,16 +103,21 @@ with open('../runData.dat') as fh:
 # first, change day value to 0
 run.burnttime = 0
 
+# reset refuel rates
+run.downRhoRate = 0.0
+run.refuelrate = 0.0
+
 # now go through the core, and apply the filtration scheme
 fuel = core.getMat('fuel')
 isodict = fuel.isotopic_content
 # loop through all isotopes in fuel, checking if they are to be filtered.
 # multiply by 1-filterefficiency if so 
 for iso in isodict.keys():
-    zval = ZfromZAID(iso)
+    zval = int(ZfromZAID(iso))
 
     if zval in filterScheme.keys():
         isodict[iso] *= filterScheme[zval]
+        print ("New concentration for element {} is {}".format(iso, isodict[iso]))
 
 
 print("Salt cleaned, saving data to ../inputfileslog{}/inputday0.dat".format(highestNum))

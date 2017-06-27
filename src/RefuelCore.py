@@ -2052,6 +2052,7 @@ grep ABS_KEFF {5} > {6}
                 if mat.tempK not in [300.0,600.0,900.0,None,'']:
                     print 'Warning, temp treatment abandoned on {} at {} K to avoid Serpent temperature treatment error'.format(mat.materialname,mat.tempK)
 
+            print "**-> ",mat.materialname, mat.tempK
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
             if self.BurnTime != []:

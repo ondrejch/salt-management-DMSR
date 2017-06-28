@@ -79,7 +79,8 @@ for logfilename in inputdirs:
         #grab a z to charge map if we don't have one yet
         if z2charge==None:
             #this is a dictionary
-            z2charge=p.CalcExcessFluorine(ret_z2charge=True)
+            fuel = p.getMat('fuel')
+            z2charge=fuel.CalcExcessFluorine(ret_z2charge=True)
             #then go ahead and make the trifluoride list
             for z in z2charge.keys():
                 if z2charge[z]==3:

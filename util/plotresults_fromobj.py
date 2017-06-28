@@ -166,7 +166,10 @@ for logfilename in inputdirs:
 
     ax1.plot(daylist, kefflist)
     ax2.plot(daylist, refuelrates, label='')
-    ax3.plot(daylist, absorberrates, label='')
+    try:
+        ax3.plot(daylist, absorberrates, label='')
+    except:
+        pass
     ax4.plot(daylist, enrichments)
 
     #total 20% enriched fuel added

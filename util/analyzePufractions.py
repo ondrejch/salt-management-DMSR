@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Plutonium solubility limit checker
 #
 # Plutonium, or trifluorides in general, are relatively insoluble in a molten salt.

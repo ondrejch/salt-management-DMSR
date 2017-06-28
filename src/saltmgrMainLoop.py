@@ -295,6 +295,11 @@ def mainLoop(optdict, myCore,runDatObj):
     my_rho = (keff-1.0)/keff
     print("** KEFF = {0:} +- {1:}; reactivity = {2:}\n".format(keff,relerror,my_rho))
 
+    # check if we are coasting down and crossed keff=1
+    # this prevents reactivity rise after the coastdown completed
+    if myCore.coastDown and my_rho < 0:
+        myCore.coastDown = False
+
     # record all reactivities into the correct variables
     if runDatObj.refuelrate> 0:
 

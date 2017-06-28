@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Visualizes the damage flux in the most intense part of the core.
 # Additionally, the liftime fluence is estimated by taking a the
 # average flux times total depletion time.

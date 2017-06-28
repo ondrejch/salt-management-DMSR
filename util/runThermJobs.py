@@ -8,6 +8,11 @@ import RefuelCore
 import genericserpinput
 
 sampleN = 40               # run only every Nth element
+runlocal = False           # local run or run on the cluster
+if runlocal:
+    runmode = 'local'
+else:
+    runmode = 'queue'
 
 days = []
 flist = os.listdir('.')
@@ -27,8 +32,12 @@ for day in days_run:
     with open('inputday{}.dat'.format(day)) as fh:
         core = pk.load(fh)
     core.num_nodes = 1
-    core.PPN = 24
-    core.queue = "himem"
+    if runlocal:
+        core.PPN = 40
+        core.queue = "local"
+    else:
+        core.PPN = 24
+        core.queue = "himem"
     core.num_particles = 20000
     core.num_cycles = 500
     core.num_skipped_cycles = 50
@@ -36,8 +45,10 @@ for day in days_run:
     core.volumetricflows = []
     core.ratioflows = []
     jobdir = "job_day{}".format(day)
-    os.mkdir(jobdir)
-    core.WriteJob(jobdir)
-    core.SubmitJob('queue')
-    
-    
+    if os.path.isdir(jobdir):
+        print ("Directory {} exists, skipping.".format(jobdir))
+    else:
+        os.mkdir(jobdir)
+        core.WriteJob(jobdir)
+        core.SubmitJob(runmode)
+        

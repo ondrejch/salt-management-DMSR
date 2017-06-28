@@ -95,6 +95,7 @@ fuel = myCore.getMat('fuel') # pointer to fuel, may need it.
 myCore.queue = optdict['runsettings']['queue']
 myCore.num_nodes = optdict['runsettings']['num_nodes']
 myCore.PPN = optdict['runsettings']['PPN']
+myCore.daystep = optdict['daystep']
 myCore.coastDown = optdict['coastDown']
 
 # deduce the old refuel rate from flows stored in myCore object

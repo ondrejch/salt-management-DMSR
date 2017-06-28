@@ -46,7 +46,7 @@ for d in inputdirs:
 #construct plots with titles
 fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True, figsize = (1272./dpi,1342./dpi) )
 ax1.set_title("$k_{eff}$ vs. time")
-ax1.set_ylim([.9, 1.1])
+ax1.set_ylim([.99, 1.01])
 ax3.set_title("Addition of GdF$_3$ burnable absorber")
 ax2.set_title("Refuel rate vs. time")
 ax1.set_ylabel('$k_{eff}$')

@@ -5,6 +5,7 @@ import math
 import os
 import pickle as pk
 from collections import defaultdict
+import matplotlib.pyplot as plt
 
 sampleN = 1                # run only every Nth element
 casename = 'TEItherm'       # input file name
@@ -86,6 +87,19 @@ for (day, d, de, vd, vde) in zip (days_run, doppler_alpha, doppler_alerr,
     outf.write("{:5d}   {:8.5f} {:7.5f}   {:8.5f} {:7.5f}\n".format(day, d, de, vd, vde))
 outf.close()
 
-    
-                                                
-        
+
+# Make plot
+fig = plt.figure(0)
+plt.errorbar(days_run, doppler_alpha, doppler_alerr, linestyle="None", marker="o", label="Doppler only")
+plt.errorbar(days_run, voiddop_alpha, voiddop_alerr, linestyle="None", marker="o", label="Doppler and salt expansion")
+plt.gca().set_xlabel('time [days]')
+plt.gca().set_ylabel('Thermal feedback alpha [pcm/K]')
+plt.legend(loc='best')
+
+plt.savefig("dopdata.png")
+
+
+
+
+
+

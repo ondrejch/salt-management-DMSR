@@ -642,10 +642,7 @@ def mainLoop(optdict, myCore,runDatObj):
         runDatObj.successful_refuelrates.append(runDatObj.refuelrate)
         runDatObj.successful_downrhorates.append(runDatObj.downRhoRate)
 
-        # grabbing the max damage flux to graphite only automatically works with
-        # the DMSR core writer mode
-        if optdict['core'][0]=='DMSR':
-            myCore.GetMaxDamageFlux()
+        myCore.GetMaxDamageFlux()
 
         # now, write out a copy of the current myCore object to the output directory.
         # allows easy sorting of data!

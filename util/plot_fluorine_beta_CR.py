@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #This script automatically plots several interesting characteristics of a burnt input file.
 # Plotting output includes fluorine excess over time, delayed neutron fraction over time,
 # excess fluorine creation rate, and conversion ratio.

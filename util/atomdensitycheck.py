@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script will plot atom density of the fuel material over time.
 # Just specify which directory of output to check!
 #
@@ -42,6 +44,7 @@ for logfilename in logfiles:
         nums=[char for char in file if char.isdigit()] #pull out list of numbers
         numstring="".join(nums) #put em together
         if numstring=='':
+            print (file)
             raise Exception("no number for day value at {}".format(file))
         day=int(numstring)
         days.append(day)
@@ -63,4 +66,8 @@ for logfilename in logfiles:
     lgnd.append(salt)
 
 #ax.legend(lgnd)
-plt.show()
+
+fig.show()
+os.chdir(originaldir)
+fig.savefig('atomdens.png')
+

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This script creates LaTeX-compatible isotopic tables. The lower abundance limit can be
 # varied as desired.
 #

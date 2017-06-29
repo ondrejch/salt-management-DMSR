@@ -7,7 +7,7 @@ import pickle as pk
 import RefuelCore
 import genericserpinput
 
-sampleN = 40               # run only every Nth element
+sampleN = 1                # run only every Nth element
 runlocal = False           # local run or run on the cluster
 if runlocal:
     runmode = 'local'

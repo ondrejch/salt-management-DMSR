@@ -82,6 +82,7 @@ for (k_cold, k_hot, ke_cold, ke_hot) in zip(keffs['voiddopcold'], keffs['voiddop
     voiddop_alerr.append(abs(voiddop_alpha[-1]) * math.sqrt( ke_cold**2 + ke_hot**2) )
 
 # Print table
+print("Writnig table")
 outf = open('dopdata.dat', 'w')
 for (day, d, de, vd, vde) in zip (days_run, doppler_alpha, doppler_alerr, 
                                             voiddop_alpha, voiddop_alerr):
@@ -90,6 +91,7 @@ outf.close()
 
 
 # Make plot
+print("Making figure")
 fig = plt.figure(0)
 plt.errorbar(days_run, doppler_alpha, doppler_alerr, linestyle="None", marker="o", label="Doppler only")
 plt.errorbar(days_run, voiddop_alpha, voiddop_alerr, linestyle="None", marker="o", label="Doppler and salt expansion")
@@ -98,9 +100,5 @@ plt.gca().set_ylabel('Thermal feedback alpha [pcm/K]')
 plt.legend(loc='best')
 
 plt.savefig("dopdata.png")
-
-
-
-
 
 

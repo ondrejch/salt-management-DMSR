@@ -132,11 +132,9 @@ def getNaturalMass(zaid, z):
 
 # run some examples
 if __name__=='__main__':
-    print 'uranium 235'
-    print getIsoMass('92235')
-    print 'H'
-    print getIsoMass('1001')
-    print 'Kr 73'
-    print getIsoMass('36073')
-    print 'Kr 79'
-    print getIsoMass('36078')
+    print('uranium 235: {}'.format(getIsoMass('92235')))
+    print('H {}:'.format(getIsoMass('1001')))
+    print('Kr 73: {}'.format(getIsoMass('36073')))
+    print('Kr 79: {}'.format(getIsoMass('36078')))
+
+

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Runs jobs in a directory
+# Extracts thermal feedback and plots it as a function of burntime
+# Ondrej Chvala, ochvala@utk.edu
 
 import math
 import os

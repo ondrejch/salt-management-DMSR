@@ -63,18 +63,18 @@ class genericInput(SerpentInputFile):
         else:
             #num_nodes refers to the function argument. self.num_nodes is the instance variable being assigned.
             self.num_nodes=SerpentInputFile.default_num_nodes
-            print "using default number of nodes for qsub script, {0} nodes".format(SerpentInputFile.default_num_nodes)
+            print("using default number of nodes for qsub script, {0} nodes".format(SerpentInputFile.default_num_nodes))
         if optdict['runsettings']['PPN']!=None:
             self.PPN=optdict['runsettings']['PPN']
         else:
             self.PPN=SerpentInputFile.default_PPN
-            print "using the default number of PPN for qsub, {0} PPN".format(SerpentInputFile.default_PPN)
+            print("using the default number of PPN for qsub, {0} PPN".format(SerpentInputFile.default_PPN))
         self.pmem=SerpentInputFile.default_pmem
         if optdict['runsettings']['queue']!=None:
             self.queue=optdict['runsettings']['queue']
         else:
             self.queue=SerpentInputFile.default_queue
-            print "using default queue, {0}".format(SerpentInputFile.default_queue)
+            print("using default queue, {0}".format(SerpentInputFile.default_queue))
 
 
         #The name of the input file being used should be, by default, 'MSRs2'. This should be able to be changed if necessary.
@@ -115,8 +115,8 @@ class genericInput(SerpentInputFile):
             if mat.materialname=='fuel':
                 self.fuelvolume=mat.volume
         if self.fuelvolume==None:
-            print 'no volume found on fuel material. be sure to name it "fuel"!'
-            print 'Bye.'
+            print('no volume found on fuel material. be sure to name it "fuel"!')
+            print('Bye.')
             quit()
 
         # grab num_particles, etc from the optdict, save them.

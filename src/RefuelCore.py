@@ -123,12 +123,12 @@ def grabproperty(direc, props, debug=False):
     days.sort() #put em in order
     proplist[0]=days
     if debug:
-        print days
+        print(days)
     for dayval in days:                                                                                                            
         fh=open("{0}/inputday{1}.dat".format(direc, dayval), 'r')                                                                  
         p=pickle.load(fh)
         if debug:
-            print "adding data for day {0}".format(dayval)
+            print( "adding data for day {0}".format(dayval))
         for i, prop in enumerate(props):
             if prop=='convratio': 
                 proplist[i+1].append(p.convratio)
@@ -299,8 +299,8 @@ class RefuelorAbsorberFit(object):
                                 self.fuel_atomfrac_gd=gdfracs
                                 self.fuel_massfrac_gd = None
                         else:
-                                print "Gadolinium was found in the salt but the mass fractions and atom fractions were not homogenous."
-                                print "continuing anyways..."
+                                print("Gadolinium was found in the salt but the mass fractions and atom fractions were not homogenous.")
+                                print("continuing anyways...")
 
                 #a few more things to save
                 self.fuel_atom_density=atomdensity
@@ -310,8 +310,7 @@ class RefuelorAbsorberFit(object):
                         raise Exception("Currently no support for input with more than one burn step")
                 self.burntdays=InputFile.BurnTime[0]
                 if debug:
-                        print "self.burntdays = "
-                        print self.burntdays
+                        print("self.burntdays = {}".format(self.burntdays))
 
                 #some constants are needed
                 u235molarmass=238.02891
@@ -399,8 +398,8 @@ class RefuelorAbsorberFit(object):
 
                 #Here is a check to make sure all variables have taken on numeric values:
                 if reallydebug:
-                        print "make sure all of the following are numeric:"
-                        print A, b, E, Q, t, vcore, c, N235init, N238init, R235
+                        print("make sure all of the following are numeric:")
+                        print(A, b, E, Q, t, vcore, c, N235init, N238init, R235)
                         import sys
                         sys.exit()
 
@@ -416,13 +415,13 @@ class RefuelorAbsorberFit(object):
                                         if datum==0.0:
                                                 Q[i]=np.float_(1e-14)
 
-                	reactivity= ( ((-1 + A)*b*E**((Q*t)/vcore)*Q - c*E**((Q*t)/vcore)*Q +
-                	(-1 + A)*(N235init*Q*totalsigmathermal235 + Q*
-                	(N238init*totalsigmathermal238 + (-1 + E**((Q*t)/vcore))*R235*(totalsigmathermal235 + totalsigmathermal238)) -
-                	(-1 + E**((Q*t)/vcore))*P*totalsigmathermal235*vcore))/
-                	(A*(b*E**((Q*t)/vcore)*Q + N235init*Q*totalsigmathermal235 - Q*R235*totalsigmathermal235 +
-                	E**((Q*t)/vcore)*Q*R235*totalsigmathermal235 + N238init*Q*totalsigmathermal238 - Q*R235*totalsigmathermal238 +
-                	E**((Q*t)/vcore)*Q*R235*totalsigmathermal238 + P*totalsigmathermal235*vcore - E**((Q*t)/vcore)*P*totalsigmathermal235*vcore)) )
+                        reactivity= ( ((-1 + A)*b*E**((Q*t)/vcore)*Q - c*E**((Q*t)/vcore)*Q +
+        (-1 + A)*(N235init*Q*totalsigmathermal235 + Q*
+        (N238init*totalsigmathermal238 + (-1 + E**((Q*t)/vcore))*R235*(totalsigmathermal235 + totalsigmathermal238)) -
+        (-1 + E**((Q*t)/vcore))*P*totalsigmathermal235*vcore))/
+        (A*(b*E**((Q*t)/vcore)*Q + N235init*Q*totalsigmathermal235 - Q*R235*totalsigmathermal235 +
+        E**((Q*t)/vcore)*Q*R235*totalsigmathermal235 + N238init*Q*totalsigmathermal238 - Q*R235*totalsigmathermal238 +
+        E**((Q*t)/vcore)*Q*R235*totalsigmathermal238 + P*totalsigmathermal235*vcore - E**((Q*t)/vcore)*P*totalsigmathermal235*vcore)) )
                 #for some reason, the absorber curve is not fitting. maybe it is too stiff, but the Refuel curve apparently still works quite well.
                 elif self.fittype=='Absorber':
                         # Fun fact: this function has a discontinuity at Q=0. I deal with that by doing this:
@@ -507,11 +506,11 @@ class RefuelorAbsorberFit(object):
                                  xdata.remove(xdata[i])
 
                  if debug:
-                         print "printing out some test values for the refuel curve, these should be finite numbers"
-                         print self.refuelfitfunction(xdata[0], 1.0,1.0,1.0)
-                         print self.refuelfitfunction(xdata[0], .1,.1,.1)
-                         print "now lets see what happens if xdata is converted to 128 bit floats"
-                         print self.refuelfitfunction(np.array(xdata, dtype=np.float128), 1.0,1.0,1.0)
+                         print("printing out some test values for the refuel curve, these should be finite numbers")
+                         print(self.refuelfitfunction(xdata[0], 1.0,1.0,1.0))
+                         print(self.refuelfitfunction(xdata[0], .1,.1,.1))
+                         print("now lets see what happens if xdata is converted to 128 bit floats")
+                         print(self.refuelfitfunction(np.array(xdata, dtype=np.float128), 1.0,1.0,1.0) )
                  xdata=np.array(xdata)
                  ydata=np.array(ydata)
 
@@ -533,13 +532,13 @@ class RefuelorAbsorberFit(object):
 
                  # check output of curve fit
                  if np.any( np.isnan( np.array( self.params))):
-                     print 'failed curve fit. dumping data for debug.'
-                     print '-----xdata-------'
-                     print xdata
-                     print '-----ydata-------'
-                     print ydata
-                     print '----sigmas-------'
-                     print sigmas
+                     print('failed curve fit. dumping data for debug.')
+                     print('-----xdata-------')
+                     print(xdata)
+                     print('-----ydata-------')
+                     print(ydata)
+                     print('----sigmas-------')
+                     print(sigmas)
                      raise Exception("One or more curve fit parameters were nan.")
 
                  #also grab two data points that can be used in finding a zero to this function numerically later
@@ -547,7 +546,7 @@ class RefuelorAbsorberFit(object):
                  if printparams:
                          #unpack
                          asdf, bsdf, csdf = self.params
-                         print "Curve fit parameters were determined to be: \n ---- \n A={0}, b={1}, c={2} \n ---- \n".format(asdf, bsdf, csdf)
+                         print("Curve fit parameters were determined to be: \n ---- \n A={0}, b={1}, c={2} \n ---- \n".format(asdf, bsdf, csdf))
 
         def guessfunctionzero(self):
                  """This function guesses the refuel rate needed to achieve zero reactivity.
@@ -580,24 +579,24 @@ class RefuelorAbsorberFit(object):
                          # check for nan
                          if np.isnan( newguess ) or np.isinf( newguess ):
                              nancount += 1
-                             print 'got nan for a guess, guessing some small number <1'
+                             print('got nan for a guess, guessing some small number <1')
                              guess0 = np.random.random_sample(1)[0]
                              guess1 = np.random.random_sample(1)[0]
                              guess2 = np.random.random_sample(1)[0]
 
                              if nancount > 100:
-                                 print 'got 100 nan counts, exiting. That curve fit must be disgusting.'
+                                 print('got 100 nan counts, exiting. That curve fit must be disgusting.')
                                  quit()
 
                              continue
                          nancount = 0
 
-                         print newguess, error
+                         print(newguess, error)
                          error=abs(self.refuelfitfunction(newguess, A, b, c))
                          guess0=guess1
                          guess1=guess2
                          guess2=newguess
-                 print "Found zero to the refuel fit function with an error of {0}".format(error)
+                 print("Found zero to the refuel fit function with an error of {0}".format(error))
                  return guess2
 
         def guessfunctionvalue(self, tgtrho):
@@ -631,24 +630,24 @@ class RefuelorAbsorberFit(object):
                          # check for nan
                          if np.isnan( newguess ) or np.isinf( newguess ):
                              nancount += 1
-                             print 'got nan for a guess, guessing some small number <1'
+                             print('got nan for a guess, guessing some small number <1')
                              guess0 = np.random.random_sample(1)[0]
                              guess1 = np.random.random_sample(1)[0]
                              guess2 = np.random.random_sample(1)[0]
 
                              if nancount > 100:
-                                 print 'got 100 nan counts, exiting. That curve fit must be disgusting.'
+                                 print('got 100 nan counts, exiting. That curve fit must be disgusting.')
                                  quit()
 
                              continue
                          nancount = 0
 
-                         print newguess, error
+                         print(newguess, error)
                          error=abs(self.refuelfitfunction(newguess, A, b, c)-tgtrho)
                          guess0=guess1
                          guess1=guess2
                          guess2=newguess
-                 print "Refuel fit function is {0} at rho={1} with an error of {2}".format(guess2, tgtrho, error)
+                 print("Refuel fit function is {0} at rho={1} with an error of {2}".format(guess2, tgtrho, error))
                  return guess2
 
         def getAdjustment(self,drho):
@@ -681,9 +680,9 @@ class SerpentMaterial(object):
     @staticmethod
     def available_salts():
         """Prints built-in available salt types. It is recommended that output from the core writer is used using "serpentoutput" """
-        print 'FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPuF3','pureNaFKF','pureFLiBe'
-        print 'serpent output material from "set printm 1" can be used by:'
-        print 'SerpentMaterial("serpentoutput",materialname="fuel",materialfile="<material output file>")'                                                                                          
+        print('FLiBeUF4', 'FLiBeUF2.5', 'GdF3', 'serpentoutput','empty','WGPuF3','pureNaFKF','pureFLiBe')
+        print('serpent output material from "set printm 1" can be used by:')
+        print('SerpentMaterial("serpentoutput",materialname="fuel",materialfile="<material output file>")')
                                                                                                       
     def __init__(self, salt_type, enrichment=.2, materialname=None, materialfile=None, volume=None, directory='.'):  
         """Initializes a new serpent material.
@@ -922,7 +921,7 @@ class SerpentMaterial(object):
 
                     if (line[:3]=='mat' or line[:3]=='set') and on_correct_material:
                         if debugserpentoutput:
-                            print "finished finding material {0}".format(materialname)
+                            print("finished finding material {0}".format(materialname))
                         break #leave the for loop, material was found
                     if line[:3]=='mat':
 
@@ -931,26 +930,26 @@ class SerpentMaterial(object):
                         splitline=line.split() #now is list data type
                         thismaterialname=splitline[1] #grab material name
                         if debugserpentoutput:
-                            print "found material {0}".format(thismaterialname)
+                            print("found material {0}".format(thismaterialname))
                         #if the material here is the one that we want to
                         #read, record the atom density and other data. begin recording isotopics
                         if debugserpentoutput:
-                            print "now comparing:"
-                            print thismaterialname
-                            print materialname
+                            print("now comparing:")
+                            print(thismaterialname)
+                            print(materialname)
                         if thismaterialname==materialname:
                             on_correct_material=True
                             self.atomdensity=float(splitline[2])
                             if debugserpentoutput:
-                                print "these two should match: ---------"
-                                print float(splitline[2])
-                                print self.atomdensity
-                                print "these three should match: --------"
-                                print thismaterialname
-                                print self.materialname
-                                print materialname
-                                print "data from line:"
-                                print splitline
+                                print("these two should match: ---------")
+                                print(float(splitline[2]))
+                                print(self.atomdensity)
+                                print("these three should match: --------")
+                                print(thismaterialname)
+                                print(self.materialname)
+                                print(materialname)
+                                print("data from line:")
+                                print(splitline)
                             if 'vol' in splitline:
 
                                 #now grab the material volume
@@ -993,7 +992,7 @@ class SerpentMaterial(object):
                         #now add it on to the material definition within this object.
                         self.isotopic_content[zaid]=float(atomfraction)
             if self.atomdensity == None and self.massdensity ==None:
-                print "unable to read density of material {0}".format(materialname)
+                print("unable to read density of material {0}".format(materialname))
                 raise Exception("An error was encountered in reading the material's density.")
         elif  salt_type=='empty':
             self.atomdensity=0.0
@@ -1007,9 +1006,9 @@ class SerpentMaterial(object):
             raise Exception(" An invalid salt type was chosen. Check SerpentMaterial.available_salts() for choices.")
         #make a density variable that is for printing to the serpent input file
         if self.atomdensity==None and self.massdensity==None:
-            print "no density was specified for the material"
-            print self.materialname
-            print self.isotopic_content
+            print("no density was specified for the material")
+            print(self.materialname)
+            print(self.isotopic_content)
             raise Exception("specify a material density of some sort for the above material")
         if self.atomdensity==None:
             self.density=-1*self.massdensity
@@ -1085,8 +1084,7 @@ class SerpentMaterial(object):
             return None
 
         else:
-
-            print self
+            print(self)
             # if someone actually needs to deal with materials where atom density is given with isotopics
             # in mass fractions, ill fix this when the time comes
             raise Exception("encountered unforeseen material definition.")
@@ -1207,7 +1205,7 @@ class SerpentMaterial(object):
 
         # if the material has no volume definition, assume that it will not be ever added to the salt.
         if self.volume is None:
-            print "No Z to charge dict assigned to {} since it wont have any mass flows.".format(self.materialname)
+            print("No Z to charge dict assigned to {} since it wont have any mass flows.".format(self.materialname))
             return None
 
 
@@ -1244,9 +1242,9 @@ class SerpentMaterial(object):
             #print "CalcExcessFluorine returning total moles of each element for this core."
             return zvals_moles
         if debugmode:
-            print "here is some debug stuff:"
-            print atomdensity
-            print zvals_moles
+            print("here is some debug stuff:")
+            print(atomdensity)
+            print(zvals_moles)
             #print iso
 
 
@@ -1420,11 +1418,11 @@ class SerpentMaterial(object):
         #if the net charge is negative, and fluorine has a charge of -1, then moles excess fluorine = -1 * totalcharge
         if printfexcess:
             if totalcharge < 0.0:
-                print "There is an excess of fluorine in the core.\n There are {0} too many moles of fluorine total.".format(totalcharge * -1)
+                print("There is an excess of fluorine in the core.\n There are {0} too many moles of fluorine total.".format(totalcharge * -1))
             elif totalcharge >= 0.0:
-                print "The core has created an excessively reducing environment. {0} moles of fluorine are need additionally.".format(totalcharge* -1)
+                print("The core has created an excessively reducing environment. {0} moles of fluorine are need additionally.".format(totalcharge* -1))
         if printoxstates:
-            print z_to_oxidation_num_map
+            print(z_to_oxidation_num_map)
         return -1*totalcharge
 
     def restock(self):
@@ -1552,7 +1550,7 @@ class SerpentInputFile(object):
         installd=mywd.split("salt-management-DMSR",1)[0]
         #print subprocess.call(['perl', '{0}/salt-management-DMSR/src/corewriter.pl'.format(installd)]) #print is there so that the print()'s in the perl script get printed
         #print subprocess.call(['perl', '{0}/corewriter.pl'.format(self.directory)]) #print is there so that the print()'s in the perl script get printed
-        print subprocess.call(['corewriter.pl']) #print is there so that the print()'s in the perl script get printed
+        print(subprocess.call(['corewriter.pl']))#print is there so that the print()'s in the perl script get printed
 
         # OK, now, the old geometry writer doesn't work for cores with >10000 channels. So,
         # rewrite it using the lattice writer from DMSR-multiphysics
@@ -1572,7 +1570,7 @@ class SerpentInputFile(object):
         self.materials.append(SerpentMaterial('serpentoutput',materialname='tank',materialfile='MSRs2.inp'))
 
         # double the fuel volume in order to capture the fuel region that is just above the core (like the TEI design)
-        print 'doubling fuel volume in order to approximate above-core region'
+        print('doubling fuel volume in order to approximate above-core region')
         self.getMat('fuel').volume *= 2.0
 
         #Find the volume of fuel in the core for this input file. 
@@ -1673,12 +1671,12 @@ class SerpentInputFile(object):
         """
         if enrichment > 1:
             raise Exception("enrichment doesn't go over 1, ya silly. Use fractions, not percents.")
-        print "The use of uranium metal, for now, is assumed to be composed solely of U235 and U238."
+        print("The use of uranium metal, for now, is assumed to be composed solely of U235 and U238.")
         if debug:
             for j,mat in enumerate(self.materials):
-                print j
-                print mat.materialname
-                print mat.atomdensity
+                print(j)
+                print(mat.materialname)
+                print(mat.atomdensity)
         self.AddMaterial(SerpentMaterial('empty', volume=volume, materialname="Umetal"))
         #this next line may be a bit convoluted, but just adds the material. -1 is because it is the last thing on the list at that moment.
         self.materials[-1].isotopic_content={'92235':enrichment, '92238':(1-enrichment)}
@@ -1688,7 +1686,7 @@ class SerpentInputFile(object):
         self.materials[-1].SetAsBurnable()
 
         if debug:
-                print self.materials[-1]
+                print(self.materials[-1])
         return None
 
     def AddZirconiumMetal(self, volume):
@@ -1746,8 +1744,8 @@ class SerpentInputFile(object):
             raise Exception("no uranium found in fuel material")
 
         if totUFracs < 0.0:
-            print 'it seems that the fuel material definition was given in terms of mass fracs'
-            print 'enrichment is defined here in terms of atom fractions, so please use that.'
+            print('it seems that the fuel material definition was given in terms of mass fracs')
+            print('enrichment is defined here in terms of atom fractions, so please use that.')
             raise Exception('^^^')
 
         # now, the new refuel material is created
@@ -1807,12 +1805,9 @@ class SerpentInputFile(object):
         try:
             adjustedFlowRate = rate * self.materials[mat1index].initDensity / self.materials[mat1index].atomdensity
         except TypeError:
-            print 'rate'
-            print rate
-            print 'mat1 init rho'
-            print self.materials[mat1index].initDensity
-            print 'current rho'
-            print self.materials[mat1index].atomdensity
+            print('rate: {}'.format(rate))
+            print('mat1 init rho: {}'.format(self.materials[mat1index].initDensity))
+            print('current rho: {}'.format(self.materials[mat1index].atomdensity))
             raise Exception("something wasnt prespecified correctly")
 
         #now the flow can be added on, and the volume argument is translated into the ratio that serpent takes
@@ -1824,7 +1819,7 @@ class SerpentInputFile(object):
         # now, check if the material will run out over this depletion step.
         if ratioflow * float(self.BurnTime[0])*24.0*3600.0 > 1:
 
-            print 'material {} will run out this depletion step, restocking to original density'.format(mat1)
+            print('material {} will run out this depletion step, restocking to original density'.format(mat1))
             self.getMat(mat1).restock()
 
         #if this is a flow between two materials that already exists, override the old one
@@ -1847,8 +1842,8 @@ class SerpentInputFile(object):
         # final check: is this enough to empty the entire tank regardless of what it is
         # filled with?
         if rate * float(self.BurnTime[0]) * 24. * 3600. > self.getMat(mat1).volume:
-            print "this flow is large enough to empty the whole tank in one step."
-            print "If you could increase the tank volume, that'd be great."
+            print("this flow is large enough to empty the whole tank in one step.")
+            print("If you could increase the tank volume, that'd be great.")
             raise Exception("see above message")
 
         return None
@@ -2015,7 +2010,7 @@ grep ABS_KEFF {5} > {6}
         """.format(self.queue, self.num_nodes, self.PPN, pmemtext, runtext, results_file, done_file)
         with open(directory+'/'+'{0}.sh'.format(self.inputfilename), 'w') as qsubfilehandle:
             qsubfilehandle.write(qsubtext)
-        os.chmod(directory+'/'+'{0}.sh'.format(self.inputfilename), 0750) # make script executable
+        os.chmod(directory+'/'+'{0}.sh'.format(self.inputfilename), 0o750) # make script executable
         #remove old output in case a file of the same name is being run twice. This prevents failed jobs from appearing as successful.
         from os import listdir
         if "{0}_res.m".format(self.inputfilename) in listdir(directory):
@@ -2050,9 +2045,9 @@ grep ABS_KEFF {5} > {6}
             if str(mat.tempK).rstrip() in ['','None']:
 
                 if mat.tempK not in [300.0,600.0,900.0,None,'']:
-                    print 'Warning, temp treatment abandoned on {} at {} K to avoid Serpent temperature treatment error'.format(mat.materialname,mat.tempK)
+                    print('Warning, temp treatment abandoned on {} at {} K to avoid Serpent temperature treatment error'.format(mat.materialname,mat.tempK))
 
-            print "**-> ",mat.materialname, mat.tempK
+            print("**-> ",mat.materialname, mat.tempK)
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
             if self.BurnTime != []:
@@ -2091,8 +2086,7 @@ grep ABS_KEFF {5} > {6}
                 if mat.xstemplib=='.09c' and mat.tempK < 900.0:
                     mat.xstemplib='.06c'
                 if mat.tempK < 600.0 and mat.tempK is not None:
-                    print "have gavin fix the code here if you want materials less than"
-                    print "600 kelvin"
+                    print("have Gavin fix the code here if you want materials less than 600 kelvin")
                     raise Exception("shouldnt {} be a bit warmer?".format(mat.materialname))
                 if mat.tempK is None:
                     raise Exception(" give {} a temperature please".format(mat.materialname))
@@ -2237,14 +2231,14 @@ grep ABS_KEFF {5} > {6}
 
             # submit to torque / maui style queuing
             command='qsub'+' -o '+ self.directory+'/'+self.inputfilename+'.log -j oe ' + self.directory+'/'+self.inputfilename+'.sh'
-            print subprocess.check_output(command, shell=True) # the qsub script is just the name of the input file plus '.sh'
+            print(subprocess.check_output(command, shell=True)) # the qsub script is just the name of the input file plus '.sh')
 
         elif mode=='local':
 
            # submit to local machine, no distributed memory parallelism
            #command = '{3} -omp {0} {1} | tee {1}serpentoutput.txt'.format(self.PPN, self.directory + '/'+ self.inputfilename, serpent_executable)
            command = self.directory+'/'+self.inputfilename+'.sh' # run the job file directly
-           print subprocess.check_output(command, shell=True)
+           print(subprocess.check_output(command, shell=True))
 
         else:
 
@@ -2306,8 +2300,8 @@ grep ABS_KEFF {5} > {6}
             # double check, give it a sec
             time.sleep(10) # up to 10 secs to fully write it out?
             if self.inputfilename+'_res.m' not in os.listdir(self.directory):
-                print subprocess.call(['tail',self.inputfilename+'serpentoutput.txt','-n','30'])
-                print self.inputfilename+'_res.m not found in current wdir'
+                print(subprocess.call(['tail',self.inputfilename+'serpentoutput.txt','-n','30']))
+                print(self.inputfilename+'_res.m not found in current wdir')
                 raise Exception("Serpent did not exit normally.Printed above should be the error.")
         return True
 
@@ -2347,19 +2341,19 @@ grep ABS_KEFF {5} > {6}
                         self.kefflist.append(float(line[6])) #MUST be converted to a float. error happens otherwise.
                         self.keffsigmalist.append(float(line[7]))
         except IOError:
-            print "Couldn't find the output file in the current directory, {}".format(os.getcwd())
-            print "Here are the files in the directory as seen by this script:"
-            print os.listdir('.')
+            print("Couldn't find the output file in the current directory, {}".format(os.getcwd()))
+            print("Here are the files in the directory as seen by this script:")
+            print(os.listdir('.'))
             raise IOError("^^^")
 
             if self.kefflist==[] :
-                print self.directory
+                print(self.directory)
                 raise Exception("No keff values were found. Check serpent output for errors.")
             if len(self.kefflist) != 2 and self.BurnTime != []:
                 raise Exception("not enough keff values were found. should be 2. found {}".format(len(self.kefflist)))
 
             if (len(self.kefflist) != len(self.BurnTime)+1) and self.BurnTime!=[] :
-                print "Looks like {0} didn't finish burning. Returning none as Keff.".format(self.inputfilename)
+                print("Looks like {0} didn't finish burning. Returning none as Keff.".format(self.inputfilename))
                 return None
 
         if returnrelerror:
@@ -2513,7 +2507,7 @@ grep ABS_KEFF {5} > {6}
                     if matname in line:
                         skip=False
             if skip:
-                print "{0} not found in bumat file. skipping.".format(matname)
+                print("{0} not found in bumat file. skipping.".format(matname))
                 continue
             # need to pass along initDensity data, and also Z2ox data
             iDens = self.materials[indx].initDensity

@@ -109,8 +109,7 @@ plt.errorbar(days_run, voiddop_alpha, voiddop_alerr, linestyle="None", marker="o
 plt.errorbar(days_run, all_alpha, all_alerr, linestyle="None", marker="o", label="Doppler, all expansions, gemoetry")
 plt.gca().set_xlabel('time [days]')
 plt.gca().set_ylabel('Thermal feedback alpha [pcm/K]')
-plt.legend(loc='best')
-
+plt.legend(loc='lower center', numpoints=1)
 plt.savefig("dopdata.png")
 
 

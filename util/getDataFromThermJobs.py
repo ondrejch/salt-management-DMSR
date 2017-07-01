@@ -16,8 +16,8 @@ dirs = { 'dopplercold'    : 'inputfileslog{}AdjustDoppler'.format(temps[0]),
          'dopplerhot'     : 'inputfileslog{}AdjustDoppler'.format(temps[1]),
          'voiddopcold'    : 'inputfileslog{}AdjustVoidDop'.format(temps[0]),
          'voiddophot'     : 'inputfileslog{}AdjustVoidDop'.format(temps[1]),
-#        'allcold'        : 'inputfileslog{}AdjustDoVoGeo'.format(temps[0]),
-#        'allhot'         : 'inputfileslog{}AdjustDoVoGeo'.format(temps[1]) 
+         'allcold'        : 'inputfileslog{}AdjustDoVoGeo'.format(temps[0]),
+         'allhot'         : 'inputfileslog{}AdjustDoVoGeo'.format(temps[1]) 
          }
 
 days  = []
@@ -27,6 +27,8 @@ doppler_alpha = []
 doppler_alerr = []
 voiddop_alpha = []
 voiddop_alerr = []
+all_alpha     = []
+all_alerr     = []
 
 # Get list of all input files - days we should have data for
 flist = os.listdir(basedir)
@@ -45,8 +47,6 @@ days_run = days[0::sampleN]
 # Extract keffs
 for day in days_run:    
     print("Processing day {}".format(day))
-#    with open('inputday{}.dat'.format(day)) as fh:
-#        core = pk.load(fh)
     for thermcase in dirs.keys():        # loop over cases
         jobdir   = "{}/job_day{}".format(dirs[thermcase],day)
         donefile = "{}/{}.done".format(jobdir,casename)
@@ -81,12 +81,23 @@ for (k_cold, k_hot, ke_cold, ke_hot) in zip(keffs['voiddopcold'], keffs['voiddop
     voiddop_alpha.append( 1e5 * (rho_hot - rho_cold) /(temps[1] - temps[0]) )
     voiddop_alerr.append(abs(voiddop_alpha[-1]) * math.sqrt( ke_cold**2 + ke_hot**2) )
 
+# Doppler + all expansions + geometry changes
+for (k_cold, k_hot, ke_cold, ke_hot) in zip(keffs['allcold'], keffs['allhot'],
+                                            kerrs['allcold'], kerrs['allhot']):
+    rho_cold = (k_cold-1.0)/k_cold
+    rho_hot  = (k_hot -1.0)/k_hot
+    all_alpha.append( 1e5 * (rho_hot - rho_cold) /(temps[1] - temps[0]) )
+    all_alerr.append(abs(all_alpha[-1]) * math.sqrt( ke_cold**2 + ke_hot**2) )
+
 # Print table
 print("Writnig table")
 outf = open('dopdata.dat', 'w')
-for (day, d, de, vd, vde) in zip (days_run, doppler_alpha, doppler_alerr, 
-                                            voiddop_alpha, voiddop_alerr):
-    outf.write("{:5d}   {:8.5f} {:7.5f}   {:8.5f} {:7.5f}\n".format(day, d, de, vd, vde))
+outf.write("# Table of thermal feedback coefficients and their errors, all [pcm]\n")
+outf.write("# day   {:>8s} {:>7s}   {:>8s} {:>7s}   {:>8s} {:>7s}\n".format(
+    "Doppler", "sig", "Dop+salt","sig", "All exp.", "sig") )
+for (day, d, de, vd, vde, a, ae ) in zip (days_run, doppler_alpha, doppler_alerr, 
+                                 voiddop_alpha, voiddop_alerr, all_alpha, all_alerr):
+    outf.write("{:5d}   {:8.5f} {:7.5f}   {:8.5f} {:7.5f}   {:8.5f} {:7.5f}\n".format(day, d,de,vd,vde,a,ae))
 outf.close()
 
 
@@ -95,6 +106,7 @@ print("Making figure")
 fig = plt.figure(0)
 plt.errorbar(days_run, doppler_alpha, doppler_alerr, linestyle="None", marker="o", label="Doppler only")
 plt.errorbar(days_run, voiddop_alpha, voiddop_alerr, linestyle="None", marker="o", label="Doppler and salt expansion")
+plt.errorbar(days_run, all_alpha, all_alerr, linestyle="None", marker="o", label="Doppler, all expansions, gemoetry")
 plt.gca().set_xlabel('time [days]')
 plt.gca().set_ylabel('Thermal feedback alpha [pcm/K]')
 plt.legend(loc='best')

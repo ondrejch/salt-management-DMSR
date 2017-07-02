@@ -90,7 +90,7 @@ ax.plot(days_run, actinides['94240'], label="Pu-240", color="orchid",      lines
 ax.plot(days_run, actinides['94241'], label="Pu-241", color="blueviolet",  linestyle="-")
 ax.plot(days_run, actinides['94242'], label="Pu-242", color="maroon",      linestyle="-")
 plt.xlabel("Time [days]")
-plt.ylabel("Actinide concentration [% of all actinides]")
+plt.ylabel("Actinide concentration [fraction of all actinides]")
 ax.legend(loc="best",fontsize="medium")
 fig.savefig("relative_actinide_concentrations.png")
 
@@ -105,7 +105,7 @@ ax.semilogy(days_run, actinides['94241'], label="Pu-241", color="blueviolet",  l
 ax.semilogy(days_run, actinides['94242'], label="Pu-242", color="maroon",      linestyle="-")
 ax.set_ylim(ymin=1e-6)
 plt.xlabel("Time [days]")
-plt.ylabel("Actinide concentration [% of all actinides]")
+plt.ylabel("Actinide concentration [fraction of all actinides]")
 ax.legend(loc="best",fontsize="medium")
-fig.savefig("relative_actinide_concentrations.log_y.png")
+fig.savefig("relative_actinide_concentrations_log_y.png")
 

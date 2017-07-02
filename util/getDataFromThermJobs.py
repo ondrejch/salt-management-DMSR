@@ -8,8 +8,9 @@ import pickle as pk
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
-sampleN = 1                # run only every Nth element
+sampleN  = 1                # run only every Nth element
 casename = 'TEItherm'       # input file name
+foutname = 'thermal_feedback' # output file basename
 temps = [850., 950.]        # thermal feedback temperatures [K]
 basedir =  'inputfileslog'
 dirs = { 'dopplercold'    : 'inputfileslog{}AdjustDoppler'.format(temps[0]),
@@ -91,7 +92,7 @@ for (k_cold, k_hot, ke_cold, ke_hot) in zip(keffs['allcold'], keffs['allhot'],
 
 # Print table
 print("Writnig table")
-outf = open('dopdata.dat', 'w')
+outf = open('{}.dat'.format(foutname), 'w')
 outf.write("# Table of thermal feedback coefficients and their errors, all [pcm]\n")
 outf.write("# day   {:>8s} {:>7s}   {:>8s} {:>7s}   {:>8s} {:>7s}\n".format(
     "Doppler", "sig", "Dop+salt","sig", "All exp.", "sig") )
@@ -110,6 +111,6 @@ plt.errorbar(days_run, all_alpha, all_alerr, linestyle="None", marker="o", label
 plt.gca().set_xlabel('time [days]')
 plt.gca().set_ylabel('Thermal feedback alpha [pcm/K]')
 plt.legend(loc='lower center', numpoints=1)
-plt.savefig("dopdata.png")
+plt.savefig("{}.png".format(foutname))
 
 

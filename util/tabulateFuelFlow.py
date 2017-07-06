@@ -2,7 +2,8 @@
 # plots flow rate of fuel vs. time, and its integral
 # command line args:
 #
-# tabulateFuelFlow.py <inputfileslog> <salt density (g/ccm)> <timestep (days)>
+# tabulateFuelFlow.py <inputfileslog> <salt density (g/ccm)> 
+#           removed need for  <timestep (days)>
 #
 import os
 import sys
@@ -10,7 +11,8 @@ import pickle as pk
 
 inpdir = sys.argv[1]
 refuelDens = float(sys.argv[2])
-daystep = float(sys.argv[3])
+#daystep = float(sys.argv[3])
+daystep = 7
 
 os.chdir(inpdir)
 
@@ -46,8 +48,10 @@ for day in days:
     keff = core.keff
 
     if day != 0:
+        daystep = day - prev_day
         cumsum += lastFlowRefuel * daystep
 
+    prev_day = day
     lastFlowRefuel = mFlowRefuel
 
     print("{: 4d} \t{:8.6f} \t{:8.6f} \t{:7.1f} \t{:8.6f}".format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs))

@@ -27,7 +27,7 @@ originaldir=os.getcwd()
 
 #---plotting settings---
 #use latex markup
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':20})
+#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':20})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
@@ -111,6 +111,7 @@ max_XF3_frac = 10.0**( 3.01+.06 - 2460.0/T) /100.0
 print "max trifluoride solubility is:"
 print "{}%".format(max_XF3_frac)
 ax1.semilogy([0.0,max(days)], [max_XF3_frac, max_XF3_frac])  
-plt.legend(lgnd, loc=4)
+plt.legend(lgnd, loc='best')
 
+plt.savefig("trifluorides.png")
 plt.show()

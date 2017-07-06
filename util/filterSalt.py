@@ -58,7 +58,7 @@ ls = os.listdir('.')
 
 highestNum = 0
 num = ''
-for f in ls:
+for f in sorted(ls):
     if 'inputfileslog' in f:
         num = [ch for ch in f if ch.isdigit()]
         print("Found directory: {}, # {}".format(f,num))

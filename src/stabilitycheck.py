@@ -32,7 +32,7 @@ def main(argv):
     inpobjectfile.close()
 
     #run it
-    tempcoeff=stabileCheck(inpobjectfile, queue=q, ppn=p, verb=v)
+    tempcoeff=stabileCheck(inpobject, queue=q, ppn=p, verb=v)
     print tempcoeff
     with open('{}.alpha'.format(inpobject.inputfilename),'w') as outfile:
         outfile.write(tempcoeff)

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # This script will check thermal reactivity coefficients of both
 # the fuel and the graphite. TMP method for doppler broadening is
 # used by default.

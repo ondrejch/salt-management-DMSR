@@ -106,6 +106,7 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False, nnodes=1):
         inplist[i].materials[-1].SetTemp(testT[i])
 
         #annnddd submit!
+        inplist[i].WriteJob()
         inplist[i].SubmitJob()
 
         os.chdir('..')

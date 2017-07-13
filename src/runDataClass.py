@@ -16,8 +16,13 @@ class runData(object):
 
         # power should be given in watts
         Qbar = 192.9 # MeV / fission; duderstadt thermal fiss
-        self.initialguessrefuelrate= (optdict['power'] / (1.602e-13) 
-                / Qbar / fuel.isotopic_content['92235'] * 1e-24)
+        try:
+            self.initialguessrefuelrate= (optdict['power'] / (1.602e-13) 
+                    / Qbar / fuel.isotopic_content['92235'] * 1e-24)
+        except KeyError:
+            print("No U-235 found in fuel salt. Giving Pu-239 a try to guess init refuel rate")
+            self.initialguessrefuelrate= (optdict['power'] / (1.602e-13) 
+                    / Qbar / fuel.isotopic_content['94239'] * 1e-24)
 
         self.refuelrate=self.initialguessrefuelrate # set initial refuel rate
         self.burnsteps=[]

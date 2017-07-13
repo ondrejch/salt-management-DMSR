@@ -11,7 +11,7 @@ import os
 import getmass
 import getpass # this rhyme was unintentional although very nice.
 import copy
-import multiphysicsCore # using new geometry writer for DMSRs, that's all.
+# import multiphysicsCore # using new geometry writer for DMSRs, that's all.
 from math import fsum # numerically stable addition of a list of numbers
 import time
 # sometimes, a piece of code gets repeated so much that you HAVE

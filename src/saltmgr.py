@@ -13,7 +13,7 @@ import shutil
 import numpy as np
 import subprocess
 from parseInputSaltMgr import parseSaltMgrOptions
-
+from warnings import warn
 
 # First read command line input
 parser = argparse.ArgumentParser(description=
@@ -148,7 +148,7 @@ if optdict['absorber'] == 'gadoliniumFluoride':
     myCore.materials.append(RefuelCore.SerpentMaterial('GdF3', materialname='absorber', volume = 1e9))
 
 else:
-    raise Exception("unknown absorber type: {}".format(optdict['absorber']))
+    warn("Absorber being used is {}. Proceed with caution.".format(optdict['absorber']))
 
 # now initial material densities must be saved.
 # see pydoc RefuelCore.SerpentInputFile.saveInitialDensities

@@ -246,7 +246,12 @@ class RefuelorAbsorberFit(object):
                         raise Exception("The type of curve fit should either be 'Refuel' or 'Absorber'")
 
                 self.vcore=InputFile.fuelvolume
-                self.refuelenrichment=InputFile.refuelenrichment
+                try:
+                    # may not be defined if running pure Pu cores
+                    self.refuelenrichment=InputFile.refuelenrichment
+                except:
+                    # just try some approximately effective value
+                    self.refuelenrichment = 0.1
                 self.fittype=fittype
 
                 #some values need to be intialized

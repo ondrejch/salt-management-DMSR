@@ -25,7 +25,7 @@ for f in ls:
     day = int(numstr)
     days.append(day)
 days.sort()
-print("# Day, Refuel Rate (kg/day), Total (kg), Absorber Rate (kg/day)")
+print("# Day, keff, Refuel rate (kg/day), Total (kg), Absorber rate (kg/day). Fuel salt volume [m^3]")
 print('#warning, assuming GdF3 is absorber')
 
 cumsum = 0.0
@@ -54,5 +54,5 @@ for day in days:
     prev_day = day
     lastFlowRefuel = mFlowRefuel
 
-    print("{: 4d} \t{:8.6f} \t{:8.6f} \t{:7.1f} \t{:8.6f}\t{:10.0f}".
-        format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs, core.getMat('fuel').volume))
+    print("{: 4d} \t{:8.6f} \t{:8.6f} \t{:7.1f} \t{:8.6f}\t{:8.5f}".
+        format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs, core.getMat('fuel').volume/1000000.))

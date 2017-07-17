@@ -92,6 +92,9 @@ elif optdict['core'][0] == 'oldObject':
     filehandle = open(optdict['core'][1], 'r')
     myCore = pickle.load(filehandle)
     filehandle.close()
+    myCore.num_nodes = optdict['runsettings']['num_nodes']
+    myCore.PPN = optdict['runsettings']['PPN']
+    myCore.queue = optdict['runsettings']['queue']
 
 else:
     raise Exception('bad error here')

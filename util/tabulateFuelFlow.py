@@ -54,4 +54,5 @@ for day in days:
     prev_day = day
     lastFlowRefuel = mFlowRefuel
 
-    print("{: 4d} \t{:8.6f} \t{:8.6f} \t{:7.1f} \t{:8.6f}".format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs))
+    print("{: 4d} \t{:8.6f} \t{:8.6f} \t{:7.1f} \t{:8.6f}\t{:10.0f}".
+        format(int(day),float(keff),mFlowRefuel,cumsum,mFlowAbs, core.getMat('fuel').volume))

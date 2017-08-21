@@ -3,53 +3,40 @@
 # This script will check thermal reactivity coefficients of both
 # the fuel and the graphite. TMP method for doppler broadening is
 # used by default.
-from RefuelCore import *
 import copy
 from scipy.optimize import curve_fit
 import time
 import os
 import sys
-import pickle
+import pickle as pk
+import RefuelCore
+import shutil
 
-def main(argv):
+def submitJob(day, inputfileslog,  
+              doppler=False,
+              geometry=False,
+              voiding=False,
+              queue='gen5', ppn=8, verb=False, nnodes=1):
+    """Submits jobs that checks feedback coefficient at
+    a specified day under an arbitrary combination of feedback
+    mechanisms. Doppler, salt expansion, and graphite expansion
+    are considered separately.
 
-    inpname=None
-    v=False
-    for i,arg in enumerate(argv):
-        if arg=='-i':
-            inpname=argv[i+1]
-        elif arg=='-q':
-            q=argv[i+1]
-        elif arg=='-p':
-            p=argv[i+1]
-        elif arg=='-v':
-            v=True
-    if inpname is None:
-        raise Exception('specify input file object with -i')
+    A directory is made of the form
 
-    inpobjectfile = open(inpname,'r')
-    inpobject = pickle.load(inpobjectfile)
-    inpobjectfile.close()
+    Args :
+        day - day of the depletion simulation to test feedback at.
+              must be present in the inputfileslog directory.
+        inputfileslog - directory containing SerpentInputFile pickle
+                        file from the depletion simulation
 
-    #run it
-    tempcoeff=stabileCheck(inpobject, queue=q, ppn=p, verb=v)
-    print tempcoeff
-    with open('{}.alpha'.format(inpobject.inputfilename),'w') as outfile:
-        outfile.write(tempcoeff)
+    Kwargs:
+        doppler, geometry, voiding - set to True if desired
+        the rest are self-explanatory
+    """
 
-def linear(x, m, b):
-    """ the most complicated equation known to man."""
-    return m*x + b
-
-def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False, nnodes=1, doppler=None,
-                 geometry=None, voiding=None):
-    """ Checks the stability of a SerpentInputFile object.
-        The input file is re-written using the perl core writer.
-        Reactivity is checked at 50 deg C increments away from 900.
-    Input:
-        SerpentInputFile to assess rho coefficients
-    Output:
-        Float. Best fit temp coeff of reactivity"""
+    with open(os.path.join(inputfileslog,"inputday{}.dat".format(day)), 'rb') as fh:
+        inputfile = pk.load(fh)
 
     # temperatures to try, in K
     # this is a linearization, really, so a point on either side
@@ -96,6 +83,10 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False, nnodes=1, doppler=N
         tempInput.WriteJob()
         # now rename the resulting geometry file:
         shutil.move('MSRs2_geom.inp', 'MSRs2_geom{}K.inp'.format(thisTemp))
+        os.remove("tempAdjustGeom{}K.sh".format(thisTemp))
+        os.remove("MSRs2.inp")
+        os.remove("corewriterparams.txt")
+
 
     #construct new inputfiles
     inplist=range(len(testT)) # just a list with correct length
@@ -111,14 +102,15 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False, nnodes=1, doppler=N
         raise Exception("fuel material not found in inputfile")
 
     for i,T in enumerate(testT):
-        dirname=name+'stability'+str(int(T)) + descripString
+        dirname='Day'+str(day)+"Temp"+str(int(T)) + descripString
         if dirname in os.listdir('.'):
+            print("Found directory called {} already. Deleting.".format(dirname))
             os.system('rm -r {}'.format(dirname))
         os.mkdir(dirname)
         os.chdir(dirname)
-        inplist[i]=SerpentInputFile(core_size=coresize,salt_type=coresalt,
+        inplist[i]=RefuelCore.SerpentInputFile(core_size=coresize,salt_type=coresalt,
                                 case=perlcase,salt_fraction=sf,
-                                initial_enrichment=0.0,num_nodes=nnodes,
+                                initial_enrichment=0.01,num_nodes=nnodes,
                                 pitch=p,tempK=T,queue=queue, PPN=ppn)
         # change inputfile name
         inplist[i].SetInputFileName(name + str(int(testT[i])) + descripString)
@@ -141,6 +133,7 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False, nnodes=1, doppler=N
 
         # Write the jobs, making temperature changes ONLY after write 
         # to ensure that ONLY changes we want are made (doppler, void, geom)
+
         inplist[i].WriteJob()
         inplist[i].getMat("fuel").SetTemp(testT[i])
 
@@ -158,28 +151,6 @@ def stabileCheck(inputfile, queue='gen5', ppn=8, verb=False, nnodes=1, doppler=N
     for inp in inplist:
         for mat in inp.materials:
             if mat.materialname=='fuel':
-                print 'fuel temp: {}'.format(mat.tempK)
+                print('fuel temp: {}'.format(mat.tempK))
             elif mat.materialname=='mod':
-                print 'graph temp: {}'.format(mat.tempK)
-
-    #wait
-    while not(all([inp.IsDone() for inp in inplist])):
-        time.sleep(3)
-
-    #read reactivity
-    rhos=[(inp.ReadKeff()-1.0)/inp.ReadKeff() for inp in inplist]
-
-    #fit linear
-    param=curve_fit(linear, testT, rhos)
-    param=param[0] #ignore covariance data
-
-    if verb:
-        print "temperatures attempted"
-        print testT
-        print "reactivities"
-        print rhos
-
-    return param[0] #return slope
-
-if __name__=='__main__':
-    main(sys.argv)
+                print('graph temp: {}'.format(mat.tempK))

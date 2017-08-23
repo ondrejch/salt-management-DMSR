@@ -3,14 +3,89 @@
 # This script will check thermal reactivity coefficients of both
 # the fuel and the graphite. TMP method for doppler broadening is
 # used by default.
+#
+# PyNE, *is* needed, although the crazy installation stuff isn't needed.
+# we just import what we need directly in order to follow the DRY philosophy.
+# just make sure this line is in your bashrc:
+#     export PYTHONPATH=$HOME/<pyne_directory>/pyne/pyne:${PYTHONPATH}
+
 import copy
 from scipy.optimize import curve_fit
 import time
 import os
 import sys
 import pickle as pk
+import re
 import RefuelCore
 import shutil
+
+def getKeffSigma(filename):
+    """ Gets keff and sigma from the serpent input file. """
+    
+
+def getDoppGeomVoidIsFeedback(name):
+    """ returns a length 4 tuple of booleans.
+    The first through fourth are respectively
+    whether the filename has a name matching how
+    submitJob names feedback experiments, whether the
+    filename has doppler, whether it has geometry expansion,
+    and whether it has salt voiding."""
+
+    # regex for feedback files
+    pattern = re.compile("^Day[0-9]*Temp[0-9]*.*")
+    doppRe  = re.compile(".*Dopp.*")
+    geomRe  = re.compile(".*Geom.*")
+    voidRe  = re.compile(".*Void.*")
+
+    return (pattern.match(name), doppRe.match(name),
+            geomRe.match(name), voidRe.match(name) )
+
+
+def collectResults(outFileName, sep="  ", header=True):
+    """ Collects feedback results in a text file from feedback numeric
+    experiments. The file includes a header by default to describe
+    columns. The default columns separator is whitespace. 
+
+    All results including doppler, geometry, and voiding get put
+    in the file. Some boolean-valued colulmns describe if the 
+    feedback mechanism is present. eg a column for voiding has a 0
+    if not voided, 1 otherwise.
+
+    Args :
+        None
+    Kwargs :
+        sep - string. separator of fields in each row.
+        header - bool. whether to include a comment line
+                 at the top of the output file.
+
+    """
+    outFileHandle = open(outFileName, 'w')
+
+    ls = os.listdir('.')
+
+    # write a header if desired
+    if header:
+        outFileHandle.write("# day, dRho/dT, hasDoppler, hasGeomExpand,"
+                            "hasSaltVoiding")
+    for filename in ls:
+        
+        # check if this is a directory matching the name
+        # of a feedback results file.
+        isfeedback, isdopp, isgeom, isvoid = getDoppGeomVoidIsFeedback(filename)
+        if not isfeedback:
+            # not what we're looking for then
+            continue
+
+        # ok, this is one we're interested in
+        os.chdir(filename)
+
+        # grab implicit keff estimate and its uncertainty
+
+
+
+
+
+    outFileHandle.close()
 
 def submitJob(day, inputfileslog,  
               doppler=False,
@@ -104,7 +179,10 @@ def submitJob(day, inputfileslog,
     for i,T in enumerate(testT):
         dirname='Day'+str(day)+"Temp"+str(int(T)) + descripString
         if dirname in os.listdir('.'):
-            print("Found directory called {} already. Deleting.".format(dirname))
+            print("Found directory called {} already."
+                  "Press enter to continue or ctrl-c to"
+                  "exit".format(dirname))
+            input()
             os.system('rm -r {}'.format(dirname))
         os.mkdir(dirname)
         os.chdir(dirname)
@@ -134,15 +212,15 @@ def submitJob(day, inputfileslog,
         # Write the jobs, making temperature changes ONLY after write 
         # to ensure that ONLY changes we want are made (doppler, void, geom)
 
-        inplist[i].WriteJob()
         inplist[i].getMat("fuel").SetTemp(testT[i])
 
         # adjust which geometry file is used as appropriate
         if geometry:
             inplist[i].includefiles.remove('MSRs2_geom.inp')
-            inplist[i].includefiles.append('MSRs2_geom{}K.inp'.format(testT[i]))
+            inplist[i].includefiles.append('../MSRs2_geom{}K.inp'.format(testT[i]))
 
 
+        inplist[i].WriteJob()
         inplist[i].SubmitJob()
 
         os.chdir('..')
@@ -152,5 +230,3 @@ def submitJob(day, inputfileslog,
         for mat in inp.materials:
             if mat.materialname=='fuel':
                 print('fuel temp: {}'.format(mat.tempK))
-            elif mat.materialname=='mod':
-                print('graph temp: {}'.format(mat.tempK))

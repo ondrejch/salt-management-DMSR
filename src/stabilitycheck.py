@@ -8,6 +8,10 @@
 # we just import what we need directly in order to follow the DRY philosophy.
 # just make sure this line is in your bashrc:
 #     export PYTHONPATH=$HOME/<pyne_directory>/pyne/pyne:${PYTHONPATH}
+#
+# after doing this, since we don't care about the rest of the PyNE stuff
+# and don't want to deal with potentially painful installation, comment out
+# any line containing "QAWarning".
 
 import copy
 from scipy.optimize import curve_fit
@@ -18,10 +22,18 @@ import pickle as pk
 import re
 import RefuelCore
 import shutil
+import serpent
+import progressbar
 
 def getKeffSigma(filename):
     """ Gets keff and sigma from the serpent input file. """
-    
+    res = serpent.parse_res(filename)
+
+    # return ABS_KEFF since it usually seems to have the lower
+    # uncertainty
+    keff, sigma = res['ABS_KEFF'][0]
+    return keff, sigma
+
 
 def getDoppGeomVoidIsFeedback(name):
     """ returns a length 4 tuple of booleans.
@@ -37,8 +49,8 @@ def getDoppGeomVoidIsFeedback(name):
     geomRe  = re.compile(".*Geom.*")
     voidRe  = re.compile(".*Void.*")
 
-    return (pattern.match(name), doppRe.match(name),
-            geomRe.match(name), voidRe.match(name) )
+    return tuple(map(bool, [pattern.match(name), doppRe.match(name),
+            geomRe.match(name), voidRe.match(name)]))
 
 
 def collectResults(outFileName, sep="  ", header=True):
@@ -59,14 +71,22 @@ def collectResults(outFileName, sep="  ", header=True):
                  at the top of the output file.
 
     """
+    # regex for finding numbers
+    numberPattern = re.compile("Temp[0-9]*")
+    dayPattern    = re.compile("Day[0-9]*")
+
     outFileHandle = open(outFileName, 'w')
 
     ls = os.listdir('.')
 
+    # make a progress bar
+    bar = progressbar.ProgressBar(redirect_stdout=True, max_value=len(ls))
+    i = 0
+
     # write a header if desired
     if header:
-        outFileHandle.write("# day, dRho/dT, hasDoppler, hasGeomExpand,"
-                            "hasSaltVoiding")
+        outFileHandle.write("# day, rho, rhosigma, temp, hasDoppler, hasGeomExpand,"
+                            "hasSaltVoiding\n")
     for filename in ls:
         
         # check if this is a directory matching the name
@@ -79,11 +99,45 @@ def collectResults(outFileName, sep="  ", header=True):
         # ok, this is one we're interested in
         os.chdir(filename)
 
-        # grab implicit keff estimate and its uncertainty
+        ## grab implicit keff estimate and its uncertainty
+        doppstr = 'Dopp' if isdopp else ''
+        geomstr = 'Geom' if isgeom else ''
+        voidstr = 'Void' if isvoid else ''
+        templist = [patt for patt in numberPattern.findall(filename) if patt != '']
+        if len(templist) != 1:
+            raise Exception(
+                    "More than one or 0 temperature found in {}".format(filename))
+        temperature = float(templist[0][4:])
+        daylist = [patt for patt in dayPattern.findall(filename) if patt != '']
+        if len(daylist) != 1:
+            raise Exception(
+                    "More than one or 0 day found in {}".format(filename))
+        day = float(daylist[0][3:])
 
+        # deduce filename
+        outfilename = ('basicDMSR' + str(int(temperature)) + doppstr + geomstr +
+                    voidstr + '_res.m')
+        try:
+            keff, sigma = getKeffSigma(outfilename)
+        except IOError:
+            print("It appears that {} isn't done. Continuing anyways.".format(
+                filename))
+            os.chdir('..')
+            i += 1
+            bar.update(i)
+            continue
+        rho = (keff - 1.0) / keff
+        drho = sigma / keff**2 # rho uncertainty
 
+        data = [day, rho, drho, temperature, int(isdopp), int(isgeom), int(isvoid)]
+        data = map(str, data)
+        outFileHandle.write( sep.join(data) + "\n")
 
+        # progress!
+        i += 1
+        bar.update(i)
 
+        os.chdir('..')
 
     outFileHandle.close()
 
@@ -91,6 +145,7 @@ def submitJob(day, inputfileslog,
               doppler=False,
               geometry=False,
               voiding=False,
+              overwrite=False,
               queue='gen5', ppn=8, verb=False, nnodes=1):
     """Submits jobs that checks feedback coefficient at
     a specified day under an arbitrary combination of feedback
@@ -179,11 +234,12 @@ def submitJob(day, inputfileslog,
     for i,T in enumerate(testT):
         dirname='Day'+str(day)+"Temp"+str(int(T)) + descripString
         if dirname in os.listdir('.'):
-            print("Found directory called {} already."
-                  "Press enter to continue or ctrl-c to"
-                  "exit".format(dirname))
-            input()
-            os.system('rm -r {}'.format(dirname))
+            if overwrite:
+                os.system('rm -r {}'.format(dirname))
+            else:
+                print("Found a directory called {}. not overwriting.".format(
+                      dirname))
+                raise Exception("Will not overwrite stuff without overwrite=True")
         os.mkdir(dirname)
         os.chdir(dirname)
         inplist[i]=RefuelCore.SerpentInputFile(core_size=coresize,salt_type=coresalt,

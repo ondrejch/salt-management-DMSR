@@ -268,21 +268,26 @@ def submitJob(day, inputfileslog,
         # Write the jobs, making temperature changes ONLY after write 
         # to ensure that ONLY changes we want are made (doppler, void, geom)
 
-        inplist[i].getMat("fuel").SetTemp(testT[i])
+        if doppler:
+            inplist[i].getMat("fuel").SetTemp(testT[i])
 
         # adjust which geometry file is used as appropriate
         if geometry:
             inplist[i].includefiles.remove('MSRs2_geom.inp')
             inplist[i].includefiles.append('../MSRs2_geom{}K.inp'.format(testT[i]))
 
+        fuel = inplist[i]
+        assert inplist[i].getMat('fuel').tempK == testT[i]
+
+        if voiding:
+            fuel = inplist[i].getMat("fuel")
+            mdens = fuel.getMassDens()
+            mdens -= (testT[i]-900.0) * .003967 # from ya boy Nam
+            fuel.atomdensity = None
+            fuel.massdensity = mdens
+            fuel.converToAtomDens()
 
         inplist[i].WriteJob()
         inplist[i].SubmitJob()
 
         os.chdir('..')
-
-    # double check that material temperatures were changed correctly:
-    for inp in inplist:
-        for mat in inp.materials:
-            if mat.materialname=='fuel':
-                print('fuel temp: {}'.format(mat.tempK))

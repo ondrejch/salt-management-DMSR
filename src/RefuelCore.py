@@ -1041,6 +1041,33 @@ class SerpentMaterial(object):
         #thats all folks
         return None 
 
+    def getMassDens(self):
+        """Returns mass density. Need this b/c the Nam study from Wisconsin gives
+        expansion coefficients in terms of mass."""
+        # get molar mass
+        mmass = 0.0
+
+        #sum atomic weights over composition
+        for iso in self.isotopic_content.keys():
+            mmass += getmass.getIsoMass(iso) * self.isotopic_content[iso]
+
+        if not ( .99 < sum(self.isotopic_content.values()) < 1.01):
+            mmass /= self.atomdensity #normalize
+        mdens = self.atomdensity /  .602214086 * mmass
+
+        if not (1.5 < mdens < 10.0):
+            print("found unreasonable salt density")
+            print("some specs of the materials:")
+            print("temp: {}".format(self.tempK))
+            print("adens: {}".format(self.atomdensity))
+            print("mdens: {}".format(mdens))
+            print("calculated molar mass: {}".format(mmass))
+            print(" isotope dictionary:\n--------------")
+            print(self.isotopic_content)
+            print(sum(self.isotopic_content.values()))
+            raise Exception(" ^^^^^ ")
+        return mdens
+
     def converToAtomDens(self):
         """ converts material to be in terms of atom densities and fractions,
         not those darn mass fractions that are typically less easy to do some
@@ -2006,6 +2033,7 @@ if [[ $PBS_O_SERVER == necluster.engr.utk.edu ]] ; then
 	module load serpent
 fi
 
+hostname
 # Remove done-indicating file prior to serpent run
 if [[ -e {6} ]] ; then rm -f {6} ; fi
 

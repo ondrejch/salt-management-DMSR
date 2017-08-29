@@ -53,7 +53,8 @@ def getIsoMass(zaid):
             try:
                 l=next(f)
             except StopIteration:
-                raise Exception('mass number not found for {}'.format(zaid))
+                return 0.0
+                #raise Exception('mass number not found for {}'.format(zaid))
             if l[:4]=='Mass':
                 current_a = l[-4:]
                 current_a = current_a[:3] # remove \n

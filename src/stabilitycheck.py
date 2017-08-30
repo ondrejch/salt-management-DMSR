@@ -245,7 +245,7 @@ def submitJob(day, inputfileslog,
         inplist[i]=RefuelCore.SerpentInputFile(core_size=coresize,salt_type=coresalt,
                                 case=perlcase,salt_fraction=sf,
                                 initial_enrichment=0.01,num_nodes=nnodes,
-                                pitch=p,tempK=T,queue=queue, PPN=ppn)
+                                pitch=p,tempK=900.0,queue=queue, PPN=ppn)
         # change inputfile name
         inplist[i].SetInputFileName(name + str(int(testT[i])) + descripString)
 
@@ -275,6 +275,9 @@ def submitJob(day, inputfileslog,
         if geometry:
             inplist[i].includefiles.remove('MSRs2_geom.inp')
             inplist[i].includefiles.append('../MSRs2_geom{}K.inp'.format(testT[i]))
+            mod = inplist[i].getMat('mod')
+            mod.tempK = T + 50.0
+            mod.massdensity /= (1.0+(T-900.0))**3
 
         fuel = inplist[i]
         assert inplist[i].getMat('fuel').tempK == testT[i]

@@ -277,10 +277,8 @@ def submitJob(day, inputfileslog,
             inplist[i].includefiles.append('../MSRs2_geom{}K.inp'.format(testT[i]))
             mod = inplist[i].getMat('mod')
             mod.tempK = T + 50.0
-            mod.massdensity /= (1.0+(T-900.0))**3
-
-        fuel = inplist[i]
-        assert inplist[i].getMat('fuel').tempK == testT[i]
+            grCTE = 3.5e-6
+            mod.massdensity /= (1.0+grCTE*(T-900.0))**3
 
         if voiding:
             fuel = inplist[i].getMat("fuel")

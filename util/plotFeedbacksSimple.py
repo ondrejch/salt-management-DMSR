@@ -5,15 +5,12 @@
 #
 # mainly made for seeing if values are reasonable
 #
-#  TODO
-#  - calculate uncertainties in each coefficient
-#  - include data point that is nominal reactivity (doing so drives uncertainty down)
-#  - make plot look good
 
 import sys
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+from scipy.optimize import curve_fit
 
 def xnor(bool1, bool2):
     """ return true if values match"""
@@ -24,20 +21,21 @@ def xnor(bool1, bool2):
     else:
         return False
 
-def getSlope(xdata, ydata):
+def linear(x, m, b):
+    return m*x + b
+
+def getSlope(xdata, ydata, sig):
     """ returns slope in least-square sense
     """
     xdata = map(float, xdata)
     ydata = map(float, ydata)
-    xmean = sum(xdata) / float(len(xdata))
-    ymean = sum(ydata) / float(len(ydata))
-    num = 0.0
-    den = 0.0
-    for x, y in zip(xdata, ydata):
-        num += (x-xmean)*(y-ymean)
-        den += (x-xmean)**2
 
-    return num / den
+    if len(xdata) < 2 or len(ydata) < 2:
+        return None, None
+
+    popt, pcov = curve_fit(linear, xdata, ydata, sigma=sig, absolute_sigma=True)
+
+    return popt[0], pcov[0,0]
 
 
 class TemperaturePoint(object):
@@ -66,6 +64,11 @@ class Daypoint(object):
 
         # graphite heating timescale
         self.long = None
+
+        # uncertainty in each coefficient
+        self.dshort = None
+        self.dmedium = None
+        self.dlong = None
 
         # reactivity at nominal temperature
         self.baserho = None
@@ -96,7 +99,7 @@ class Daypoint(object):
             print(drholist )
             print(templist )
 
-            raise Exception("Data didn't look like expected (len 3)")
+            #raise Exception("Data didn't look like expected (len 3)")
 
         return rholist, drholist, templist
 
@@ -106,15 +109,15 @@ class Daypoint(object):
         """
         # compute short timescale point
         rholist, drholist, templist = self.getReactiState(False, True, False)
-        self.short = getSlope(templist, rholist)
+        self.short, self.dshort = getSlope(templist, rholist, drholist)
 
         # mid timescale
         rholist, drholist, templist = self.getReactiState(False, True, True)
-        self.medium = getSlope(templist, rholist)
+        self.medium, self.dmedium = getSlope(templist, rholist, drholist)
 
         # long timescale
         rholist, drholist, templist = self.getReactiState(True, True, True)
-        self.long = getSlope(templist, rholist)
+        self.long, self.dlong = getSlope(templist, rholist, drholist)
 
     #def __str__(self):
     #    response = ("Feedback data object with data:\n\n"
@@ -165,18 +168,39 @@ if __name__=='__main__':
         datalist[day].temppoints.append( TemperaturePoint(temp, rho, rhosigma, isdopp, isgeom, isvoid) )
        
     # now compute feedbacks in a dumb way
-    [me.calcFeedbacks() for me in datalist.values()]
+    [me.calcFeedbacks() for me in datalist.values() ]
+
+    # count how many had their feedbacks calculated (suff. data must be present,
+    # and sometimes the simulation stops early)
+    invcount = 0
+    for me in datalist.values():
+        if me.short == None:
+            me.invalid = True
+            invcount += 1
+        else:
+            me.invalid = False
 
     # finally, collect everything
-    finaldata = np.zeros((len(datalist.keys()), 4))
+    finaldata = np.zeros((len(datalist.keys())-invcount, 7))
 
-    for i,day in enumerate(datalist.keys()):
-        finaldata[i, 0] = day
-        finaldata[i, 1] = datalist[day].short * 1e5
-        finaldata[i, 2] = datalist[day].medium * 1e5
-        finaldata[i, 3] = datalist[day].long * 1e5
+    i = 0
+    for day in datalist.keys():
+        if not datalist[day].invalid:
+            finaldata[i, 0] = day
+            finaldata[i, 1] = datalist[day].short * 1e5
+            finaldata[i, 2] = datalist[day].medium * 1e5
+            finaldata[i, 3] = datalist[day].long * 1e5
+            finaldata[i, 4] = datalist[day].dshort * 1e5
+            finaldata[i, 5] = datalist[day].dmedium* 1e5
+            finaldata[i, 6] = datalist[day].dlong * 1e5
+            i+=1
 
-    plt.plot(finaldata[:,0], finaldata[:,1], 'bs')
-    plt.plot(finaldata[:,0], finaldata[:,2], 'gs')
-    plt.plot(finaldata[:,0], finaldata[:,3], 'rs')
-    plt.show()
+    finaldata = np.sort(finaldata, axis=0)
+
+    header = 'day,    alpha_dopp, alpha_doppvoid, alpha_doppvoidgraph, then respective uncertainties'
+    np.savetxt('feedBacks.dat', finaldata, fmt='%.7e', header=header)
+
+    # plt.plot(finaldata[:,0], finaldata[:,1], 'bs')
+    # plt.plot(finaldata[:,0], finaldata[:,2], 'gs')
+    # plt.plot(finaldata[:,0], finaldata[:,3], 'rs')
+    # plt.show()

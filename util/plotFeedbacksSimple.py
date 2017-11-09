@@ -27,8 +27,9 @@ def linear(x, m, b):
 def getSlope(xdata, ydata, sig):
     """ returns slope in least-square sense
     """
-    xdata = map(float, xdata)
-    ydata = map(float, ydata)
+    # make it py 3 proof:
+    xdata = list(map(float, xdata))
+    ydata = list(map(float, ydata))
 
     if len(xdata) < 2 or len(ydata) < 2:
         return None, None

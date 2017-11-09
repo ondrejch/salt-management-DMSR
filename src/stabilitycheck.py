@@ -32,6 +32,8 @@ def getKeffSigma(filename):
     # return ABS_KEFF since it usually seems to have the lower
     # uncertainty
     keff, sigma = res['ABS_KEFF'][0]
+
+    # sigma DEFINITELY is not fractional.
     return keff, sigma
 
 

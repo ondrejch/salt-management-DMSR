@@ -2040,7 +2040,7 @@ if [[ -e {6} ]] ; then rm -f {6} ; fi
 {4}
 sleep 1
 grep ABS_KEFF {5} > {6}
-        """.format(self.queue, self.num_nodes, self.PPN, pmemtext, runtext, results_file, done_file)
+        """.format(self.queue, int(self.num_nodes), int(self.PPN), pmemtext, runtext, results_file, done_file)
         with open(directory+'/'+'{0}.sh'.format(self.inputfilename), 'w') as qsubfilehandle:
             qsubfilehandle.write(qsubtext)
         os.chmod(directory+'/'+'{0}.sh'.format(self.inputfilename), 0o750) # make script executable
@@ -2083,7 +2083,7 @@ grep ABS_KEFF {5} > {6}
             print("**-> ",mat.materialname, mat.tempK)
             #THIS IS A TEMPORARY FIX FOR SERPENT'S TMP POINTER ERROR
             #NOTE
-            if self.BurnTime != []:
+            if True: #self.BurnTime != []:
                 mat.tmp_or_tms='' #empty string
                 mat.tempK=''
 
@@ -2116,7 +2116,9 @@ grep ABS_KEFF {5} > {6}
                 #change temperature library as needed. the XS lib can only broaden,
                 # not narrow if temperature is made more cold. so basically if a 900K
                 # material is cooled, you have go to *.06c, which will work with TMP
-                if mat.xstemplib=='.09c' and mat.tempK < 900.0:
+                if mat.tempK=='':
+                    mat.tempK = 900
+                if mat.xstemplib=='.09c' and float(mat.tempK) < 900.0:
                     mat.xstemplib='.06c'
                 if mat.tempK < 600.0 and mat.tempK is not None:
                     print("have Gavin fix the code here if you want materials less than 600 kelvin")

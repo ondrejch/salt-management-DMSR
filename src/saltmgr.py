@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Main script for salt-management-DMSR.
 
 import argparse
@@ -39,13 +39,13 @@ if outdir in os.listdir('.'):
     print('Would you like to delete the old output directory, {}?'.format(outdir))
     response = ''
     while response not in ['y','Y','n','N']:
-        response=raw_input('y/n \n')
+        response=input('y/n \n')
     if response in ['N','n']:
         print("Bye.")
         quit()
     elif response in ['y','Y']:
         print('For real though? press enter to continue, ctrl-C to exit.')
-        raw_input()
+        input()
         print('Deleting old output directory')
     else:
         raise Exception('I SAID Y OR N, HOW DID YOU BREAK THIS')
@@ -122,7 +122,7 @@ for mat in myCore.materials:
     try:
         mat.converToAtomDens()
     except:
-        print mat
+        print(mat)
         mat.converToAtomDens() # have it throw the error again, but more output
 
 
@@ -274,7 +274,7 @@ if optdict['critSearch']:
         reacs.append( (critSKeff-1.0) / critSKeff)
 
     # vary fuel enrichment until k is found within correct bounds.
-    test2.num_nodes = myCore.num_nodes # back to normal amount
+    test2.num_nodes = copy.deepcopy(myCore.num_nodes) # back to normal amount
     lowRho = (optdict['keffbounds'][0] - 1.0) / optdict['keffbounds'][0]
     highRho= (optdict['keffbounds'][1] - 1.0) / optdict['keffbounds'][1]
     while not ( lowRho + dRho < reacs[-1] < highRho + dRho ):
@@ -308,7 +308,7 @@ if optdict['critSearch']:
         print('enrichments: {}'.format(enrichments))
         print('reactivities: {}'.format(reacs))
 
-	i += 1
+        i += 1
 
     # set core to correct init enrichment
     myCore.setFuelEnrichment(enrichments[-1])

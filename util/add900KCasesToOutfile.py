@@ -34,7 +34,14 @@ def appendReactivities(inputfileslog, appendfile):
         with open(f) as fh:
             core = pickle.load(fh)
 
-        day = float([s for s in f if s.isdigit()])
+        try:
+            day = float(''.join([s for s in f if s.isdigit()]))
+        except:
+            print('couldnt convert day this to float:')
+            print(f)
+            print(ls)
+            raise Exception('^^')
+
         keff = core.kefflist[0]
         dkeff = core.keffsigmalist[0]
         rho = (keff-1.0)/keff
@@ -43,12 +50,12 @@ def appendReactivities(inputfileslog, appendfile):
         drhos.append(drho)
         days.append(day)
 
-    with open(appendfile, 'a') as fh:
+    with open(abspath, 'a') as fh:
 
         # write out the 900 K values to the file
         # for all three feedback cases, since this is
         # the nominal state
         for day, rho, drho in zip(days, rhos, drhos):
-            fh.write("  ".join([str(day), str(rho), str(drho), '900.0', '1' ,'0', '0']))
-            fh.write("  ".join([str(day), str(rho), str(drho), '900.0', '1' ,'0', '1']))
-            fh.write("  ".join([str(day), str(rho), str(drho), '900.0', '1' ,'1', '1']))
+            fh.write("  ".join([str(day), str(rho), str(drho), '900.0', '1' ,'0', '0'])+'\n')
+            fh.write("  ".join([str(day), str(rho), str(drho), '900.0', '1' ,'0', '1'])+'\n')
+            fh.write("  ".join([str(day), str(rho), str(drho), '900.0', '1' ,'1', '1'])+'\n')

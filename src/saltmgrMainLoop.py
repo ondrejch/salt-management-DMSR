@@ -528,7 +528,7 @@ def mainLoop(optdict, myCore,runDatObj):
                 x,y = runDatObj.attempted_refuel_rates, runDatObj.refueltestrhos
                 myfit.fitcurve(x,y, sigmas=runDatObj.refuel_sigmas , printparams=True)
             except Exception as error:
-                print error
+                print(error)
                 print("Curve fit appears to have failed. This usually happens if not enough data was")
                 print("collected. Now randomly samplying a new guess.")
                 runDatObj.refuelrate = np.random.random_sample(1)[0] * runDatObj.initialguessrefuelrate

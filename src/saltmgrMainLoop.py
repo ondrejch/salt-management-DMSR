@@ -646,7 +646,7 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # now, write out a copy of the current myCore object to the output directory.
         # allows easy sorting of data!
-        with open(runDatObj.outdir+'/inputday{}.dat'.format(int(runDatObj.burnttime)),'w') as out:
+        with open(runDatObj.outdir+'/inputday{}.dat'.format(int(runDatObj.burnttime)),'wb') as out:
             pickle.dump(myCore, out)
 
         # increment burnt time now that it's all saved, and continue.

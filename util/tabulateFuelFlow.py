@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # plots flow rate of fuel vs. time, and its integral
 # command line args:
 #

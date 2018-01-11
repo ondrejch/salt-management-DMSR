@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #This script automatically plots several interesting characteristics of a burnt input file.
 # Plotting output includes fluorine excess over time, delayed neutron fraction over time,
@@ -15,13 +15,6 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 import scipy.ndimage.filters as fil
 
-
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':24})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
-rc('text', usetex=True)
-dpi = 96.
-
 parser = argparse.ArgumentParser(description='plot some key results of refuelmsr.py')
 parser.add_argument('inputfileslog', metavar='f', type=str, nargs='+', help='name of directory containing pickle data for input files')
 parser.add_argument('--gauss', dest='gauss', action='store_true')
@@ -36,16 +29,16 @@ originaldir=os.getcwd()
 #assuming integer values
 #also, data is grabbed from the files
 #---------------------------
-fig = plt.figure( figsize = (1272. / dpi, 1342. / dpi) )
+fig = plt.figure(figsize=(8,5), dpi=96)
 ax=fig.add_subplot(111)
 
-fig2 = plt.figure(figsize = (1272. / dpi, 1342. / dpi))
+fig2 = plt.figure(figsize=(8,5), dpi=96)
 ax2 = fig2.add_subplot(111)
 
-fig3= plt.figure(figsize = (1272. / dpi, 1342. / dpi) )
+fig3= plt.figure(figsize=(8,5), dpi=96)
 ax3=fig3.add_subplot(111)
 
-fig4=plt.figure(figsize = (1272. / dpi, 1342. / dpi))
+fig4=plt.figure(figsize=(8,5), dpi=96)
 ax4=fig4.add_subplot(111)
 
 ax3.set_title("Conversion ratio over time")
@@ -62,7 +55,7 @@ ax2.set_ylabel("Excess F creation rate (mol/day)")
 
 
 for logfilename in logfiles:
-    if 'flibe' in logfilename:
+    if 'flibe' in logfilename or 'Flibe' in logfilename:
         salt='flibe'
     elif 'nafkf' in logfilename:
         salt='nafkf'
@@ -88,7 +81,7 @@ for logfilename in logfiles:
     betaEffs=[]
     betaEffsUncer = []
     for dayval in days:
-        fh=open("inputday{0}.dat".format(dayval), 'r')
+        fh=open("inputday{0}.dat".format(dayval), 'rb')
         p=pickle.load(fh)
         fuel = p.getMat('fuel')
         excess_F_moles_upper.append( fuel.CalcExcessFluorine(printfexcess=False) )
@@ -123,14 +116,14 @@ for logfilename in logfiles:
         ax.annotate("absorber addition period", xy=item, xytext=textlocs[i], arrowprops=dict(facecolor='black', shrink=0.05))
 
     #Plot of fluorine excess time rate vs. time
-    print "warning. assuming that all increments in time are 7 days."
+    print("warning. assuming that all increments in time are 7 days.")
     line4= ax2.plot(days[1:], np.diff(excess_F_moles_upper)/7.)
     ax2.set_ylim([0,3])
 
     #Conversion ratio plot
     ax3.plot(days, convratios)
-    print "conv ratio avg for {}:".format(salt)
-    print float(sum(convratios)) /  float(len(convratios))
+    print("conv ratio avg for {}:".format(salt))
+    print(float(sum(convratios)) /  float(len(convratios)))
 
     #delayed neutron fraction plot
     betaEffs = np.array(betaEffs)
@@ -147,7 +140,7 @@ for logfilename in logfiles:
     for item in np.diff(excess_F_moles_lower):
         prntstr.append(str(item))
         prntstr.append( ',')
-    print ''.join(prntstr)
+    print(''.join(prntstr))
 
     #now go back to the original location
     os.chdir(originaldir)

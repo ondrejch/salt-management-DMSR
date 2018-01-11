@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Extracts relative fraction of major actinide isotopes
 # Ondrej Chvala, ochvala@utk.edu
 

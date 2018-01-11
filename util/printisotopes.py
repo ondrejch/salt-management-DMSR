@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/python3
 #prints out lots of useful data from a run to a text file. it is in CSV format, very easy to analyze in R.
 #simply pass two arguments positionally:
 #the input file log directory, and then the material whose composition you want to print to text
@@ -23,7 +23,7 @@ args=parser.parse_args()
 searchdirectory=args.directory[0]
 materialname=args.materialname[0]
 
-print "Grabbing isotopics from {0}.".format(searchdirectory)
+print("Grabbing isotopics from {0}.".format(searchdirectory))
 
 
 os.chdir(searchdirectory) #access folder with binary SerpentInputFile data
@@ -38,7 +38,7 @@ for file in ls:
     day=int(numstring)
     days.append(day)
 days.sort() #put em in order
-print "There are {0} depletion steps found.".format(len(days))
+print("There are {0} depletion steps found.".format(len(days)))
 
 
 

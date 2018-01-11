@@ -228,7 +228,7 @@ if optdict['critSearch']:
     test2 = copy.deepcopy(myCore)
 
     # split up node number for crit search
-    nNodes = int(myCore.num_nodes) / 2 #intentional int divis.
+    nNodes = 5 # int(myCore.num_nodes) / 2 #intentional int divis.
     if nNodes == 0:
         nNodes = 1
 
@@ -338,11 +338,11 @@ while myRunData.burnttime < optdict['maxBurnTime']:
     mainLoop(optdict, myCore, myRunData)
 
     # increment max iteration
-    if myRunData.iternum > optdict['maxIter']:
+    if int(myRunData.iternum) > int(optdict['maxIter']):
         raise Exception('hit max iterations at {}'.format(optdict['maxIter']))
 
     #overwrite new runData object
-    with open('runData.dat', 'w') as fh:
+    with open('runData.dat', 'wb') as fh:
         pickle.dump(myRunData, fh)
 
 endtime = time.asctime()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # This script will allow you to resume a saltmgr script. It looks for the
 # directory called "inputfileslog", finds the most depleted core, and resumes
 # the burn from that. You should still pass in an input file for this one,
@@ -69,7 +69,7 @@ for fname in flist:
 inputFilesLogDayList.sort()
 
 # load in the old runData object
-fh = open('../runData.dat')
+fh = open('../runData.dat', 'rb')
 from runDataClass import runData # run data object definition
 myRunData = pickle.load(fh)
 fh.close()
@@ -77,7 +77,7 @@ fh.close()
 
 myRunData.burnttime = inputFilesLogDayList[-1]
 # load in old input
-fh = open('inputday{}.dat'.format(myRunData.burnttime) )
+fh = open('inputday{}.dat'.format(myRunData.burnttime),'rb')
 myCore = pickle.load(fh )
 fh.close()
 os.chdir('..')
@@ -118,11 +118,11 @@ while myRunData.burnttime < optdict['maxBurnTime']:
     mainLoop(optdict, myCore,myRunData)
 
     # increment max iteration
-    if myRunData.iternum > optdict['maxIter']:
+    if int(myRunData.iternum) > int(optdict['maxIter']):
         raise Exception('hit max iterations at {}'.format(optdict['maxIter']))
 
     # overwrite the new runData object
-    with open('runData.dat', 'w') as fh:
+    with open('runData.dat', 'wb') as fh:
         pickle.dump(myRunData, fh)
 
 endtime = time.asctime()

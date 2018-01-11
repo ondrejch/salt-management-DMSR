@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import RefuelCore # main
 import runDataClass # class that holds intermediate run data; used for resuming
 import os
@@ -32,11 +32,11 @@ rundat.downRhotestRhos=np.array(rundat.downRhotestRhos)
 rundat.refuel_sigmas = np.array(rundat.refuel_sigmas)
 rundat.downRho_sigmas = np.array(rundat.downRho_sigmas)
 
-# print stuff
-print rundat.attempted_refuel_rates
-print rundat.refueltestrhos
-print rundat.attempted_downRhoRates
-print rundat.downRhotestRhos
+# prin((stuff))
+print(rundat.attempted_refuel_rates)
+print(rundat.refueltestrhos)
+print(rundat.attempted_downRhoRates)
+print(rundat.downRhotestRhos)
 
 # fit to the given refuelrates
 Reffit.fitcurve( rundat.attempted_refuel_rates, 

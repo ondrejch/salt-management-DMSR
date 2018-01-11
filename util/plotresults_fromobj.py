@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Plots the different addition rates of fuel, burnable absorber, reducing agent, and
 # This version of plotresults.py looks at a logfile. another version, plotresults.py
 # will do the same task, but using data from objects.
@@ -30,7 +30,7 @@ u238mass=getIsoMass('92238')
 
 #---plotting settings---
 #use latex markup
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':20})
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'], 'size':16})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
@@ -44,27 +44,32 @@ for d in inputdirs:
         lgnd.append('NaFKF')
 
 #construct plots with titles
-fig, (ax1, ax2, ax3 )=plt.subplots(3, sharex=True, figsize = (1272./dpi,1342./dpi) )
+fig, (ax1, ax2 )=plt.subplots(2, sharex=True, figsize = (8,5), dpi=96 )
 ax1.set_title("$k_{eff}$ vs. time")
-ax1.set_ylim([.99, 1.01])
-ax3.set_title("Addition of GdF$_3$ burnable absorber")
+#ax1.set_ylim([.99, 1.04])
+# ax3.set_title("Addition of GdF$_3$ burnable absorber")
 ax2.set_title("Refuel rate vs. time")
 ax1.set_ylabel('$k_{eff}$')
 ax2.set_ylabel('Refuel rate ($\\frac{kg}{day}$)')
-ax3.set_ylabel('Addition rate ($\\frac{kg}{day}$)')
-ax3.set_xlabel('Time (days)')
+# ax3.set_ylabel('Addition rate ($\\frac{kg}{day}$)')
+ax2.set_xlabel('EFPD')
 
-fig2, ax4 = plt.subplots(1, figsize =(1272./dpi,1342./dpi) )
+fig2, ax4 = plt.subplots(1, figsize =(8,5), dpi=96 )
 ax4.set_title('In-core enrichment vs. time')
-ax4.set_xlabel('Time (days)')
+ax4.set_xlabel('EFPD')
 ax4.set_ylabel('Enrichment')
+
+fig3, ax5 = plt.subplots(1, figsize=(8,5), dpi=96)
+ax5.set_title('Eigenvalue uncertainty vs. time')
+ax5.set_xlabel('EFPD')
+ax5.set_ylabel('Eigenvalue uncertainty (pcm)')
 
 
 for logfilename in inputdirs:
     #loop through all the input file logs
 
     #density is used in some of these calculations
-    if 'flibe' in logfilename:
+    if 'flibe' in logfilename or 'Flibe' in logfilename:
         density=flibedensity
     elif 'nafkf' in logfilename:
         density=nafkfdensity
@@ -86,6 +91,7 @@ for logfilename in inputdirs:
 
     #now we want to grab fluorine excess calculations for each step
     kefflist=[]
+    sigmalist = []
     daylist=days
     enrichments=[]
     # --- these are all mass flows: ---
@@ -96,9 +102,12 @@ for logfilename in inputdirs:
     u238rates=[]
 
     for dayval in days:
-        fh=open("inputday{0}.dat".format(dayval), 'r')
+        fh=open("inputday{0}.dat".format(dayval), 'rb')
         p=pickle.load(fh)
         kefflist.append(p.kefflist[-1])
+
+        # uncertainty in pcm, use error propagation
+        sigmalist.append(p.keffSigma / p.kefflist[-1]**2 *1e5)
 
 
         if float(dayval)==0.0:
@@ -166,39 +175,42 @@ for logfilename in inputdirs:
 
     ax1.plot(daylist, kefflist)
     ax2.plot(daylist, refuelrates, label='')
+    ax5.plot(daylist, sigmalist)
     try:
-        ax3.plot(daylist, absorberrates, label='')
+        pass
+        # ax3.plot(daylist, absorberrates, label='')
     except:
         pass
     ax4.plot(daylist, enrichments)
 
     #total 20% enriched fuel added
-    print "total material utilization results for core in:"
-    print logfilename
-    print "-----------------------------------------------"
-    print "Core startup salt load mass:"
-    print startupmass
-    print "U235 startup mass (kg):"
-    print startupuranium235
-    print "U238 startup mass (kg):"
-    print startupuranium238
-    print "Total mass of 20\% enriched fuel:"
-    print np.trapz(refuelrates, x=daylist)
-    print "Total GdF3 used:"
-    print np.trapz(absorberrates, x=daylist)
-    print "Total depleted uranium used:"
-    print np.trapz(Umetalrates, x=daylist)
-    print "Total mass U235 added (kg):"
-    print np.trapz(u235rates, x=daylist)
-    print "Total mass U238 added:"
-    print np.trapz(u238rates, x=daylist)
-    print "------------------------------------------------\n\n\n"
+    print("total material utilization results for core in:")
+    print(logfilename)
+    print("-----------------------------------------------")
+    print("Core startup salt load mass:")
+    print(startupmass)
+    print("U235 startup mass (kg):")
+    print(startupuranium235)
+    print("U238 startup mass (kg):")
+    print(startupuranium238)
+    print("Total mass of 20\% enriched fuel:")
+    print(np.trapz(refuelrates, x=daylist))
+    print("Total GdF3 used:")
+    print(np.trapz(absorberrates, x=daylist))
+    print("Total depleted uranium used:")
+    print(np.trapz(Umetalrates, x=daylist))
+    print("Total mass U235 added (kg):")
+    print(np.trapz(u235rates, x=daylist))
+    print("Total mass U238 added:")
+    print(np.trapz(u238rates, x=daylist))
+    print("------------------------------------------------\n\n\n")
 
     #backing up
     os.chdir(originaldir)
 
 
-ax1.legend(lgnd, prop={'size':18}, loc=0)
-ax4.legend(lgnd, prop={'size':18}, loc=0)
+# ax1.legend(lgnd, prop={'size':18}, loc=0)
+# ax4.legend(lgnd, prop={'size':18}, loc=0)
 fig.savefig('flows.png')
 fig2.savefig('enrich.png')
+fig3.savefig('uncertaintyDeplete.png')

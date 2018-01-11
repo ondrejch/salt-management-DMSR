@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
-# yeah, has to be pyth 2 bc pickles
+# Some old data was written to python 2 pickles, which are incompatible with python3.
+# Change the shebang accordingly.
 #
 # example dir:
 # /home/gridley/saltmgrData/paperReactors/flibe/inputfileslog

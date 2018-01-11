@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Plots results from stabilitycheck.py in a dumb way. IE, this is a scatter plot.
 # The plan for the final plots to go in the paper would include shaded regions that
 # fade off to zero.

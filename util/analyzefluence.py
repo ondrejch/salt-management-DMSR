@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Visualizes the damage flux in the most intense part of the core.
 # Additionally, the liftime fluence is estimated by taking a the
@@ -33,7 +33,7 @@ for file in ls:
     day=int(numstring)
     days.append(day)
 days.sort() #put em in order
-print len(days)
+print(len(days))
 
 
 #list with flux values at center of core, over 50 keV
@@ -54,7 +54,7 @@ for dayval in days:
 #plt.ylabel("Flux (cm ^-2 s^-1)")
 #plt.show()
 
-print "Average flux in the center of the core is:"
-print np.mean(maximum_dam_flux)
-print "Fluence over the ten year period is:"
-print np.mean(maximum_dam_flux) * 10*365.25*24*3600
+print("Average flux in the center of the core is:")
+print(np.mean(maximum_dam_flux))
+print("Fluence over the ten year period is:")
+print(np.mean(maximum_dam_flux) * 10*365.25*24*3600)

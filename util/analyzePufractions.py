@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Plutonium solubility limit checker
 #
 # Plutonium, or trifluorides in general, are relatively insoluble in a molten salt.
@@ -41,7 +41,7 @@ for d in inputdirs:
         lgnd.append('NaFKF XF$_3$')
 lgnd.append('Trifluoride solubility limit')
 
-fig, ax1 = plt.subplots(1)
+fig, ax1 = plt.subplots(1, figsize=(8,5), dpi=96)
 ax1.set_title('Trifluoride atom fraction over time')
 ax1.set_ylabel('Atom fraction')
 ax1.set_xlabel('Time (days)')
@@ -74,7 +74,7 @@ for logfilename in inputdirs:
     
 
     for dayval in days:
-        fh=open("inputday{0}.dat".format(dayval), 'r')
+        fh=open("inputday{0}.dat".format(dayval), 'rb')
         p=pickle.load(fh)
 
         #grab a z to charge map if we don't have one yet
@@ -105,13 +105,13 @@ for logfilename in inputdirs:
     ax1.semilogy(days, trifluoride_frac)
     os.chdir(originaldir)
 # now finally, show the trifluoride solubility limit on the plot
-print "warning, assuming temperature of salt to be 900 K."
+print("warning, assuming temperature of salt to be 900 K.")
 T=565.0+273.15
 max_XF3_frac = 10.0**( 3.01+.06 - 2460.0/T) /100.0
-print "max trifluoride solubility is:"
-print "{}%".format(max_XF3_frac)
+print("max trifluoride solubility is:")
+print("{}%".format(max_XF3_frac))
 ax1.semilogy([0.0,max(days)], [max_XF3_frac, max_XF3_frac])  
-plt.legend(lgnd, loc='best')
+plt.legend(['Trifluoride conc.', 'limit'], loc='best')
 
 plt.savefig("trifluorides.png")
-plt.show()
+# plt.show()

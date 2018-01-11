@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # clears any intermediate variables used in solving for refuel or absorber rate.
 # this can be used if the solver is getting stuck at some time step, usually as a result of some
 # failed then misread test case.

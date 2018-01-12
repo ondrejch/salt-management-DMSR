@@ -14,12 +14,12 @@ set PPN 8
 set queue gen5
 set num_nodes 10
 set dayStepping uniform 7
-set power 400e6
+set power 400e6 # W(th)
 set maxBurnTime 10 years
 set inputFileName basicDMSR
-set numTestCases 5
+set numTestCases 5 # test to determine reactivity vs refuel rate curve
 
-# some refuel settings
+# some refuel settings         v "all" specifies all nuclides move
 reactivityRiseFlow refuel fuel all
 reactivityDropFlow absorber fuel all
 
@@ -28,14 +28,14 @@ set volumeTreatment fuel bucket
 
 # refuel iteration setting
 mainPop 10000 500 100
-iterPop 6000  500 100
+iterPop 6000  500 100 # this is what may make our calculation uniquely faster.
 
 # salt management commands
 maintain excessFluoride in fuel via Umetal at 0.0
 
 # as an example, maintaining thorium concentration looks like this:
 # keep Th concentration at .07 a/cmb
-# maintain conc in fuel via Thmetal on 90232 at 0.07
+maintain conc in fuel via Thmetal on 90232 at 0.07
 
 # offgasing
 #           elements      ratio (s^-1)   flow type     from_mat    to_mat

@@ -28,7 +28,7 @@ def mainLoop(optdict, myCore,runDatObj):
     for nuc,num,flowt,mat1,mat2 in optdict['constflows']:
 
         if flowt == 0: #flow type = 0
-            raise Exception("Jaakko says: 'No type 0 flows!'")
+            raise Exception("Jaakko's instruction: 'No type 0 flows!'")
 
         elif flowt == 1:
             myCore.AddFlow(mat1, mat2, nuc, num, 1)
@@ -166,7 +166,6 @@ def mainLoop(optdict, myCore,runDatObj):
     
     # first, set the fuel addition.
     myCore.SetConstantVolumeFlow(optdict['upRhoFrom'], optdict['upRhoTo'],runDatObj.refuelrate)
-
     myCore.SetConstantVolumeFlow(optdict['downRhoFrom'], optdict['downRhoTo'], runDatObj.downRhoRate)
 
     # now, loop through all constant flows, and give each proper outflow /
@@ -210,68 +209,6 @@ def mainLoop(optdict, myCore,runDatObj):
                 # double check inflows/outflows
                 netFlow = myCore.getVolFlowInto(mat) - myCore.getVolFlowOutOf(mat)
 
-                #if abs(netFlow) > 1e-9: #arbitrary, small tolerance
-
-                #    print "net flow of {} ccm/s into {}".format(netFlow,mat1)
-                #    print "trying to tweak flow using secant method to get it right"
-
-                #    flowTries = [] #attempted outflow numbers
-                #    nFs = [netFlow]
-
-                #    # see what happens, if using the new flow.
-                #    for i,(mat1a, mat2a, numa) in enumerate(myCore.volumetricflows):
-                #        if mat1==mat1a and mat2a=='{}ExcessTank'.format(mat1a):
-                #            flowTries.append(numa)
-                #            delindex = i
-                #            break
-
-                #    del myCore.volumetricflows[delindex]
-
-                #    myCore.volumetricflows.append( (mat1,"{}ExcessTank".format(mat1),
-                #                                   flowTries[-1] * 1.1) )
-                #    flowTries.append(flowTries[-1] * 1.1)
-
-                #    # calc new netflow
-                #    newFlow = myCore.getVolFlowInto(mat) - myCore.getVolFlowOutOf(mat)
-
-                #    # record
-                #    nFs.append(newFlow)
-
-                #    iterCount = 0
-                #    while iterCount < 100 and abs(newFlow) > 1e-9:
-
-                #        try:
-                #            newNum = ((flowTries[-2]*nFs[-1] - flowTries[-1]*nFs[-2])/
-                #                                  (nFs[-1] - nFs[-2]))
-                #        except:
-                #            print flowTries
-                #            print nFs
-                #            raise Exception("possible div by zero, dumping")
-
-                #        flowTries.append(newNum)
-
-                #        for i,(mat1a, mat2a, numa) in enumerate(myCore.volumetricflows):
-                #            if mat1==mat1a and mat2a=='{}ExcessTank'.format(mat1a):
-                #                delindex = i
-                #                break
-
-                #        del myCore.volumetricflows[delindex]
-
-                #        myCore.volumetricflows.append( (mat1,"{}ExcessTank".format(mat1),
-                #                                   flowTries[-1] ) )
-
-                #        newFlow = myCore.getVolFlowInto(mat)-myCore.getVolFlowOutOf(mat)
-
-                #        nFs.append(newFlow)
-
-                #        iterCount += 1
-
-                #    if iterCount >= 100:
-                #        print "couldnt converge within 100 iterations"
-                #        print flowTries
-                #        print nFs
-                #        raise Exception("^^^")
-                #        
 
     # now that all flows are set:
     # --- RUN DAT INPUT FILE ---
@@ -419,13 +356,14 @@ def mainLoop(optdict, myCore,runDatObj):
 
         # time to make some fits to the data we get.
         # firstly, grab keff. this code is restructed from the original refuelmsr.py.
-        if runDatObj.downRhoRate != 0.0 and my_rho > 0:
+        if runDatObj.downRhoRate != 0.0: # and my_rho > 0:
 
             # iterate through new data
             for core in testinputfiles:
                 try:
                     keff, sigma = core.ReadKeff(returnrelerror=True)
                 except:
+                    # possible delay in filesystem write on cluster
                     time.sleep(3)
                     keff, sigma = core.ReadKeff(returnrelerror=True)
                 rho = (keff - 1.0) / keff
@@ -454,10 +392,7 @@ def mainLoop(optdict, myCore,runDatObj):
             #    return None
 
             # make a new guess to the absorber rate now
-            if runDatObj.iternum < 2:
-                runDatObj.downRhoRate = myfit.guessfunctionzero()
-            else:
-                runDatObj.downRhoRate = myfit.guessfunctionvalue(rhoerr)
+            runDatObj.downRhoRate = myfit.guessfunctionzero()
 
             print("DownRho rate = {}", format(runDatObj.downRhoRate))
 
@@ -475,6 +410,12 @@ def mainLoop(optdict, myCore,runDatObj):
             if runDatObj.downRhoRate > 0.5:
                 print('downrho rate too high, lowering\n')
                 runDatObj.downRhoRate = np.random.random_sample(1)[0]*0.005
+
+            elif runDatObj.downRhoRate < 0.0:
+
+               print('Switching to adding fresh fuel\n')
+               runDatObj.downRhoRate = 0.0
+               runDatObj.refuelrate = runDatObj.initialguessrefuelrate # reasonable, but could be better
 
             # sometimes, nothing at all should be added.
             # the curve fit method is bad at predicting this.
@@ -515,7 +456,6 @@ def mainLoop(optdict, myCore,runDatObj):
             # init fit object
             myfit=RefuelCore.RefuelorAbsorberFit(myCore, fittype="Refuel")
 
-            
             try:
                 # filter for only the ten reactivities closest to 0
                 #data = zip(runDatObj.attempted_refuel_rates, runDatObj.refueltestrhos)
@@ -535,18 +475,7 @@ def mainLoop(optdict, myCore,runDatObj):
                 return None # don't zero the curve, just collect more data.
 
             # zero the curve: ie zero reactivity
-            if runDatObj.iternum < 2:
-                runDatObj.refuelrate = myfit.guessfunctionzero()
-            else:
-                runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)
-
-            if runDatObj.iternum > 5 and rhoerr<0.0:
-                runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)*(runDatObj.iternum-3.0)/2.0
-            if runDatObj.iternum > 5 and rhoerr>0.0:
-                runDatObj.refuelrate = myfit.guessfunctionvalue(rhoerr)/(runDatObj.iternum-3.0)/2.0
-            if runDatObj.refuelrate < 0.0:
-                runDatObj.refuelrate = 0.0
-                runDatObj.haveTriedZero = True
+            runDatObj.refuelrate = myfit.guessfunctionzero()
 
             print("Refuel rate= {}", format(runDatObj.refuelrate))
 
@@ -580,15 +509,10 @@ def mainLoop(optdict, myCore,runDatObj):
             print("attempted refuel rates are: {0}\n".format(runDatObj.attempted_refuel_rates))
             print("resulting reactivities are: {0}\n".format(runDatObj.refueltestrhos))
 
-        else:
-
-            # you shouldnt refuel and try to lower rho at the same time.
-            raise Exception("tried to lower reactivity and refuel at the same time. very wrong. apologize!")
-
         # next, if a negative rho lowering flow is specified or a 
         # negative refuel rate, this means that reactivity should be moving in
         # the other direction. switch em up!
-        if runDatObj.refuelrate < 0.0 and runDatObj.haveTriedZero and my_rho < 0:
+        if runDatObj.refuelrate < 0.0 and runDatObj.haveTriedZero:
 
             print('Switching to adding burnable poison\n')
             runDatObj.refuelrate = 0.0

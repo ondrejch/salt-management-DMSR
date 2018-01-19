@@ -57,5 +57,6 @@ class runData(object):
         self.attempted_refuel_rates=[]
         self.downRho_sigmas=[]
         self.refuel_sigmas=[]
+        self.iternum = 0
 
         return None

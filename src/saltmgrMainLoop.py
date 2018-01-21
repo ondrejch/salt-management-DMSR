@@ -347,6 +347,12 @@ def mainLoop(optdict, myCore,runDatObj):
             testcore.WriteJob(directory='test{}'.format(i))
             subprocess.call(['echo "src myFS sf \\"fissSource.dat\\" 1" >> {}'.format(testcore.directory+'/'+
                              testcore.inputfilename)], shell=True)
+
+            # fission source can take some time to write to disk.
+            while "fissSource.dat" not in os.listdir('.'):
+                time.sleep(.1)
+
+            # let's-a-go!
             testcore.SubmitJob(mode = optdict['runsettings']['mode'] )
 
         # now wait for all files to finish if doing queuing

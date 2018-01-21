@@ -46,6 +46,8 @@ From Dr. Chvala. This writes an archetypal DMSR core with whatever parameters yo
 Gavin Ridley
 gavin.keith.ridley@gmail.com
 
+We have a slack channel, so if you want to use this, just ask to join.
+
 
 # an important note
 We have to leave all hydrogen and TMP/TMS treatment out of input files right now due to some dang pointer error. Be sure to see if this is fixed on each new serpent release!

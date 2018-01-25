@@ -284,7 +284,7 @@ def mainLoop(optdict, myCore,runDatObj):
         elif runDatObj.refuelrate == 0.0:
             refuelrates_to_try = np.random.random_sample(optdict['numTestCases']) * 0.8
 			
-        downRho_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.downRhoRate * 0.4
+        downRho_to_try = np.random.random_sample(optdict['numTestCases']) * runDatObj.downRhoRate * 2.0
 
         # next, make sure all the guessed flows are reasonable
 
@@ -548,11 +548,12 @@ def mainLoop(optdict, myCore,runDatObj):
             myCore.coastDown = False
 
         # clear all of the data used in calculating the new refuel rate
-        absorbertestrhos=[]
+        # 1HERE
+        runDatObj.downRhotestRhos = []
+        runDatObj.downRho_sigmas = []
+        runDatObj.attempted_downRhoRates = []
         runDatObj.refueltestrhos=[]
-        attempted_absorber_rates=[]
         runDatObj.attempted_refuel_rates=[]
-        absorber_sigmas=[]
         runDatObj.refuel_sigmas=[]
         runDatObj.iternum=0 #reset refuel rate solver iteration number
 

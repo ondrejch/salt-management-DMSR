@@ -757,7 +757,7 @@ class SerpentMaterial(object):
             self.materialname='GdF3' if materialname is None else materialname
             self.massdensity=7.1 #g/cm^3  http://www.chemicalbook.com/ChemicalProductProperty_US_CB1389061.aspx
             gdMolar = getmass.getIsoMass('64000')
-            self.atomdensity=self.massdensity / (gdMolar + 3* 18.998403 ) * 0.602214086 * 3 #atoms / cm-b. also note 3 atoms per ionic unit.
+            self.atomdensity=self.massdensity / (gdMolar + 3* 18.998403 ) * 0.602214086 #atoms / cm-b
 
             self.density=self.atomdensity
             if self.massdensity != 7.1:
@@ -841,7 +841,7 @@ class SerpentMaterial(object):
             massf19  =18.99840316273
             #density
             self.massdensity=6.3 #wikipedia for now
-            self.atomdensity=self.massdensity/(massth232+4*massf19)*0.6022*5.0 #5 atoms per mole
+            self.atomdensity=self.massdensity/(massth232+4*massf19)*0.6022
 
             # isotopics
             self.isotopic_content['90232']=.2

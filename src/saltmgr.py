@@ -228,7 +228,7 @@ if optdict['critSearch']:
     test2 = copy.deepcopy(myCore)
 
     # split up node number for crit search
-    nNodes = 5 # int(myCore.num_nodes) / 2 #intentional int divis.
+    nNodes = int(myCore.num_nodes) / 2 #intentional int divis.
     if nNodes == 0:
         nNodes = 1
 

@@ -31,7 +31,7 @@ def mix(mat1,mat2,frac1, matname = 'newmix'):
         if frac1==1.0 or frac1==0.0:
             raise Exception("Why mix these if there is a fraction of 1?")
         else:
-            print frac1
+            print(frac1)
             raise Exception("^^That^^ fraction doesn't make sense.")
     #hooray for lazy coding
     if mat1.atomdensity==None or mat2.atomdensity==None:
@@ -92,8 +92,8 @@ def mix(mat1,mat2,frac1, matname = 'newmix'):
         sum3+=v
     # some floating point sand allowance of 1e-9, but no more:
     if not (mat3.atomdensity-1e-9 < sum3 < mat3.atomdensity+1e-9):
-        print "final isotopic fraction summed to:"
-        print sum3
+        print("final isotopic fraction summed to:")
+        print(sum3)
         raise Exception("error in summation of final isotopic dict.")
 
     return mat3

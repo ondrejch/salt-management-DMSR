@@ -757,7 +757,7 @@ class SerpentMaterial(object):
             self.materialname='GdF3' if materialname is None else materialname
             self.massdensity=7.1 #g/cm^3  http://www.chemicalbook.com/ChemicalProductProperty_US_CB1389061.aspx
             gdMolar = getmass.getIsoMass('64000')
-            self.atomdensity=self.massdensity / (gdMolar + 3* 18.998403 ) * 0.602214086 #atoms / cm-b
+            self.atomdensity=self.massdensity / (gdMolar + 3* 18.998403 ) * 0.602214086 * 4.0#atoms / cm-b. also note 4 atoms per ionic unit.
 
             self.density=self.atomdensity
             if self.massdensity != 7.1:
@@ -801,7 +801,7 @@ class SerpentMaterial(object):
             #density
             # molar mixing to approximate density of the stuff
             self.massdensity=2.558*frac_naf+2.48*frac_kf #g/ccm
-            mmass=2.0*massf19+massk+massna
+            mmass=frac_naf*massf19+frac_kf*massf19+frac_kf*massk+frac_naf*massna #adjust mmass to weighted average mmass
             self.atomdensity=self.massdensity/mmass*0.602214086*4.0 #4 atoms per ionic unit (atoms/cmb)
 
         elif salt_type=='pureFLiBe':
@@ -828,7 +828,7 @@ class SerpentMaterial(object):
             # then densities:
             self.massdensity=1.94 #from wikipedia
             mmass=massli7*li7enrich*frac_lif+massli6*(1.0-li7enrich)*frac_lif+massbe9*frac_bef2+(2.0*frac_bef2+frac_lif)*massf19
-            self.atomdensity= self.massdensity/mmass*0.602214086 # (atoms/cmb)
+            self.atomdensity= self.massdensity/mmass*0.602214086*2.18 # 2.18 weighted average atoms/ion group (atoms/cmb)
 
         elif salt_type=='ThF4':
             # some sweet thorium fluoride. typically good as a 
@@ -841,7 +841,7 @@ class SerpentMaterial(object):
             massf19  =18.99840316273
             #density
             self.massdensity=6.3 #wikipedia for now
-            self.atomdensity=self.massdensity/(massth232+4*massf19)*0.6022
+            self.atomdensity=self.massdensity/(massth232+4*massf19)*0.6022*5.0 # 5 atoms / ion group
 
             # isotopics
             self.isotopic_content['90232']=.2

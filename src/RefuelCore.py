@@ -890,7 +890,7 @@ class SerpentMaterial(object):
             #let's just suppose that densities mix linearly with atom fraction
             conver=.602214086 #cm^2 per barn times atoms per mol
             self.massdensity=densitypuf3-(gamoles/summoles)*(densitypuf3-densitygaf3)
-            self.atomdensity=self.massdensity*summoles*conver #atoms / cmb
+            self.atomdensity=self.massdensity*summoles*conver*4.0 #atoms / cmb
             self.density=self.atomdensity #the thing getting printed to serpent
 
             #aaannndddd some isotopics

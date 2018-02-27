@@ -2,6 +2,7 @@
 # Splitting this into two files lets it be far more clear as to what
 # code is doing pertinent calculations, and what code is just parsing text.
 import os
+import ast
 
 def parseSaltMgrOptions(filename):
     """ Creates a dictionary called optdict that saltmgr
@@ -127,6 +128,17 @@ def parseSaltMgrOptions(filename):
                     if sline[2] == 'uniform':
 
                         optdict['daystep'] = int(sline[3])
+
+                    elif sline[2] == 'dictionary':
+
+                        # Make daystep based on piecewise dictionary.
+
+                        optdict['daystep'] = ast.literal_eval(sline[3])
+                        assert isinstance(optdict['daystep'],dict)
+                        assert all(isinstance(a,int) for a in optdict['daystep'].keys())
+                        assert all(isinstance(a,int) for a in optdict['daystep'].values())
+                        if -1 not in optdict['daystep'].keys():
+                            raise Exception("Please specify a default daystep using the key -1.")
 
                     else:
 

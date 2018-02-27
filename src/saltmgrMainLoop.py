@@ -11,6 +11,16 @@ import numpy as np
 import subprocess
 from parseInputSaltMgr import parseSaltMgrOptions
 
+def getNGE(item, thislist):
+    """ Grab next greatest item from thislist. """
+    nge = -1
+    for item2 in thislist:
+        if item < item2 and nge == -1:
+            nge = item2
+        elif item < item2 and nge > item2:
+            nge = item2
+    return nge
+
 def mainLoop(optdict, myCore,runDatObj):
 
 #    if 'haveTriedZero' not in dir(runDatObj):
@@ -36,6 +46,18 @@ def mainLoop(optdict, myCore,runDatObj):
         elif flowt ==2:
             myCore.AddFlow(mat1, mat2, nuc[0], num[0], 2)
             assert nuc[0] == 'all' #constant volume must mean all flow
+
+    # adjust daystep based on user input:
+    if isinstance(optdict['daystep'],dict):
+
+        # read logical conditions
+        daydict = optdict['daystep']
+
+        # get next greatest day from dict
+        nextgreatday = getNGE(arr, optdict['daystep'].keys())
+
+        myCore.daystep = optdict['daystep'][nextgreatday]
+        myCore.SetBurnTime(myCore.daystep)
 
     # ------------------------------------------
     # ---         Salt Maintenance           ---

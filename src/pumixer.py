@@ -20,10 +20,11 @@ def makePuSalt(afracTh, afracPu, afracGd):
     assert otherfrac > 0.0
     assert otherfrac < 1.0
 
-    yourmaterial = mixn( (flibe, otherfrac), (puf3, afracPu), (gdf3, afracGd),
-                         (thf4, afracTh) )
+    wgpusalt = mixn( (flibe, otherfrac), (puf3, afracPu), (gdf3, afracGd),
+                     (thf4, afracTh) )
+    wgpusalt.materialname = "FLiBeThWGPu"
 
-    return yourmaterial
+    return wgpusalt
 
 
 # test if not imported from somewhere

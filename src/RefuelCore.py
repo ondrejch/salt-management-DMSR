@@ -1047,6 +1047,8 @@ class SerpentMaterial(object):
         # get molar mass
         mmass = 0.0
 
+        self.normalizeIsotopics()
+
         #sum atomic weights over composition
         for iso in self.isotopic_content.keys():
             mmass += getmass.getIsoMass(iso) * self.isotopic_content[iso]
@@ -1055,7 +1057,7 @@ class SerpentMaterial(object):
             mmass /= self.atomdensity #normalize
         mdens = self.atomdensity /  .602214086 * mmass
 
-        if not (1.5 < mdens < 10.0):
+        if not (1.5 < mdens < 30.0):
             print("found unreasonable salt density")
             print("some specs of the materials:")
             print("temp: {}".format(self.tempK))
@@ -1066,6 +1068,8 @@ class SerpentMaterial(object):
             print(self.isotopic_content)
             print(sum(self.isotopic_content.values()))
             raise Exception(" ^^^^^ ")
+
+        self.massdensity = mdens
         return mdens
 
     def converToAtomDens(self):

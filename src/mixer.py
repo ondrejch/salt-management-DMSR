@@ -126,7 +126,7 @@ def mix(mat1,mat2,frac1, matname = 'newmix'):
     isokeys3=list(isokeys3)
 
     #now make that final isotopic dictionary!
-    mat3.isotopic_content=dict.fromkeys(isokeys3, value=0.0) #init
+    mat3.isotopic_content=dict.fromkeys(isokeys3, 0.0) #init
     for zaid in iso1.keys():
         mat3.isotopic_content[zaid] += iso1[zaid] *frac1 *mat1.atomdensity
     for zaid in iso2.keys():

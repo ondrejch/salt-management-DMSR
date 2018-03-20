@@ -23,6 +23,9 @@ def makePuSalt(afracTh, afracPu, afracGd):
     yourmaterial = mixn( (flibe, otherfrac), (puf3, afracPu), (gdf3, afracGd),
                          (thf4, afracTh) )
 
+    # as per Dr. Chvala's request, one extra line
+    yourmaterial.getMassDens()
+
     return yourmaterial
 
 
@@ -30,3 +33,4 @@ def makePuSalt(afracTh, afracPu, afracGd):
 if __name__ == "__main__":
     mat = makePuSalt(0.1, 0.01, 0.0)
     print(mat)
+    print("rho = {} g/ccm".format(mat.massdensity))

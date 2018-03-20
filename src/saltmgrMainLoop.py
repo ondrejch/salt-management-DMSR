@@ -54,7 +54,7 @@ def mainLoop(optdict, myCore,runDatObj):
         daydict = optdict['daystep']
 
         # get next greatest day from dict
-        nextgreatday = getNGE(arr, optdict['daystep'].keys())
+        nextgreatday = getNGE(runDatObj.burnttime, optdict['daystep'].keys())
 
         myCore.daystep = optdict['daystep'][nextgreatday]
         myCore.SetBurnTime(myCore.daystep)

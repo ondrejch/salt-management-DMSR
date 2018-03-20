@@ -3,6 +3,52 @@
 # for that at the moment.
 from RefuelCore import SerpentMaterial
 
+def mixn(*args):
+    """Mixes n materials by mole fraction. To use this,
+    pass in n tuples of (SerpentMaterial, atomfrac) pairs.
+    Atomfracs get normalized automatically. """
+    # check args
+    fracs = []
+    mats = []
+    for mat, frac in args:
+        assert isinstance(mat, SerpentMaterial)
+        assert isinstance(frac, float)
+        fracs.append(frac)
+        mats.append(mat)
+
+    # -- normalize fracs
+    tot = sum(fracs)
+    newfracs = [f/tot for f in fracs]
+    fracs = newfracs
+
+    # make new isotopic dictionary, init from common keys
+    keylist = set()
+    for mat in mats:
+        for iso in mat.isotopic_content.keys():
+            keylist.add(iso)
+
+    # contains new material's isotopes
+    newIsoDict = dict.fromkeys(keylist, 0.0)
+
+    # add isotopes in corresponding fractions
+    for i,mat in enumerate(mats):
+        for iso in mat.isotopic_content.keys():
+            newIsoDict[iso] += fracs[i] * mat.isotopic_content[iso]
+
+    # calculate new atom density
+    for mat in mats:
+        assert mat.atomdensity is not None
+    newadens = sum([f*mat.atomdensity for f, mat in zip(fracs, mats)])
+    
+    # make the new material
+    newmat = SerpentMaterial('empty')
+
+    newmat.isotopic_content = newIsoDict
+    newmat.atomdensity = newadens
+
+    return newmat
+    
+
 def mix(mat1,mat2,frac1, matname = 'newmix'):
     """This function takes two SerpentMaterials, and mixes them!
     The new density is approximated by assuming that atom density mixes
@@ -80,7 +126,7 @@ def mix(mat1,mat2,frac1, matname = 'newmix'):
     isokeys3=list(isokeys3)
 
     #now make that final isotopic dictionary!
-    mat3.isotopic_content=dict.fromkeys(isokeys3, 0.0) #init
+    mat3.isotopic_content=dict.fromkeys(isokeys3, value=0.0) #init
     for zaid in iso1.keys():
         mat3.isotopic_content[zaid] += iso1[zaid] *frac1 *mat1.atomdensity
     for zaid in iso2.keys():

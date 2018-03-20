@@ -876,7 +876,7 @@ class SerpentMaterial(object):
             #then atom fractions are found:
             afpu239=wfpu239/masspu239/summoles
             afpu240=wfpu240/masspu240/summoles
-            afpu241=wfpu241/masspu240/summoles
+            afpu241=wfpu241/masspu241/summoles
             afga69=gamoles*abundga69/massga69/summoles
             afga71=gamoles*abundga71/massga71/summoles
 

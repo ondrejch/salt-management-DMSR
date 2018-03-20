@@ -855,6 +855,7 @@ class SerpentMaterial(object):
             #atomic masses (amu)
             masspu239=239.0521636
             masspu240=240.0538138
+            masspu241=241.0568515
             massga69=68.9255735
             massga71=70.92470258
 
@@ -862,18 +863,20 @@ class SerpentMaterial(object):
             abundga69=0.60108
             abundga71=0.39892
 
-            #first, mass fractions of the metal components
+            #first, mass fractions of the metal components 
             wfpu239=.93
-            wfpu240=.06
+            wfpu240=.055
+            wfpu241=.005
             wfga=.01
 
             #total moles of material per gram
-            summoles=wfpu239/masspu239+wfpu240/masspu240+wfga/(abundga69*massga69+abundga71*massga71)
+            summoles=wfpu239/masspu239+wfpu240/masspu240+wfpu241/masspu241+wfga/(abundga69*massga69+abundga71*massga71)
             gamoles=wfga/(abundga69*massga69+abundga71*massga71) #moles of ga per gram
 
             #then atom fractions are found:
             afpu239=wfpu239/masspu239/summoles
             afpu240=wfpu240/masspu240/summoles
+            afpu241=wfpu241/masspu241/summoles
             afga69=gamoles*abundga69/massga69/summoles
             afga71=gamoles*abundga71/massga71/summoles
 
@@ -896,6 +899,7 @@ class SerpentMaterial(object):
             #aaannndddd some isotopics
             self.isotopic_content['94239']=wfpu239/masspu239
             self.isotopic_content['94240']=wfpu240/masspu240
+            self.isotopic_content['94241']=wfpu241/masspu241
             self.isotopic_content['31069']=gamoles*abundga69
             self.isotopic_content['31071']=gamoles*abundga69
             self.isotopic_content['9019'] =summoles*3

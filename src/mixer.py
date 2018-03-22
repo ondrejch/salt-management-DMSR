@@ -15,6 +15,7 @@ def mixn(*args):
         assert isinstance(frac, float)
         fracs.append(frac)
         mats.append(mat)
+        mat.normalizeIsotopics()
 
     # -- normalize fracs
     tot = sum(fracs)

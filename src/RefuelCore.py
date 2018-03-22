@@ -759,7 +759,6 @@ class SerpentMaterial(object):
             gdMolar = getmass.getIsoMass('64000')
             self.atomdensity=self.massdensity / (gdMolar + 3* 18.998403 ) * 0.602214086 * 4.0#atoms / cm-b. also note 4 atoms per ionic unit.
 
-            self.density=self.atomdensity
             if self.massdensity != 7.1:
                 raise Exception("If you changed the mass density of GdF3, be sure to change it in RGd in refuelmsr.py too")
             self.tempK=None
@@ -894,7 +893,6 @@ class SerpentMaterial(object):
             conver=.602214086 #cm^2 per barn times atoms per mol
             self.massdensity=densitypuf3-(gamoles/summoles)*(densitypuf3-densitygaf3)
             self.atomdensity=self.massdensity*summoles*conver*4.0 #atoms / cmb
-            self.density=self.atomdensity #the thing getting printed to serpent
 
             #aaannndddd some isotopics
             self.isotopic_content['94239']=wfpu239/masspu239
@@ -1006,7 +1004,6 @@ class SerpentMaterial(object):
         elif  salt_type=='empty':
             self.atomdensity=0.0
             self.massdensity=0.0
-            self.density=0.0
             self.tempK=None
             if self.volume==None:
                 pass
@@ -1019,10 +1016,6 @@ class SerpentMaterial(object):
             print(self.materialname)
             print(self.isotopic_content)
             raise Exception("specify a material density of some sort for the above material")
-        if self.atomdensity==None:
-            self.density=-1*self.massdensity
-        elif self.massdensity==None:
-            self.density=self.atomdensity
 
         # give an empty Z2ox dict by default. maps z value to expected oxidation number.
         self.Z2ox = {}
@@ -1103,7 +1096,7 @@ class SerpentMaterial(object):
                 mmass += getmass.getIsoMass(iso) * self.isotopic_content[iso]
 
             # set the atom density, (cmb)^-1
-            self.density = self.atomdensity = self.massdensity / mmass * .602214086
+            self.atomdensity = self.massdensity / mmass * .602214086
 
             return None #done
 
@@ -1119,7 +1112,7 @@ class SerpentMaterial(object):
                 self.isotopic_content[iso] = -1.0 * self.massdensity * self.isotopic_content[iso] / getmass.getIsoMass(iso) * .602214086
 
             # now, all atom densities properly normalize to the atom density
-            self.density = self.atomdensity = sum( self.isotopic_content.values() )
+            self.atomdensity = sum( self.isotopic_content.values() )
 
             return None
 
@@ -1210,7 +1203,15 @@ class SerpentMaterial(object):
         ret_string='' #init & append
         voltext = '' if self.volume is None else 'vol {}'.format(self.volume)
         modtext = 'moder grmod 6000' if self.materialname=='mod' else ''
-        ret_string += 'mat {0} {1} {2} {3}\n'.format(self.materialname,self.density,voltext,modtext)
+        if self.atomdensity > 0:
+            density = self.atomdensity
+        elif self.massdensity > 0:
+            density = -1.0*self.massdensity
+        else:
+            raise Exception("Density is weird, atomdensity: {self.atomdensity}, "
+                            "mass density {self.massdensity}\n".format(**locals()))
+
+        ret_string += 'mat {0} {1} {2} {3}\n'.format(self.materialname,density,voltext,modtext)
         for iso in self.isotopic_content.keys():
             ret_string += '{}.09c {}\n'.format(iso,self.isotopic_content[iso])
         if self.materialname == 'mod':
@@ -1469,7 +1470,7 @@ class SerpentMaterial(object):
         """ if a material is running low from using type 2 flows, and
         may run out in the next depletion step, restore the density to
         its original value """
-        self.atomdensity = self.density = self.initDensity
+        self.atomdensity = self.initDensity
 
 import subprocess #used for terminal commands
 import os    

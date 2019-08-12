@@ -55,7 +55,7 @@ class Salt(object):
         self.formula:str    = f         # Chemical formula for a salt
         self.enr:float      = e         # Uranium enrichment
         self.Li7dep:float   = 0.99995   # Li-7 depletion level
-        self.mol_mass:foat  = -1.0      # Molar mass of the salt
+        self.mol_mass:foat  = None      # Molar mass of the salt
         # Salt isotopic composition - isotopes repeat per melt parts
         self.isolist = []   # For internal processing use only
         self.SaltIso = collections.namedtuple("SaltIso", "Z A atoms amass wfrac molefract")
@@ -73,11 +73,6 @@ class Salt(object):
         molmass.ELEMENTS['U'].isotopes[236]=molmass.Isotope(236.0455611, wf_u236, 236) # Add to dbase
         molmass.ELEMENTS['U'].isotopes[238].abundance = wf_u238
 
-        # Calculate isotopic weights
-        self._formula_parse_iso()   # Parse salt's chemical formula
-        self._molar_mass()          # Calculate salt's molar mass
-        self._isotopic_fractions()  # Establish weight fraction of each isotope
-
         # Density calculation
         self.melt_parts = []        # List of MeltPart objects
         self.density_a:float = None # Linear density interpolation slope
@@ -88,7 +83,7 @@ class Salt(object):
         if self.isolist:
             for i in self.isolist:
                 result += "\n"+repr(i)
-        if self.mol_mass > 0:
+        if self.mol_mass:
             result += "\nMolar mass %f g/mole" % (self.mol_mass)
         if self.wflist:
             result += "\nIsotopic Weight fractions:"
@@ -125,18 +120,24 @@ class Salt(object):
 
     def _molar_mass(self):
         'Establish molar mass of the salt'
-        if not self.isolist:
-            raise Exception("Salt materials need to be parsed first!")
+        if not self.isolist:        # Generate list of isotopes
+            self._formula_parse_iso()
         self.mol_mass = 0.0
         for i in self.isolist:      # Add molar weights from all isotopes
             self.mol_mass += i.molefract * i.atoms * i.amass * i.wfrac
 
+    def get_molar_mass(self) ->float:
+        'Returns molar weight [g/mole]'
+        if not self.mol_mass:   # Establish molar mass of the salt
+            self._molar_mass()
+        return self.mol_mass
+
     def _isotopic_fractions(self):
         'Establish isotopic fractions'
-        if not self.isolist:
-            raise Exception("Salt materials need to be parsed first!")
-        if self.mol_mass <= 0:
-            raise Exception("Salt molar mass has to be calculated first!")
+        if not self.isolist:    # Generate list of isotopes
+            self._formula_parse_iso()
+        if not self.mol_mass:   # Establish molar mass of the salt
+            self._molar_mass()
         for i in self.isolist:  # Process all isotopes in the isolist
             w_l = [x for x in self.wflist if x.Z==i.Z and x.A==i.A]
             if not w_l:         # Isotope not in self.wflist, add new one
@@ -164,9 +165,11 @@ class Salt(object):
         weight_800C = 0.0
         volume_600C = 0.0
         volume_800C = 0.0
+        if self.melt_parts == 1:    # Single component melt
+            self.melt_parts[0].s.mol_mass = self.get_molar_mass()
         for mp in self.melt_parts:
-            weight_600C += mp.molar_frac*mp.s.mol_mass
-            weight_800C += mp.molar_frac*mp.s.mol_mass
+            weight_600C += mp.molar_frac*mp.s.get_molar_mass()
+            weight_800C += mp.molar_frac*mp.s.get_molar_mass()
             volume_600C += mp.molar_frac*MOLARVOLUMES[mp.formula][0]
             volume_800C += mp.molar_frac*MOLARVOLUMES[mp.formula][1]
         density_600C = weight_600C / volume_600C
@@ -195,8 +198,8 @@ class Salt(object):
 
     def serpent_mat(self, tempK:float=900, lib="09c", rgb:str="240 30 30"):
         'Returns Serpent deck for the salt material'
-        if not self.wflist:
-            raise Exception("Salt isotopic fractions need to be found first!")
+        if not self.wflist:         # Generate list of isotopic weight fractions
+            self._isotopic_fractions()
         mat  = "% Fuel salt: " + self.nice_name() + ", U enrichment " + str(self.enr)
         mat += "\nmat fuel %12.8f rgb %s tmp %8.3f\n" % (-1.0*self.densityK(tempK),rgb,tempK)
         for w in self.wflist:

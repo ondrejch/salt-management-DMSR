@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 #
+# Module that handles molten salt properties for neutronic simulations
+#
 # Ondrej Chvala, ochvala@utk.edu
 # 2019-08-06
 # GNU/GPL
 
 import math
-from scipy.optimize import curve_fit
 import collections
-import molmass
+import molmass          # https://pypi.org/project/molmass/
 debug = False
 
 MOLARVOLUMES = { # Melt composition molar volumes at 600 and 800 degC
@@ -206,12 +207,10 @@ class Salt(object):
 # This executes if someone tries to run the module
 if __name__ == '__main__':
     print("This is a salt processing module.")
-    #input("Press Ctrl+C to quit, or enter else to test it. ")
+    input("Press Ctrl+C to quit, or enter else to test it. ")
     s = Salt()
     print(s)
-    print("\n\n",s.serpent_mat())
-    #s = Salt("100%LiF",0.4)
-    #print(s.densityC(700))
-    #print(s.densityK(900))
-
+    print("\n\n--> Serpent deck:\n",s.serpent_mat())
+    print("--> Density [g/cm3] at 700C: ",s.densityC(700))
+    print("--> Density [g/cm3] at 900K: ",s.densityK(900))
 

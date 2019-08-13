@@ -201,7 +201,7 @@ class Salt(object):
         if not self.wflist:         # Generate list of isotopic weight fractions
             self._isotopic_fractions()
         mat  = "% Fuel salt: " + self.nice_name() + ", U enrichment " + str(self.enr)
-        mat += "\nmat fuel %12.8f rgb %s tmp %8.3f\n" % (-1.0*self.densityK(tempK),rgb,tempK)
+        mat += "\nmat fuelsalt %12.8f rgb %s tmp %8.3f\n" % (-1.0*self.densityK(tempK),rgb,tempK)
         for w in self.wflist:
             mat += "%3d%03d.%s  %14.12f" % (w.Z, w.A, lib, -1.0*w.wf)
             mat += "    %  "+ molmass.ELEMENTS[w.Z].symbol +"-"+ str(w.A) +"\n"

@@ -24,6 +24,7 @@ SALTS = {
 NUCLEAR_DATA_LIBS = {'ENDF7', 'ENDF8', 'JEFF33' }
 
 do_plots = False
+my_debug = True
 
 class Lattice(object):
     'Infinite 2D lattice of graphite heaxagonal blocks with a cyllindrical fuel channel'
@@ -55,13 +56,13 @@ class Lattice(object):
         self.ompcores:int  = 4          # OMP core count
         self.deck_name:str = 'lat'      # Serpent input file name
         self.deck_path:str = '.'        # Where to run the lattice deck
-        self.qsub_path:str = '.'        # Full path to qsub script
+        self.qsub_path:str = './run.sh' # Full path to qsub script
         self.main_path:str = '~/L'+salt # Main path
         self.boron_graphite:float = 2e-06     # 2ppm boron in graphite
         
     def set_path_from_geometry(self):
         'Sets path to directory to run cases based on geometry'
-        self.main_path = self.main_path + "/" + "%08.5f"%self.sf + \
+        self.deck_path = self.main_path + "/" + "%08.5f"%self.sf + \
             "/%08.5f"%self.l + "/%012.9f"%self.enr
 #            "/%08.5f"%self.l 
 
@@ -77,7 +78,7 @@ class Lattice(object):
         'Cell cards for Serpent input deck'
         cells = '''
 %______________cell definitions_____________________________________
-cell 11  0  salt       -1      % fuel channel
+cell 11  0  fuelsalt   -1      % fuel channel
 cell 12  0  graphite    1 -2   % graphite
 cell 99  0  outside     2      % graveyard
 '''
@@ -120,7 +121,7 @@ set bc 3
 % Neutron population and criticality cycles
 set pop 10000 100 40 % 10000 neutrons, 100 active, 40 inactive cycles
 
- Analog reaction rate
+% Analog reaction rate
 % set arr 2
 '''     
         if self.nuc_libs == "ENDF7":
@@ -148,24 +149,23 @@ set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula}"
         deck += self.s.serpent_mat(self.tempK)
         deck += self.get_graphite()
         deck += self.get_data_cards()
-
         return deck.format(**locals())
 
     def save_deck(self):
         'Saves Serpent deck into an input file'
-        s2_deck = self.get_deck()
         try:
             fh = open(self.deck_path + '/' + self.deck_name, 'w')
-            fh.write(s2_deck)
+            fh.write(self.get_deck())
             fh.close()
         except IOError as e:
             print("[ERROR] Unable to write to file: ", self.deck_name)
             print(e)
 
-    def save_qsub_file(self) -> bool:
+    def save_qsub_file(self):
         'Writes run file for TORQUE.'
         qsub_content ='''#!/bin/bash
 #PBS -V
+#PBS -N Serp2MSR_lat        
 #PBS -q {self.queue}
 #PBS -l nodes=1:ppn={self.ompcores}
 
@@ -175,43 +175,53 @@ cd ${{PBS_O_WORKDIR}}
 module load mpi
 module load serpent
 
-sss2 -omp {self.ompcores} {self.deckname} > myout.out
-awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {filename}_res.m > done.out
-
-'''
-        qsub_content = qsub_content.format(**locals())
-        # Write the deck
-        try:
+sss2 -omp {self.ompcores} {self.deck_name} > myout.out
+awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {self.deck_name}_res.m > done.out
+'''.format(**locals())
+        try:                # Write the deck
             f = open(self.qsub_path, 'w')
             f.write(qsub_content)
             f.close()
-            print("Deck written!")
-            return True
         except IOError as e:
             print("Unable to write to file", fname)
             print(e)
+
+    def run_deck(self):
+        'Runs the deck using qsub_path script'        
+        if self.queue is 'local':    # Run the deck locally
+            os.system('cd ' + self.deck_path + '; ' + self.qsub_path)
+        else:               # Submit the job on the cluster
+            os.system('cd ' + self.deck_path + ';  qsub ' + self.qsub_path)
+            
+    def get_calculated_values(self) -> bool:
+        'Fill k and cr for lattice if calculated'
+        if os.path.exists(self.deck_path+'/done.out') and os.path.getsize(self.deck_path+'/done.out') > 0:
+            pass
+        else:                   # Calculation not done yet 
             return False
 
-# -------------------------------------------------------------
+        results = serpentTools.read(self.deck_path + '/' + self.deck_name + "_res.m")
+        self.k      = results.resdata["anaKeff"][0]
+        self.kerr   = results.resdata["anaKeff"][1]
+        self.cr     = results.resdata["conversionRatio"][0]
+        self.crerr  = results.resdata["conversionRatio"][1]
 
-def hexarea(l:float) -> float:
-    'Area of the lattice [cm2]'
-    return 2.0 * math.sqrt(3.0) * l**2
-
-def r(sf:float, l:float) -> float:
-    'Radius of inner channel [cm]'
-# Area of an equilateral triangle:      Sspark = d^2 * sqrt(3)/4
-# Angle is 60deg => area of one 60deg vedge:    Svedge = 1/6 * pi * r^2
-# Area of 3x60deg vedges:           Ssalt  = 3*Svedge = 1/2 * pi * r^2
-# Ratio fsalt = Ssalt/Sspark = 2*pi*r^2 / (d^2 * sqrt(3) )
-# => r^2 = fsalt * d^2 * sqrt(3) / (2*pi)
-    return math.sqrt(sf * l*l *math.sqrt(3.0) / (2.0 * math.pi))
-#   return math.sqrt(hexarea(l)*sf/(2.0*math.pi))
+        if my_debug:
+            print("[DEBUG Lat] ---> k = {self.k}, CR = {self.cr}".format(**locals()))
+        return True
 
 
+# ------------------------------------------------------------
 if __name__ == '__main__':
     print("This module handles a simple lattice.")
 #    input("Press Ctrl+C to quit, or enter else to test it.")
     l = Lattice()
-    print(l.get_deck())
+    #print(l.get_deck())
+#    l.ompcores=32
+#    l.save_qsub_file()
+#    l.save_deck()
+#    l.run_deck()
+    l.get_calculated_values()
+
+
 

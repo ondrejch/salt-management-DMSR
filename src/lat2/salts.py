@@ -7,7 +7,7 @@
 # GNU/GPL
 
 import math
-import collections
+from collections import namedtuple
 import molmass          # https://pypi.org/project/molmass/
 debug = False
 
@@ -58,7 +58,7 @@ class Salt(object):
         self.mol_mass:foat  = None      # Molar mass of the salt
         # Salt isotopic composition - isotopes repeat per melt parts
         self.isolist = []   # For internal processing use only
-        self.SaltIso = collections.namedtuple("SaltIso", "Z A atoms amass wfrac molefract")
+        self.SaltIso = namedtuple("SaltIso", "Z A atoms amass wfrac molefract")
         # Salt isotopic weight fractions, each isotope is unique
         self.wflist = []
 

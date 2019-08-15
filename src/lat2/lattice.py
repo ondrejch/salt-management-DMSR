@@ -63,8 +63,7 @@ class Lattice(object):
     def set_path_from_geometry(self):
         'Sets path to directory to run cases based on geometry'
         self.deck_path = self.main_path + "/" + "%08.5f"%self.sf + \
-            "/%08.5f"%self.l + "/%012.9f"%self.enr
-#            "/%08.5f"%self.l 
+            "/%08.5f"%self.l + "/%014.12f"%self.enr
 
     def hexarea(self) -> float:                  
         'Area of the lattice [cm2]'
@@ -216,12 +215,12 @@ if __name__ == '__main__':
     print("This module handles a simple lattice.")
 #    input("Press Ctrl+C to quit, or enter else to test it.")
     l = Lattice()
-    #print(l.get_deck())
+    print(l.get_deck())
 #    l.ompcores=32
 #    l.save_qsub_file()
 #    l.save_deck()
 #    l.run_deck()
-    l.get_calculated_values()
+#    l.get_calculated_values()
 
 
 

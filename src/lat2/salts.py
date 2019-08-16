@@ -11,7 +11,7 @@ from collections import namedtuple
 import molmass          # https://pypi.org/project/molmass/
 import copy
 
-my_debug = True
+my_debug = False
 
 MOLARVOLUMES = { # Melt composition molar volumes at 600 and 800 degC
     'LiF' : (13.411, 14.142),

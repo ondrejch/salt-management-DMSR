@@ -24,7 +24,7 @@ SALTS = {
 NUCLEAR_DATA_LIBS = {'ENDF7', 'ENDF8', 'JEFF33' }
 
 do_plots = False
-my_debug = True
+my_debug = False
 
 class Lattice(object):
     'Infinite 2D lattice of graphite heaxagonal blocks with a cyllindrical fuel channel'

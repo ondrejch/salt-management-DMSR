@@ -15,6 +15,10 @@ from lattice import Lattice
 
 my_debug = True
 
+def rho(k:float) -> float:
+    'K to rho [pcm]'
+    return 1e5*(k-1.0)/k
+
 class Converge(object):
     'Converge enrichment for a particular lattice'
     def __init__(self, salt:str='flibe', sf:float=0.1, l:float=20.0):
@@ -25,13 +29,12 @@ class Converge(object):
         self.rho_tgt:float  = 0.0       # Target reactivity [pcm]
         self.eps_rho:float  = 200.0     # Reactivity epsilon [pcm]
 
-        self.latlist        = []        # List of lattices
-        self.rho_tuple = namedtuple("rhos","rho rho_err enr")
-        self.rhos           = []        # List of results
-        self.sleep_sec:int  = 60        # Sleep timer between results read attempts [s]
+        self.RhoData = namedtuple("RhoData" ,"enr rho rho_err")
+        self.rholist        = []        # List of results
+        self.sleep_sec:int  = 30        # Sleep timer between results read attempts [s]
         # Constants for iteration boundaries 
-        self.enr_min:float  = 0.001     # LEU enrichment boundaries 
-        self.enr_max:float  = 0.2       #  for itterative search 
+        self.enr_min:float  = 0.007     # LEU enrichment boundaries 
+        self.enr_max:float  = 0.21      #  for itterative search 
         self.iter_max:int   = 20        # Maximum # of iterations
 
     def itterate_rho(self):
@@ -53,25 +56,27 @@ class Converge(object):
                 is_done = True
             else:
                 if my_debug:
-                    print("[DEBUG] sleeping ...")
+                    print("[DEBUG CONV] sleeping ...")
                 time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
 
-        rho0 = 1e5*(lat0.k - 1.0) / lat0.k    # [pcm]
-        rho1 = 1e5*(lat1.k - 1.0) / lat1.k    # [pcm]
+        rho0 = rho(lat0.k)  # [pcm]
+        rho1 = rho(lat1.k)  # [pcm]
         enr0 = lat0.s.enr
         enr1 = lat1.s.enr
-        self.rhos.append( self.rho_tuple(rho0, lat0.kerr, enr0) )
-        self.rhos.append( self.rho_tuple(rho1, lat1.kerr, enr1) )
+        self.rholist.append( self.RhoData(enr0, rho0, lat0.kerr) )
+        self.rholist.append( self.RhoData(enr1, rho1, lat1.kerr) )
         if my_debug:
-            print(self.rhos)
+            print(self.rholist)
         
-        eps_enr:float   = 1e-5  # epsilon enrichment
+        eps_enr:float   = 1e-9  # epsilon enrichment
         n_iter:int      = 0
         side:int        = 0
         
         while n_iter < self.iter_max:  # Regular Falsi, Illionois algorithm
             n_iter += 1
             enri:float = (rho0*enr0 - rho1*enr1) / (rho0 - rho1)
+            if my_debug:
+                print("[DEBUG RF] new enr: ", enri)
             if abs(enr1 - enr0) < eps_enr*abs(enr0+enr1):
                 break   # Enrichment values close to each other, done
            
@@ -82,17 +87,16 @@ class Converge(object):
             l.run_deck()
             while not l.get_calculated_values():
                 if my_debug:
-                    print("[DEBUG] Regula falsi sleeping ...")
+                    print("[DEBUG RF] sleeping ...")
                 time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
 
-#           self.latlist.append( l )
-            rhoi = 1e5*(l.k - 1.0) / l.k
-            self.rhos.append( self.rho_tuple(rhoi, l.kerr, enri) )
+            rhoi = rho(l.k) # [pcm]
+            self.rholist.append( self.RhoData(enri, rhoi, l.kerr) )
             if my_debug:
-                print(self.rhos)
+                print(self.rholist)
 
             if rhoi*rho1 > 0.0: # Same sign, copy enri into enr1
-                enr1 = erni
+                enr1 = enri
                 rho1 = rhoi
                 if side == -1:
                     rho0 /= 2.0
@@ -109,7 +113,7 @@ class Converge(object):
                 break   # Reactivities close, done
 
         if my_debug:
-            print('DONE: ',self.rhos)
+            print('DONE: ',self.rholist)
 
 # ------------------------------------------------------------
 if __name__ == '__main__':

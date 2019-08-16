@@ -105,7 +105,7 @@ class Converge(object):
                     rho0 /= 2.0
                 side = -1
 
-            if rho0*rhoi < 0.0: # Same sign as enr0
+            if rho0*rhoi > 0.0: # Same sign as enr0
                 enr0 = enri
                 rho0 = rhoi
                 if side == 1:

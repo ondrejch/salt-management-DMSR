@@ -9,7 +9,9 @@
 import math
 from collections import namedtuple
 import molmass          # https://pypi.org/project/molmass/
-debug = False
+import copy
+
+my_debug = True
 
 MOLARVOLUMES = { # Melt composition molar volumes at 600 and 800 degC
     'LiF' : (13.411, 14.142),
@@ -22,14 +24,14 @@ MOLARVOLUMES = { # Melt composition molar volumes at 600 and 800 degC
 
 class MeltPart(object):
     'Storage for salt density fit calculation'
-    def __init__(self, f:str, molf:float):
+    def __init__(self, f:str, molf:float, enr:float):
         try:
             self.molar_vols = MOLARVOLUMES[f]
         except:
             raise ValueError("Molar volumes of "+f+" undefined!")
         self.formula:str      = f
         self.molar_frac:float = molf
-        self.s = Salt("100%"+f)
+        self.s = Salt("100%"+f, enr)
     def __repr__(self):
         return "%s, %s" % (repr(self.formula), repr(self.s))
 
@@ -63,20 +65,25 @@ class Salt(object):
         self.wflist = []
 
         # Update database if isotopes for our MSR enrichments
-        molmass.ELEMENTS['Li'].isotopes[6].abundance  = 1.0 - self.Li7dep
-        molmass.ELEMENTS['Li'].isotopes[7].abundance  = self.Li7dep
+        self.ELEMENTS = copy.deepcopy(molmass.ELEMENTS) # Local copy to allow different enrichments
+        self.ELEMENTS['Li'].isotopes[6].abundance  = 1.0 - self.Li7dep
+        self.ELEMENTS['Li'].isotopes[7].abundance  = self.Li7dep
         wf_u234:float = 0.0089 * self.enr
         wf_u236:float = 0.0046 * self.enr
         wf_u238:float = 1.0 - (wf_u234 + self.enr + wf_u236)
-        molmass.ELEMENTS['U'].isotopes[234].abundance = wf_u234
-        molmass.ELEMENTS['U'].isotopes[235].abundance = self.enr
-        molmass.ELEMENTS['U'].isotopes[236]=molmass.Isotope(236.0455611, wf_u236, 236) # Add to dbase
-        molmass.ELEMENTS['U'].isotopes[238].abundance = wf_u238
+
+        self.ELEMENTS['U'].isotopes[234].abundance = wf_u234
+        self.ELEMENTS['U'].isotopes[235].abundance = self.enr
+        self.ELEMENTS['U'].isotopes[236]=molmass.Isotope(236.0455611, wf_u236, 236) # Add to dbase
+        self.ELEMENTS['U'].isotopes[238].abundance = wf_u238
 
         # Density calculation
-        self.melt_parts = []        # List of MeltPart objects
+        self.melt_parts = []        # List of , enr:floatMeltPart objects
         self.density_a:float = None # Linear density interpolation slope
         self.density_b:float = None # Intercept
+
+        if my_debug:
+            print(self)
 
     def __repr__(self):
         result = "Salt: %s, Uenr= %f " % (self.formula, 100.0*self.enr) + "%"
@@ -103,7 +110,7 @@ class Salt(object):
             tot_moles += mfract                 # Add molar fractions of compositions
             comp_f = molmass.Formula(comp)      # Turn component into a molmass formula
             for symbol in comp_f._elements:     # Elements in a component
-                ele = molmass.ELEMENTS[symbol]  # Get the element object
+                ele = self.ELEMENTS[symbol]  # Get the element object
                 for m, n_atoms in comp_f._elements[symbol].items(): # Number of atoms in a component
                     if(m != 0):                 # This should be zero per molmass
                         raise Exception("Error in parsing")
@@ -111,7 +118,7 @@ class Salt(object):
                         Z     = ele.protons
                         amass = ele.isotopes[A].mass
                         wfrac = ele.isotopes[A].abundance
-                        if wfrac > 0.0:             # Ignore U234 etc.
+                        if wfrac > 0.0:         
                             isotuple = self.SaltIso(Z, A, n_atoms, amass, wfrac, mfract)
                             self.isolist.append(isotuple)
         self.isolist.sort()                     # Looks nicer sorted
@@ -160,7 +167,7 @@ class Salt(object):
         for m in self.formula.split('+'):   # Separate melt components
             mfract, comp = m.split('%')     # Separate component pct. fractions
             mfract = float(mfract)/100.0    # Molar % -> fraction
-            self.melt_parts.append( MeltPart(comp, mfract) )
+            self.melt_parts.append( MeltPart(comp, mfract, self.enr) )
         weight_600C = 0.0
         weight_800C = 0.0
         volume_600C = 0.0
@@ -176,7 +183,7 @@ class Salt(object):
         density_800C = weight_800C / volume_800C
         self.density_a = (density_800C - density_600C) / (800.0 - 600.0)
         self.density_b = density_600C - self.density_a*600.0
-        if debug:
+        if my_debug:
             print("  Density at 600 and 800C:", density_600C, density_800C)
             print("  Fit a, b:", self.density_a, self.density_b)
 
@@ -200,11 +207,19 @@ class Salt(object):
         'Returns Serpent deck for the salt material'
         if not self.wflist:         # Generate list of isotopic weight fractions
             self._isotopic_fractions()
+        if my_debug:                # Check uranium enrichment 
+            u= 0.0
+            for w in self.wflist: 
+                if w.Z == 92: 
+                    u += w.wf
+            for w in self.wflist:
+                if w.Z == 92:
+                    print("DEBUG SALT: %d -> %8.3f" % (w.A, 100.0*w.wf/u) )
         mat  = "% Fuel salt: " + self.nice_name() + ", U enrichment " + str(self.enr)
         mat += "\nmat fuelsalt %12.8f rgb %s tmp %8.3f\n" % (-1.0*self.densityK(tempK),rgb,tempK)
         for w in self.wflist:
             mat += "%3d%03d.%s  %14.12f" % (w.Z, w.A, lib, -1.0*w.wf)
-            mat += "    %  "+ molmass.ELEMENTS[w.Z].symbol +"-"+ str(w.A) +"\n"
+            mat += "    %  "+ self.ELEMENTS[w.Z].symbol +"-"+ str(w.A) +"\n"
         return mat
 
 # This executes if someone tries to run the module

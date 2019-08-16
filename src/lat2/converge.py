@@ -30,40 +30,38 @@ class Converge(object):
         self.rhos           = []        # List of results
         self.sleep_sec:int  = 60        # Sleep timer between results read attempts [s]
         # Constants for iteration boundaries 
-        self.enr_min:float  = 1e-4      # LEU enrichment boundaries 
+        self.enr_min:float  = 0.001     # LEU enrichment boundaries 
         self.enr_max:float  = 0.2       #  for itterative search 
         self.iter_max:int   = 20        # Maximum # of iterations
 
-        # Create endpoint lattices
-        self.latlist.append( Lattice(self.salt, self.sf, self.l, self.enr_min) )
-        self.latlist[0].set_path_from_geometry()
-        self.latlist.append( Lattice(self.salt, self.sf, self.l, self.enr_max) )
-        self.latlist[1].set_path_from_geometry()
-        
     def itterate_rho(self):
-        'Execute the convergence search'
-        # As long as we are using defaults, shared qsub file will work
-        self.latlist[0].save_qsub_file()
-        # Run the edge points
-        self.latlist[0].save_deck()
-        self.latlist[1].save_deck()
-        self.latlist[0].run_deck()
-        self.latlist[1].run_deck()
+        'Execute the convergence search https://en.wikipedia.org/wiki/Regula_falsi#Example_code'
+        # Create and run the edge points
+        lat0 = Lattice(self.salt, self.sf, self.l, self.enr_min)
+        lat0.set_path_from_geometry()
+        lat1 = Lattice(self.salt, self.sf, self.l, self.enr_max)
+        lat1.set_path_from_geometry()
+
+        lat0.save_qsub_file() # As long as we are using defaults, shared qsub file will work
+        lat0.save_deck()
+        lat1.save_deck()
+        lat0.run_deck()
+        lat1.run_deck()
         is_done:bool = False            # Wait for Serpent
         while not is_done:
-            if self.latlist[0].get_calculated_values() and self.latlist[1].get_calculated_values():
+            if lat0.get_calculated_values() and lat1.get_calculated_values():
                 is_done = True
             else:
                 if my_debug:
                     print("[DEBUG] sleeping ...")
                 time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
 
-        rho0 = 1e5*(self.latlist[0].k - 1.0) / self.latlist[0].k    # [pcm]
-        rho1 = 1e5*(self.latlist[1].k - 1.0) / self.latlist[1].k    # [pcm]
-        enr0 = self.enr_min
-        enr1 = self.enr_max
-        self.rhos.append( self.rho_tuple(rho0, self.latlist[0].kerr, enr0) )
-        self.rhos.append( self.rho_tuple(rho1, self.latlist[1].kerr, enr1) )
+        rho0 = 1e5*(lat0.k - 1.0) / lat0.k    # [pcm]
+        rho1 = 1e5*(lat1.k - 1.0) / lat1.k    # [pcm]
+        enr0 = lat0.s.enr
+        enr1 = lat1.s.enr
+        self.rhos.append( self.rho_tuple(rho0, lat0.kerr, enr0) )
+        self.rhos.append( self.rho_tuple(rho1, lat1.kerr, enr1) )
         if my_debug:
             print(self.rhos)
         
@@ -72,6 +70,7 @@ class Converge(object):
         side:int        = 0
         
         while n_iter < self.iter_max:  # Regular Falsi, Illionois algorithm
+            n_iter += 1
             enri:float = (rho0*enr0 - rho1*enr1) / (rho0 - rho1)
             if abs(enr1 - enr0) < eps_enr*abs(enr0+enr1):
                 break   # Enrichment values close to each other, done
@@ -80,12 +79,13 @@ class Converge(object):
             l = Lattice(self.salt, self.sf, self.l, enri)
             l.set_path_from_geometry()
             l.save_deck()
-            l.run()
-            while not l.k:
+            l.run_deck()
+            while not l.get_calculated_values():
                 if my_debug:
                     print("[DEBUG] Regula falsi sleeping ...")
+                time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
 
-            self.latlist.append( l )
+#           self.latlist.append( l )
             rhoi = 1e5*(l.k - 1.0) / l.k
             self.rhos.append( self.rho_tuple(rhoi, l.kerr, enri) )
             if my_debug:
@@ -110,9 +110,6 @@ class Converge(object):
 
         if my_debug:
             print('DONE: ',self.rhos)
-
-
-
 
 # ------------------------------------------------------------
 if __name__ == '__main__':

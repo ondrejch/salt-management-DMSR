@@ -39,7 +39,6 @@ class Lattice(object):
         # Lattice parameters
         self.l:float       = l          # Hex lattice size [cm]
         self.sf:float      = sf         # Fuel salt fraction
-        self.enr:float     = e          # Uranium enrichment
         self.r:float       = self.r()   # Dimater of the outer channel [cm]
         self.salt_name:str = salt       # Salt identifier
         self.s             = Salt(self.salt_formula, e) # Salt used
@@ -60,11 +59,13 @@ class Lattice(object):
         self.qsub_path:str = os.path.expanduser('~/run.sh')  # Full path to the qsub script
         self.main_path:str = os.path.expanduser('~/L/')+salt # Main path
         self.boron_graphite:float = 2e-06     # 2ppm boron in graphite
+        if my_debug:
+            print("DEBUG LATTICE ", self.salt_formula, self.sf, self.l, self.s.enr)
         
     def set_path_from_geometry(self):
         'Sets path to directory to run cases based on geometry'
         self.deck_path = self.main_path + "/" + "%08.6f"%self.sf + \
-            "/%08.5f"%self.l + "/%014.12f"%self.enr
+            "/%08.5f"%self.l + "/%014.12f"%self.s.enr
 
     def hexarea(self) -> float:                  
         'Area of the lattice [cm2]'
@@ -142,7 +143,7 @@ plot 3 1500 1500
     def get_deck(self) -> str:
         'Serpent deck for the lattice'
         deck = '''\
-set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula}"
+set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula}, Uenr {self.s.enr} "
 '''     
         deck += self.get_surfaces()
         deck += self.get_cells()

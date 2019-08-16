@@ -53,16 +53,17 @@ class Lattice(object):
         self.nuc_libs:str  = 'ENDF7'    # Nuclear data library
         self.lib:str       = '09c'      # CE xsection temp selection
         self.queue:str     = 'fill'     # NEcluster torque queue
-        self.ompcores:int  = 4          # OMP core count
+        self.histories:int = 5000       # Neutron histories per cycle
+        self.ompcores:int  = 8          # OMP core count
         self.deck_name:str = 'lat'      # Serpent input file name
         self.deck_path:str = '.'        # Where to run the lattice deck
-        self.qsub_path:str = './run.sh' # Full path to qsub script
-        self.main_path:str = '~/L'+salt # Main path
+        self.qsub_path:str = os.path.expanduser('~/run.sh')  # Full path to the qsub script
+        self.main_path:str = os.path.expanduser('~/L/')+salt # Main path
         self.boron_graphite:float = 2e-06     # 2ppm boron in graphite
         
     def set_path_from_geometry(self):
         'Sets path to directory to run cases based on geometry'
-        self.deck_path = self.main_path + "/" + "%08.5f"%self.sf + \
+        self.deck_path = self.main_path + "/" + "%08.6f"%self.sf + \
             "/%08.5f"%self.l + "/%014.12f"%self.enr
 
     def hexarea(self) -> float:                  
@@ -118,7 +119,7 @@ therm graph gre7.08t
 set bc 3
 
 % Neutron population and criticality cycles
-set pop 10000 100 40 % 10000 neutrons, 100 active, 40 inactive cycles
+set pop {self.histories} 100 40 % {self.histories} neutrons, 100 active, 40 inactive cycles
 
 % Analog reaction rate
 % set arr 2
@@ -153,6 +154,7 @@ set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula}"
     def save_deck(self):
         'Saves Serpent deck into an input file'
         try:
+            os.makedirs(self.deck_path)
             fh = open(self.deck_path + '/' + self.deck_name, 'w')
             fh.write(self.get_deck())
             fh.close()
@@ -186,7 +188,7 @@ awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {self.dec
             print(e)
 
     def run_deck(self):
-        'Runs the deck using qsub_path script'        
+        'Runs the deck using qsub_path script'
         if self.queue is 'local':    # Run the deck locally
             os.system('cd ' + self.deck_path + '; ' + self.qsub_path)
         else:               # Submit the job on the cluster

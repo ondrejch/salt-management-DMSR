@@ -74,6 +74,9 @@ class Converge(object):
         
         while n_iter < self.iter_max:  # Regular Falsi, Illionois algorithm
             n_iter += 1
+            if my_debug:
+                print("[DEBUG RF] ", rho0, enr0 , rho1, enr1)
+
             enri:float = (rho0*enr0 - rho1*enr1) / (rho0 - rho1)
             if my_debug:
                 print("[DEBUG RF] new enr: ", enri)
@@ -95,14 +98,14 @@ class Converge(object):
             if my_debug:
                 print(self.rholist)
 
-            if rhoi*rho1 > 0.0: # Same sign, copy enri into enr1
+            if rhoi*rho1 > 0.0: # Same sign as enr1
                 enr1 = enri
                 rho1 = rhoi
                 if side == -1:
                     rho0 /= 2.0
                 side = -1
 
-            if rho0*rho1 < 0.0: # Opposite sign, copy enri into enr0
+            if rho0*rhoi < 0.0: # Same sign as enr0
                 enr0 = enri
                 rho0 = rhoi
                 if side == 1:

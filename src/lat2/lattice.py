@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #
 # Ondrej Chvala, ochvala@utk.edu
+# 2019-08-12
 # GNU/GPL
 
 import math
@@ -9,6 +10,7 @@ import matplotlib.pyplot as plt
 import os
 import molmass
 import serpentTools
+serpentTools.settings.rc['verbosity']='error'
 
 from salts import Salt
 
@@ -18,7 +20,7 @@ SALTS = {
     "naf"    : "78%NaF + 22%UF4",
     "nafbe12": "74%NaF + 12%BeF2 + 14%UF4",
     "nafbe30": "58%NaF + 30%BeF2 + 12%UF4",
-    "nafrbf2": "46%NaF + 33%RbF + 21%UF4", 
+    "nafrbf2": "46%NaF + 33%RbF + 21%UF4",
     "nafkf"  : "50.5%NaF + 21.5%KF + 28%UF4" }
 
 NUCLEAR_DATA_LIBS = {'ENDF7', 'ENDF8', 'JEFF33' }
@@ -61,13 +63,13 @@ class Lattice(object):
         self.boron_graphite:float = 2e-06     # 2ppm boron in graphite
         if my_debug:
             print("DEBUG LATTICE ", self.salt_formula, self.sf, self.l, self.s.enr)
-        
+
     def set_path_from_geometry(self):
         'Sets path to directory to run cases based on geometry'
         self.deck_path = self.main_path + "/" + "%08.6f"%self.sf + \
             "/%08.5f"%self.l + "/%014.12f"%self.s.enr
 
-    def hexarea(self) -> float:                  
+    def hexarea(self) -> float:
         'Area of the lattice [cm2]'
         return 2.0 * math.sqrt(3.0) * self.l**2
 
@@ -124,7 +126,7 @@ set pop {self.histories} 100 40 % {self.histories} neutrons, 100 active, 40 inac
 
 % Analog reaction rate
 % set arr 2
-'''     
+'''
         if self.nuc_libs == "ENDF7":
             data_cards += '''
 % Data Libraries
@@ -144,7 +146,7 @@ plot 3 1500 1500
         'Serpent deck for the lattice'
         deck = '''\
 set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula}, Uenr {self.s.enr} "
-'''     
+'''
         deck += self.get_surfaces()
         deck += self.get_cells()
         deck += self.s.serpent_mat(self.tempK)
@@ -167,7 +169,7 @@ set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula},
         'Writes run file for TORQUE.'
         qsub_content ='''#!/bin/bash
 #PBS -V
-#PBS -N Serp2MSR_lat        
+#PBS -N Serp2MSR_lat
 #PBS -q {self.queue}
 #PBS -l nodes=1:ppn={self.ompcores}
 
@@ -194,12 +196,12 @@ awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {self.dec
             os.system('cd ' + self.deck_path + '; ' + self.qsub_path)
         else:               # Submit the job on the cluster
             os.system('cd ' + self.deck_path + ';  qsub ' + self.qsub_path)
-            
+
     def get_calculated_values(self) -> bool:
         'Fill k and cr for lattice if calculated'
         if os.path.exists(self.deck_path+'/done.out') and os.path.getsize(self.deck_path+'/done.out') > 0:
             pass
-        else:                   # Calculation not done yet 
+        else:                   # Calculation not done yet
             return False
 
         results = serpentTools.read(self.deck_path + '/' + self.deck_name + "_res.m")

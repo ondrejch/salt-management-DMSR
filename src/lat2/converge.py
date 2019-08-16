@@ -77,7 +77,7 @@ class Converge(object):
             if my_debug:
                 print("[DEBUG RF] ", rho0, enr0 , rho1, enr1)
 
-            enri:float = (rho0*enr0 - rho1*enr1) / (rho0 - rho1)
+            enri:float = (rho0*enr1 - rho1*enr0) / (rho0 - rho1)
             if my_debug:
                 print("[DEBUG RF] new enr: ", enri)
             if abs(enr1 - enr0) < eps_enr*abs(enr0+enr1):

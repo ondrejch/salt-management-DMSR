@@ -8,6 +8,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import shutil
 import molmass
 import serpentTools
 serpentTools.settings.rc['verbosity']='error'
@@ -162,7 +163,8 @@ set title "MSR lattice cell, l {self.l}, sf {self.sf}, salt {self.salt_formula},
             fh.write(self.get_deck())
             fh.close()
         except IOError as e:
-            print("[ERROR] Unable to write to file: ", self.deck_name)
+            print("[ERROR] Unable to write to file: ", \
+                   self.deck_path + '/' + self.deck_name)
             print(e)
 
     def save_qsub_file(self):
@@ -214,6 +216,10 @@ awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {self.dec
             print("[DEBUG Lat] ---> k = {self.k}, CR = {self.cr}".format(**locals()))
         return True
 
+    def cleanup(self):
+        'Delete the run directory'
+        if os.path.isdir(self.deck_path):
+            shutil.rmtree(self.deck_path)
 
 # ------------------------------------------------------------
 if __name__ == '__main__':

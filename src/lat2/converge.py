@@ -6,6 +6,7 @@
 
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from collections import namedtuple
 import sys
 import os
@@ -13,7 +14,7 @@ import time
 
 from lattice import Lattice
 
-my_debug = 4
+my_debug:int = 0
 
 def rho(k:float) -> float:
     'K to rho [pcm]'
@@ -28,6 +29,9 @@ class Converge(object):
         self.salt:str       = salt      # Salt key
         self.rho_tgt:float  = 0.0       # Target reactivity [pcm]
         self.eps_rho:float  = 200.0     # Reactivity epsilon [pcm]
+        self.main_path:str = os.path.expanduser('~/L/')+salt # Main path
+        self.iter_path:str = self.main_path + "/"+"%08.6f"%self.sf + \
+                "/%08.5f"%self.l        # Where the lattice decks are
 
         self.RhoData = namedtuple("RhoData" ,"enr rho rho_err")
         self.rholist        = []        # List of results
@@ -36,19 +40,20 @@ class Converge(object):
         self.enr_min:float  = 0.007     # LEU enrichment boundaries
         self.enr_max:float  = 0.21      #  for itterative search
         self.iter_max:int   = 20        # Maximum # of iterations
+        self.conv_enr:float = None      # Converged value of enrichment
 
     def __repr__(self):
         'Pretty printing'
         result = '''Covergence for lattice with %s, sf: %5.3f, l: %5.3f cm
-Itteration boudaries %5.4f %5.4f, max iters: %d''' % \
+Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         (self.salt, self.sf, self.l, self.enr_min, self.enr_max, self.iter_max)
         if self.rholist:
             result += '\nList of rho(enr) found during convergece:'
             for r in self.rholist:
-                result += '\n%10.8f   ->  %10.2f  +- %8.3f' % (r)
+                result += '\n%10.8f   ->  %10.2f  +- %6.1f' % (r)
         return result
 
-    def itterate_rho(self, force_recalc:bool = False):
+    def iterate_rho(self, force_recalc:bool = False):
         'Execute the convergence search https://en.wikipedia.org/wiki/Regula_falsi#Example_code'
         # Create and run the edge points
         lat0 = Lattice(self.salt, self.sf, self.l, self.enr_min)
@@ -80,22 +85,21 @@ Itteration boudaries %5.4f %5.4f, max iters: %d''' % \
         if my_debug > 2:
             print(repr(self.rholist))
 
+        # Regular Falsi root search, Illionois algorithm        
         eps_enr:float   = 1e-9  # epsilon enrichment
         n_iter:int      = 0
         side:int        = 0
-
-        # Regular Falsi root search, Illionois algorithm
+        enri:float      = None
         while n_iter < self.iter_max:
             n_iter += 1
             if my_debug > 2:
                 print("[DEBUG RF] ", rho0, enr0 , rho1, enr1)
-
-            enri:float = (rho0*enr1 - rho1*enr0) / (rho0 - rho1)
+            enri = ((rho0-self.rho_tgt)*enr1 - (rho1-self.rho_tgt)*enr0) \
+                        / (rho0 - rho1)
             if my_debug:
                 print("[DEBUG RF] new enr: ", enri)
             if abs(enr1 - enr0) < eps_enr*abs(enr0+enr1):
                 break   # Enrichment values close to each other, done
-
             # New lattice run
             l = Lattice(self.salt, self.sf, self.l, enri)
             l.set_path_from_geometry()
@@ -106,33 +110,82 @@ Itteration boudaries %5.4f %5.4f, max iters: %d''' % \
                     if my_debug:
                         print("[DEBUG RF] sleeping ...")
                     time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
-
             rhoi = rho(l.k) # [pcm]
             self.rholist.append( self.RhoData(enri, rhoi, 1e5*l.kerr) )
-
-            if rhoi*rho1 > 0.0: # Same sign as enr1
+            if (rhoi-self.rho_tgt)*(rho1-self.rho_tgt) > 0.0: # Same sign as enr1
                 enr1 = enri
                 rho1 = rhoi
                 if side == -1:
-                    rho0 /= 2.0
+                    rho0 = (rho0-self.rho_tgt)/2.0 + self.rho_tgt
                 side = -1
-
-            if rho0*rhoi > 0.0: # Same sign as enr0
+            if (rho0-self.rho_tgt)*(rhoi-self.rho_tgt) > 0.0: # Same sign as enr0
                 enr0 = enri
                 rho0 = rhoi
                 if side == 1:
-                    rho1 /= 2.0
+                    rho1 = (rho1-self.rho_tgt)/2.0 + self.rho_tgt
                 side = 1
-
-            if abs(rho0*rho1) < self.eps_rho**2:
+            if abs((rho0-self.rho_tgt)*(rho1-self.rho_tgt)) < self.eps_rho**2:
                 break   # Reactivities close, done
-
         if my_debug:
             print('DONE: ',self)
+        self.iter_enr = enri
+
+    def plot_iters(self, plot_file:str='rf_enr_iter.png'):
+        'Plot how the iteration went'
+        if not self.rholist:
+            print("Warning: No iterations to plot!")
+            return
+        xvals = [x[0] for x in self.rholist]
+        yvals = [x[1] for x in self.rholist]
+        yerrs = [x[2] for x in self.rholist]
+        fig = plt.figure()
+        plt.errorbar(x=xvals, y=yvals, yerr=yerrs)
+        plt.title("RF, %s, %5.3f %5.3f" % (self.salt, self.sf, self.l) )
+        plt.xlabel("Enrichment")
+        plt.ylabel("Reactivity [pcm]")
+        plt.grid(True)
+        if plot_file == None:
+            plt.show()
+        else:
+            plt.savefig(self.iter_path+'/'+plot_file, bbox_inches='tight')
+        plt.close()
+
+    def save_iters(self, save_file:str='converge_data.txt'):
+        'Save history of the itterative search'
+        if not self.rholist:
+            print("Warning: No iterations to save!")
+            return
+        result = '# enr, rho, sig_rho for %s sf %5.3f l %5.3f' \
+                                % (self.salt, self.sf, self.l)
+        for r in self.rholist:
+            result += '%10.8f\t%10.2f\t%6.1f\n' % (r)
+
+        try:
+            fh = open(self.iter_path + '/' + save_file, 'w')
+            fh.write(result)
+            fh.close()
+        except IOError as e:
+            print("[ERROR] Unable to write to file: ", \
+                   self.iter_path + '/' + save_file)
+            print(e)
+
+    def cleanup(self, preserve_last:bool=False):
+        'Delete all run direcotries'
+        n_lats = len(self.rholist) -1
+        if preserve_last:
+            n_last -= 1         # Save the last run
+        for i in range(n_lats):
+            l = Lattice(self.salt, self.sf, self.l, enri)
+            l.cleanup()
+
 
 # ------------------------------------------------------------
 if __name__ == '__main__':
     print("This module find critical enrichment of a lattice.")
 #    input("Press Ctrl+C to quit, or enter else to test it.")
     c = Converge()
+    c.iterate_rho()
+    c.save_iters()
+    print("Enrichment for %s sf %5.3f l %5.3f -> %7.5f" % \
+            (c.salt, c.sf, c.l, c.iter_enr) )
 

@@ -21,7 +21,7 @@ my_debug:int = 5
 SALT_KEYS = ['flibe', 'lif', 'naf', 'nafbe12', 'nafbe30', 'nafrbf2', 'nafkf'] # list(lattice.SALTS.keys())
 #SALT_FRACTIONS  = [0.005,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.10,0.11,0.12,0.13,0.14,0.15,0.16,0.18,0.20,0.225,0.25,0.275,0.30,0.325,0.35,0.375,0.40,0.425,0.45,0.475,0.50,0.525,0.55]
 #LATTICE_PITCHES = [1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,28.0,30.0,32.0,34.0,36.0,38.0,40.0,45.0,50.0,55.0,60.0]
-SALT_FRACTIONS  = [0.05,0.06,0.07,0.08,0.09,0.10,0.11,0.12,0.13]
+SALT_FRACTIONS  = [0.07,0.08,0.09,0.10,0.11,0.12,0.13]
 LATTICE_PITCHES = [10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0]
 
 
@@ -94,17 +94,18 @@ class ScanConverge(object):
         self.LUTxy = old_LUT[:, :2]
         self.LUTval= old_LUT[:, 2]
         del old_LUT
-        self.old_tree = cKDTree(xy)
+        self.old_tree = cKDTree(self.LUTxy)
 
     def doconverge(self, sf, pitch) -> LatticeData:
         'Converge one lattice'
         c = converge.Converge(self.salt, sf, pitch)
-        dist, ind = old_tree.query(coords, k=2)     # Find nearest old enrichments
+        xy = (sf, pitch)
+        dist, ind = self.old_tree.query(xy, k=2)    # Find nearest old enrichments
         d1, d2 = dist.T                             # Distance from our point
-        v1, v2 = val[ind].T                         # Value - enrichment
+        v1, v2 = self.LUTval[ind].T                 # Value - enrichment
         v = (d1)/(d1 + d2)*(v2 - v1) + v1           # Linear interpolation
-        c.self.enr_min = v *0.6                     # Set regula falsi min
-        c.self.enr_max = v *1.5                     #                  max
+#        c.self.enr_min = v *0.6                     # Set regula falsi min
+#        c.self.enr_max = v *1.5                     #                  max
         c.iterate_rho()                             # Start iterations
         c.save_iters()
         res = LatticeData(self.salt, sf, pitch)
@@ -123,7 +124,7 @@ class ScanConverge(object):
                 for pitch in self.l_list:
                     future = executor.submit(self.doconverge, sf, pitch)
                     to_do.append(future)
-                    time.sleep(0.5)
+                    #time.sleep(0.5)
 
             for future in futures.as_completed(to_do):  # <7>
                 res = future.result()  # <8>

@@ -40,16 +40,16 @@ class Converge(object):
         self.sleep_sec:int  = 30        # Sleep timer between results read attempts [s]
         # Constants for iteration boundaries
         self.enr_min:float  = 0.007     # LEU enrichment boundaries
-        self.enr_max:float  = 0.21      #  for itterative search
+        self.enr_max:float  = 0.21      #  for iterative search
         self.iter_max:int   = 20        # Maximum # of iterations
         self.conv_enr:float = None      # Converged value of enrichment
         self.conv_rho:float = None      # Converged value of rho [pcm]
         self.conv_rhoerr:float = None   # Converged value of sigma_rho [pcm]
-        self.force_recalc:bool = False  # Force recalucaltion of existing data
+        self.force_recalc:bool = False  # Force recalculation of existing data
 
     def __repr__(self):
         'Pretty printing'
-        result = '''Covergence for lattice with %s, sf: %5.3f, l: %5.3f cm
+        result = '''Convergence for lattice with %s, sf: %5.3f, l: %5.3f cm
 Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         (self.salt, self.sf, self.l, self.enr_min, self.enr_max, self.iter_max)
         if self.rholist:
@@ -95,7 +95,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         if my_debug > 2:
             print(repr(self.rholist))
 
-        # Regular Falsi root search, Illionois algorithm        
+        # Regula Falsi root search, Illinois algorithm
         eps_enr:float   = 1e-9  # epsilon enrichment
         n_iter:int      = 0
         side:int        = 0
@@ -168,7 +168,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         plt.close()
 
     def save_iters(self, save_file:str='converge_data.txt'):
-        'Save history of the itterative search'
+        'Save history of the iterative search'
         if not self.rholist:
             print("Warning: No iterations to save!")
             return
@@ -187,7 +187,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             print(e)
 
     def cleanup(self, preserve_last:bool=False):
-        'Delete all run direcotries'
+        'Delete all run directories'
         n_lats = len(self.rholist) -1
         if preserve_last:
             n_last -= 1         # Save the last run

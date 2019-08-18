@@ -99,7 +99,7 @@ class ScanConverge(object):
     def doconverge(self, sf, pitch) -> LatticeData:
         'Converge one lattice'
         c = converge.Converge(self.salt, sf, pitch)
-        dist, ind = old_tree.query(coords, k=2)     # Find nearest old enrcihments 
+        dist, ind = old_tree.query(coords, k=2)     # Find nearest old enrichments
         d1, d2 = dist.T                             # Distance from our point
         v1, v2 = val[ind].T                         # Value - enrichment
         v = (d1)/(d1 + d2)*(v2 - v1) + v1           # Linear interpolation
@@ -123,7 +123,7 @@ class ScanConverge(object):
                 for pitch in self.l_list:
                     future = executor.submit(self.doconverge, sf, pitch)
                     to_do.append(future)
-                    time.sleep(0.5) 
+                    time.sleep(0.5)
 
             for future in futures.as_completed(to_do):  # <7>
                 res = future.result()  # <8>

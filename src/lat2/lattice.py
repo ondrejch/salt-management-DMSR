@@ -30,7 +30,7 @@ do_plots = False
 my_debug = False
 
 class Lattice(object):
-    'Infinite 2D lattice of graphite heaxagonal blocks with a cyllindrical fuel channel'
+    'Infinite 2D lattice of graphite hexagonal blocks with a cylindrical fuel channel'
     def __init__(self, salt:str='flibe', sf:float=0.1, l:float=20.0, e:float=0.015):
         try:                            # Check if salt is known
             self.salt_formula = SALTS[salt]
@@ -42,7 +42,7 @@ class Lattice(object):
         # Lattice parameters
         self.l:float       = l          # Hex lattice size [cm]
         self.sf:float      = sf         # Fuel salt fraction
-        self.r:float       = self.r()   # Dimater of the outer channel [cm]
+        self.r:float       = self.r()   # Diameter of the fuel salt channel [cm]
         self.salt_name:str = salt       # Salt identifier
         self.s             = Salt(self.salt_formula, e) # Salt used
         self.tempK:float   = 900.0      # Salt temperature [K]

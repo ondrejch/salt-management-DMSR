@@ -3,6 +3,8 @@
 # Class to find critical enrichment of a lattice
 #
 # Ondrej Chvala, ochvala@utk.edu
+# 2019-08-16
+# GNU/GPL
 
 import math
 import numpy as np
@@ -27,7 +29,7 @@ class Converge(object):
         self.sf:float       = sf        # Fuel salt fraction
         self.l:float        = l         # Hex lattice size [cm]
         self.salt:str       = salt      # Salt key
-        self.rho_tgt:float  = 0.0       # Target reactivity [pcm]
+        self.rho_tgt:float  = 200.0     # Target reactivity [pcm]
         self.eps_rho:float  = 200.0     # Reactivity epsilon [pcm]
         self.main_path:str = os.path.expanduser('~/L/')+salt # Main path
         self.iter_path:str = self.main_path + "/"+"%08.6f"%self.sf + \
@@ -41,6 +43,9 @@ class Converge(object):
         self.enr_max:float  = 0.21      #  for itterative search
         self.iter_max:int   = 20        # Maximum # of iterations
         self.conv_enr:float = None      # Converged value of enrichment
+        self.conv_rho:float = None      # Converged value of rho [pcm]
+        self.conv_rhoerr:float = None   # Converged value of sigma_rho [pcm]
+        self.force_recalc:bool = False  # Force recalucaltion of existing data
 
     def __repr__(self):
         'Pretty printing'
@@ -51,9 +56,12 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             result += '\nList of rho(enr) found during convergece:'
             for r in self.rholist:
                 result += '\n%10.8f   ->  %10.2f  +- %6.1f' % (r)
+        if self.conv_enr:
+            result += "\nRESULT: enr %10.8f, rho %10.2f +- %6.1f" % \
+                        (self.conv_enr, self.conv_rho, self.conv_rhoerr)
         return result
 
-    def iterate_rho(self, force_recalc:bool = False):
+    def iterate_rho(self):
         'Execute the convergence search https://en.wikipedia.org/wiki/Regula_falsi#Example_code'
         # Create and run the edge points
         lat0 = Lattice(self.salt, self.sf, self.l, self.enr_min)
@@ -62,7 +70,9 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         lat1.set_path_from_geometry()
 
         lat0.save_qsub_file() # As long as we are using defaults, shared qsub file will work
-        if force_recalc or not (lat0.get_calculated_values() and lat1.get_calculated_values()) :
+        if self.force_recalc or not (lat0.get_calculated_values() and lat1.get_calculated_values()) :
+            lat0.cleanup()
+            lat1.cleanup()
             lat0.save_deck()
             lat1.save_deck()
             lat0.run_deck()
@@ -90,10 +100,13 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         n_iter:int      = 0
         side:int        = 0
         enri:float      = None
+        rhoi:float      = None
+        rhoierr:float   = None
         while n_iter < self.iter_max:
             n_iter += 1
             if my_debug > 2:
                 print("[DEBUG RF] ", rho0, enr0 , rho1, enr1)
+            # Enrichment value for this iteration
             enri = ((rho0-self.rho_tgt)*enr1 - (rho1-self.rho_tgt)*enr0) \
                         / (rho0 - rho1)
             if my_debug:
@@ -103,15 +116,17 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             # New lattice run
             l = Lattice(self.salt, self.sf, self.l, enri)
             l.set_path_from_geometry()
-            if force_recalc or not l.get_calculated_values():
+            if self.force_recalc or not l.get_calculated_values():
+                l.cleanup()
                 l.save_deck()
                 l.run_deck()
                 while not l.get_calculated_values():
                     if my_debug:
                         print("[DEBUG RF] sleeping ...")
                     time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
-            rhoi = rho(l.k) # [pcm]
-            self.rholist.append( self.RhoData(enri, rhoi, 1e5*l.kerr) )
+            rhoi   = rho(l.k)       # [pcm]
+            rhoierr = 1e5*l.kerr     # [pcm]
+            self.rholist.append( self.RhoData(enri, rhoi, rhoierr) )
             if (rhoi-self.rho_tgt)*(rho1-self.rho_tgt) > 0.0: # Same sign as enr1
                 enr1 = enri
                 rho1 = rhoi
@@ -126,9 +141,11 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                 side = 1
             if abs((rho0-self.rho_tgt)*(rho1-self.rho_tgt)) < self.eps_rho**2:
                 break   # Reactivities close, done
+        self.conv_enr    = enri
+        self.conv_rho    = rhoi
+        self.conv_rhoerr = rhoierr
         if my_debug:
             print('DONE: ',self)
-        self.iter_enr = enri
 
     def plot_iters(self, plot_file:str='rf_enr_iter.png'):
         'Plot how the iteration went'
@@ -155,7 +172,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         if not self.rholist:
             print("Warning: No iterations to save!")
             return
-        result = '# enr, rho, sig_rho for %s sf %5.3f l %5.3f' \
+        result = '# enr, rho, sig_rho for %s sf %5.3f l %5.3f\n' \
                                 % (self.salt, self.sf, self.l)
         for r in self.rholist:
             result += '%10.8f\t%10.2f\t%6.1f\n' % (r)
@@ -187,5 +204,5 @@ if __name__ == '__main__':
     c.iterate_rho()
     c.save_iters()
     print("Enrichment for %s sf %5.3f l %5.3f -> %7.5f" % \
-            (c.salt, c.sf, c.l, c.iter_enr) )
+            (c.salt, c.sf, c.l, c.conv_enr) )
 

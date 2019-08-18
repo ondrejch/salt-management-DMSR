@@ -183,6 +183,7 @@ module load serpent
 
 sss2 -omp {self.ompcores} {self.deck_name} > myout.out
 awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {self.deck_name}_res.m > done.out
+rm {self.deck_name}.out
 '''.format(**locals())
         try:                # Write the deck
             f = open(self.qsub_path, 'w')
@@ -201,7 +202,7 @@ awk 'BEGIN{{ORS="\\t"}} /ANA_KEFF/ || /CONVERSION/ {{print $7" "$8;}}' {self.dec
 
     def get_calculated_values(self) -> bool:
         'Fill k and cr for lattice if calculated'
-        if os.path.exists(self.deck_path+'/done.out') and os.path.getsize(self.deck_path+'/done.out') > 0:
+        if os.path.exists(self.deck_path+'/done.out') and os.path.getsize(self.deck_path+'/done.out') > 30:
             pass
         else:                   # Calculation not done yet
             return False

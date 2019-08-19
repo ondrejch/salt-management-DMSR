@@ -167,6 +167,37 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             plt.savefig(self.iter_path+'/'+plot_file, bbox_inches='tight')
         plt.close()
 
+    def read_rhos_if_done(self, save_file:str='converge_data.txt') -> bool:
+        'Try to load previous search file'
+        try:
+            fh = open(self.iter_path + '/' + save_file, 'r')
+        except IOError as e:
+            if mydebug:
+                print("Results not available in: ", \
+                   self.iter_path + '/' + save_file)
+                print(e)
+            return False
+        myline  = fh.readline().strip()
+        mysalt  = myline.split()[5]          
+        mysf    = float(myline.split()[7])
+        myl     = float(myline.split()[9])
+        if not (mysalt==self.salt and mysf==self.sf and myl==self.l):
+            print("ERROR: Lattice parameters do not match!")
+            return False
+
+        for myline in fh.readlines():
+            myline  = myline.strip().split()
+            myenr   = float(myline[0])
+            myrho   = float(myline[1])
+            myrhoerr= float(myline[2])
+            self.rholist.append( self.RhoData(myenr, myrho, myrhoerr) )
+
+        self.conv_enr    = self.rholist[-1][0]
+        self.conv_rho    = self.rholist[-1][1]
+        self.conv_rhoerr = self.rholist[-1][2]
+        print("*** READ :",self)
+        return True
+
     def save_iters(self, save_file:str='converge_data.txt'):
         'Save history of the iterative search'
         if not self.rholist:

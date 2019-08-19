@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import shutil
+import time
 import molmass
 import serpentTools
 serpentTools.settings.rc['verbosity']='error'
@@ -198,6 +199,7 @@ rm {self.deck_name}.out
         if self.queue is 'local':    # Run the deck locally
             os.system('cd ' + self.deck_path + '; ' + self.qsub_path)
         else:               # Submit the job on the cluster
+            print("'cd ' + {self.deck_path} + ';  qsub ' + {self.qsub_path}".format**locals)
             os.system('cd ' + self.deck_path + ';  qsub ' + self.qsub_path)
 
     def get_calculated_values(self) -> bool:

@@ -191,11 +191,21 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             myrhoerr= float(myline[2])
             self.rholist.append( self.RhoData(myenr, myrho, myrhoerr) )
 
-        self.conv_enr    = self.rholist[-1][0]
-        self.conv_rho    = self.rholist[-1][1]
-        self.conv_rhoerr = self.rholist[-1][2]
-        print("*** READ :",self)
-        return True
+
+        found_enr1   = self.rholist[-2][0]
+        found_enr0   = self.rholist[-1][0]
+        found_rho1   = self.rholist[-2][1]
+        found_rho0   = self.rholist[-1][1]
+        found_rhoerr = self.rholist[-1][2]
+        if abs((found_rho0 - self.rho_tgt)*(found_rho1-self.rho_tgt)) < self.eps_rho**2 or \
+            abs(found_enr1 - found_enr0) < eps_enr*abs(found_enr0+found_enr1):
+            self.conv_enr    = self.rholist[-1][0]
+            self.conv_rho    = self.rholist[-1][1]
+            self.conv_rhoerr = self.rholist[-1][2]
+            print("*** READ :",self)
+            return True
+        else:
+            return False
 
     def save_iters(self, save_file:str='converge_data.txt'):
         'Save history of the iterative search'
@@ -231,8 +241,9 @@ if __name__ == '__main__':
     print("This module find critical enrichment of a lattice.")
 #    input("Press Ctrl+C to quit, or enter else to test it.")
     c = Converge()
-    c.iterate_rho()
-    c.save_iters()
+    c.read_rhos_if_done()
+#   c.iterate_rho()
+#   c.save_iters()
     print("Enrichment for %s sf %5.3f l %5.3f -> %7.5f" % \
             (c.salt, c.sf, c.l, c.conv_enr) )
 

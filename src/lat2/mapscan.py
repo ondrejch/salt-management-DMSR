@@ -101,13 +101,13 @@ class ScanConverge(object):
         c = converge.Converge(self.salt, sf, pitch)
         if not c.read_rhos_if_done():    # Was the enrichment not found already?
             xy = (sf, pitch)
-            dist, ind = self.old_tree.query(xy, k=2)    # Find nearest old enrichments
-            d1, d2 = dist.T                             # Distance from our point
-            v1, v2 = self.LUTval[ind].T                 # Value - enrichment
-            v = (d1)/(d1 + d2)*(v2 - v1) + v1           # Linear interpolation
-#            c.self.enr_min = v *0.6                     # Set regula falsi min
-#           c.self.enr_max = v *1.5                     #                  max
-            c.iterate_rho()                             # Start iterations
+            dist, ind = self.old_tree.query(xy, k=2) # Find nearest old enrichments
+            d1, d2 = dist.T                     # Distance from our point
+            v1, v2 = self.LUTval[ind].T         # Value - enrichment
+            v = (d1)/(d1 + d2)*(v2 - v1) + v1   # Linear interpolation
+            c.enr_min = v *0.6                  # Set regula falsi min
+            c.enr_max = v *1.5                  #                  max
+            c.iterate_rho()                     # Start iterations
             c.save_iters()
         res = LatticeData(self.salt, sf, pitch)
         res.enr    = c.conv_enr
@@ -125,7 +125,6 @@ class ScanConverge(object):
                 for pitch in self.l_list:
                     future = executor.submit(self.doconverge, sf, pitch)
                     to_do.append(future)
-                    time.sleep(0.5)
 
             for future in futures.as_completed(to_do):  # <7>
                 res = future.result()  # <8>

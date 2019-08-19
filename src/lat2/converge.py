@@ -169,13 +169,12 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
 
     def read_rhos_if_done(self, save_file:str='converge_data.txt') -> bool:
         'Try to load previous search file'
-        try:
+        if os.path.exists(self.iter_path + '/' + save_file):
             fh = open(self.iter_path + '/' + save_file, 'r')
-        except IOError as e:
-            if mydebug:
+        else:
+            if my_debug:
                 print("Results not available in: ", \
                    self.iter_path + '/' + save_file)
-                print(e)
             return False
         myline  = fh.readline().strip()
         mysalt  = myline.split()[5]          

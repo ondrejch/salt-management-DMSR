@@ -197,10 +197,12 @@ rm {self.deck_name}.out
     def run_deck(self):
         'Runs the deck using qsub_path script'
         if self.queue is 'local':    # Run the deck locally
-            os.system('cd ' + self.deck_path + '; ' + self.qsub_path)
+            os.chdir(self.deck_path)
+            os.system(self.qsub_path)
         else:               # Submit the job on the cluster
-            print("'cd ' + {self.deck_path} + ';  qsub ' + {self.qsub_path}".format(**locals()))
-            os.system('cd ' + self.deck_path + ';  qsub ' + self.qsub_path)
+#            print("'cd ' + {self.deck_path} + ';  qsub ' + {self.qsub_path}".format(**locals()))
+#            os.chdir(self.deck_path)
+            os.system('cd '+ self.deck_path + ' && qsub ' + self.qsub_path)
 
     def get_calculated_values(self) -> bool:
         'Fill k and cr for lattice if calculated'

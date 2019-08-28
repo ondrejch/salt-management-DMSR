@@ -10,8 +10,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import namedtuple
+import threading
 import sys
 import os
+import shutil
 import time
 
 from lattice import Lattice
@@ -31,6 +33,7 @@ class Converge(object):
         self.salt:str       = salt      # Salt key
         self.rho_tgt:float  = 200.0     # Target reactivity [pcm]
         self.eps_rho:float  = 200.0     # Reactivity epsilon [pcm]
+        self.eps_enr:float  = 1e-9      # Epsilon enrichment
         self.main_path:str = os.path.expanduser('~/L/')+salt # Main path
         self.iter_path:str = self.main_path + "/"+"%08.6f"%self.sf + \
                 "/%08.5f"%self.l        # Where the lattice decks are
@@ -70,21 +73,22 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
         lat1.set_path_from_geometry()
 
         lat0.save_qsub_file() # As long as we are using defaults, shared qsub file will work
-        if self.force_recalc or not (lat0.get_calculated_values() and lat1.get_calculated_values()) :
+        if self.force_recalc or not lat0.get_calculated_values():
             lat0.cleanup()
-            lat1.cleanup()
             lat0.save_deck()
-            lat1.save_deck()
             lat0.run_deck()
+        if self.force_recalc or not lat1.get_calculated_values():
+            lat1.cleanup()
+            lat1.save_deck()
             lat1.run_deck()
-            is_done:bool = False            # Wait for Serpent
-            while not is_done:
-                if lat0.get_calculated_values() and lat1.get_calculated_values():
-                    is_done = True
-                else:
-                    if my_debug:
-                        print("[DEBUG CONV] sleeping ...")
-                    time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
+        is_done:bool = False            # Wait for Serpent
+        while not is_done:
+            if lat0.get_calculated_values() and lat1.get_calculated_values():
+                is_done = True
+            else:
+                if my_debug:
+                    print("[DEBUG CONV] sleeping ...")
+                time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
 
         rho0 = rho(lat0.k)  # [pcm]
         rho1 = rho(lat1.k)  # [pcm]
@@ -96,7 +100,6 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             print(repr(self.rholist))
 
         # Regula Falsi root search, Illinois algorithm
-        eps_enr:float   = 1e-9  # epsilon enrichment
         n_iter:int      = 0
         side:int        = 0
         enri:float      = None
@@ -111,7 +114,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                         / (rho0 - rho1)
             if my_debug:
                 print("[DEBUG RF] new enr: ", enri)
-            if abs(enr1 - enr0) < eps_enr*abs(enr0+enr1):
+            if abs(enr1 - enr0) < self.eps_enr*abs(enr0+enr1):
                 break   # Enrichment values close to each other, done
             # New lattice run
             l = Lattice(self.salt, self.sf, self.l, enri)
@@ -192,13 +195,15 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             self.rholist.append( self.RhoData(myenr, myrho, myrhoerr) )
 
 
+        if len(self.rholist) < 3:
+            return False
         found_enr1   = self.rholist[-2][0]
         found_enr0   = self.rholist[-1][0]
         found_rho1   = self.rholist[-2][1]
         found_rho0   = self.rholist[-1][1]
         found_rhoerr = self.rholist[-1][2]
         if abs((found_rho0 - self.rho_tgt)*(found_rho1-self.rho_tgt)) < self.eps_rho**2 or \
-            abs(found_enr1 - found_enr0) < eps_enr*abs(found_enr0+found_enr1):
+            abs(found_enr1 - found_enr0) < self.eps_enr*abs(found_enr0+found_enr1):
             self.conv_enr    = self.rholist[-1][0]
             self.conv_rho    = self.rholist[-1][1]
             self.conv_rhoerr = self.rholist[-1][2]
@@ -226,13 +231,18 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                    self.iter_path + '/' + save_file)
             print(e)
 
+    def cleanup_force_all(self):
+        'Nuke base dir'
+        if os.path.isdir(self.iter_path):
+            shutil.rmtree(self.iter_path)
+
     def cleanup(self, preserve_last:bool=False):
         'Delete all run directories'
         n_lats = len(self.rholist) -1
         if preserve_last:
             n_last -= 1         # Save the last run
         for i in range(n_lats):
-            l = Lattice(self.salt, self.sf, self.l, enri)
+            l = Lattice(self.salt, self.sf, self.l, rholist[i][1])
             l.cleanup()
 
 

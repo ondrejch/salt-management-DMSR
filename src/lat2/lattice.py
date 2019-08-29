@@ -106,14 +106,14 @@ surf 2   hexxc  0.0 0.0 {self.l}  % reflective unit cell boundary
         b11_frac = 0.8 * self.boron_graphite
         graphite = '''
 %  NUCLEAR GRAPHITE: Natural concentration of carbon
-%  DENSITY: 1.82 G/CC
-mat graphite -1.82 moder graph 6000 tmp 973
+%  DENSITY: 1.80 G/CC
+mat graphite -1.80 moder graph 6000 tms 950
 rgb 130 130 130
 6000.{gr_lib} {gr_frac}
 5010.{gr_lib} {b10_frac} % boron impirity eq.
 5011.{gr_lib} {b11_frac}
 %  THERMAL SCATTERING LIBRARY FOR GRAPHITE
-therm graph gre7.08t
+therm graph 0 gre7.18t gre7.20t gre7.22t
 '''
         return graphite.format(**locals())
 
@@ -121,7 +121,7 @@ therm graph gre7.08t
         'Data cards for the lattice'
         data_cards = '''
 % Boundary condition
-set bc 3
+set bc 2
 
 % Neutron population and criticality cycles
 set pop {self.histories} 100 40 % {self.histories} neutrons, 100 active, 40 inactive cycles
@@ -200,8 +200,6 @@ rm {self.deck_name}.out
             os.chdir(self.deck_path)
             os.system(self.qsub_path)
         else:               # Submit the job on the cluster
-#            print("'cd ' + {self.deck_path} + ';  qsub ' + {self.qsub_path}".format(**locals()))
-#            os.chdir(self.deck_path)
             os.system('cd '+ self.deck_path + ' && qsub ' + self.qsub_path)
 
     def get_calculated_values(self) -> bool:

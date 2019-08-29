@@ -67,35 +67,51 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
     def iterate_rho(self):
         'Execute the convergence search https://en.wikipedia.org/wiki/Regula_falsi#Example_code'
         # Create and run the edge points
-        lat0 = Lattice(self.salt, self.sf, self.l, self.enr_min)
-        lat0.set_path_from_geometry()
-        lat1 = Lattice(self.salt, self.sf, self.l, self.enr_max)
-        lat1.set_path_from_geometry()
+        rho0:float = +1.0
+        rho1:float = -1.0
+        enr0:float = 0.0
+        enr1:float = 0.0
+        rho0err:float = 0.0
+        rho0err:float = 0.0
 
-        lat0.save_qsub_file() # As long as we are using defaults, shared qsub file will work
-        if self.force_recalc or not lat0.get_calculated_values():
-            lat0.cleanup()
-            lat0.save_deck()
-            lat0.run_deck()
-        if self.force_recalc or not lat1.get_calculated_values():
-            lat1.cleanup()
-            lat1.save_deck()
-            lat1.run_deck()
-        is_done:bool = False            # Wait for Serpent
-        while not is_done:
-            if lat0.get_calculated_values() and lat1.get_calculated_values():
-                is_done = True
-            else:
-                if my_debug:
-                    print("[DEBUG CONV] sleeping ...")
-                time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
+        while rho0 > 0.0 or rho1 < 0.0:
+            lat0 = Lattice(self.salt, self.sf, self.l, self.enr_min)
+            lat0.set_path_from_geometry()
+            lat1 = Lattice(self.salt, self.sf, self.l, self.enr_max)
+            lat1.set_path_from_geometry()
 
-        rho0 = rho(lat0.k)  # [pcm]
-        rho1 = rho(lat1.k)  # [pcm]
-        enr0 = lat0.s.enr
-        enr1 = lat1.s.enr
-        self.rholist.append( self.RhoData(enr0, rho0, 1e5*lat0.kerr) )
-        self.rholist.append( self.RhoData(enr1, rho1, 1e5*lat1.kerr) )
+            lat0.save_qsub_file() # As long as we are using defaults, shared qsub file will work
+            if self.force_recalc or not lat0.get_calculated_values():
+                lat0.cleanup()
+                lat0.save_deck()
+                lat0.run_deck()
+            if self.force_recalc or not lat1.get_calculated_values():
+                lat1.cleanup()
+                lat1.save_deck()
+                lat1.run_deck()
+            is_done:bool = False            # Wait for Serpent
+            while not is_done:
+                if lat0.get_calculated_values() and lat1.get_calculated_values():
+                    is_done = True
+                else:
+                    if my_debug:
+                        print("[DEBUG CONV] sleeping ...")
+                    time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
+
+            rho0 = rho(lat0.k)  # [pcm]
+            rho1 = rho(lat1.k)  # [pcm]            
+            enr0 = lat0.s.enr
+            enr1 = lat1.s.enr
+            rho0err = 1e5*lat0.kerr
+            rho1err = 1e5*lat1.kerr
+            if rho0 > 0.0:
+                self.enr_min /= 1.5
+            if rho1 < 0.0:
+                self.enr_max *= 1.5
+
+        self.rholist.append( self.RhoData(enr0, rho0, rho0err) )
+        self.rholist.append( self.RhoData(enr1, rho1, rho1err) )
+        
         if my_debug > 2:
             print(repr(self.rholist))
 
@@ -250,10 +266,12 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
 if __name__ == '__main__':
     print("This module find critical enrichment of a lattice.")
 #    input("Press Ctrl+C to quit, or enter else to test it.")
-    c = Converge()
+    c = Converge('flibe',0.07,11.0)
+    c.enr_min = 0.006149271528
+    c.enr_max = 0.016040111061
     c.read_rhos_if_done()
-#   c.iterate_rho()
-#   c.save_iters()
+    c.iterate_rho()
+    c.save_iters()
     print("Enrichment for %s sf %5.3f l %5.3f -> %7.5f" % \
             (c.salt, c.sf, c.l, c.conv_enr) )
 

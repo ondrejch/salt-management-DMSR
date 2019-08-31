@@ -66,6 +66,9 @@ class Lattice(object):
         if my_debug:
             print("DEBUG LATTICE ", self.salt_formula, self.sf, self.l, self.s.enr)
 
+    def __repr__(self):
+        return "Lattice: "+repr(self.s)+" sf: "+repr(self.sf)+" l: "+repr(self.l)
+
     def set_path_from_geometry(self):
         'Sets path to directory to run cases based on geometry'
         self.deck_path = self.main_path + "/" + "%08.6f"%self.sf + \

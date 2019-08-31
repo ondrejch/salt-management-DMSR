@@ -17,7 +17,7 @@ import random
 import lattice
 import converge
 
-my_debug:int = 5
+my_debug:int = 1
 
 SALT_FRACTIONS  = [0.07,0.08]
 LATTICE_PITCHES = [10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0]
@@ -73,26 +73,37 @@ class ScanConverge(object):
 
     def doconverge(self, c) -> LatticeData:
         'Converge one lattice'
-        res = LatticeData(self.salt, c.sf, c.l)
+        tl = threading.local()
+        tl.res = LatticeData(self.salt, c.sf, c.l)
+        tl.is_converged:bool = False
         if not c.read_rhos_if_done():   # Was the enrichment not found already?
-            c.cleanup_force_all()       # Wipe the directory
-            xy = (c.sf, c.l)
-            dist, ind = self.old_tree.query(xy, k=2) # Find nearest old enrichments
-            d1, d2 = dist.T                     # Distance from our point
-            v1, v2 = self.LUTval[ind].T         # Value - enrichment
-            v = (d1)/(d1 + d2)*(v2 - v1) + v1   # Linear interpolation
-            c.enr_min = v *0.5                  # Set regula falsi min
-            c.enr_max = v *1.8                  #                  max
+        #    c.cleanup_force_all()       # Wipe the directory
+            tl.xy = (c.sf, c.l)
+            tl.dist, tl.ind = self.old_tree.query(tl.xy, k=2) # Find nearest old enrichments
+            tl.d1, tl.d2 = tl.dist.T                     # Distance from our point
+            tl.v1, tl.v2 = self.LUTval[tl.ind].T         # Value - enrichment
+            tl.v = (tl.d1)/(tl.d1 + tl.d2)*(tl.v2 - tl.v1) + tl.v1   # Linear interpolation
+            c.enr_min = tl.v *0.5                  # Set regula falsi min
+            c.enr_max = tl.v *1.8                  #                  max
             if c.enr_max > 0.99:
                 c.enr_max = 0.99
-            c.iterate_rho()                     # Start iterations
-            c.save_iters()
-        res.enr    = c.conv_enr
-        res.rho    = c.conv_rho
-        res.rhoerr = c.conv_rhoerr
-        if my_debug:
-            print("* DBG: ", repr(res))
-        return res
+            tl.is_converged = c.iterate_rho()                     # Start iterations
+            if tl.is_converged:
+                c.save_iters()
+        else:
+            tl.is_converged = True
+        if tl.is_converged:
+            tl.res.enr    = c.conv_enr
+            tl.res.rho    = c.conv_rho
+            tl.res.rhoerr = c.conv_rhoerr
+        else:
+            tl.res.enr    = -1.0
+            tl.res.rho    = -1.0
+            tl.res.rhoerr = -1.0
+
+        if my_debug > 3:
+            print("* DBG: ", repr(tl.res))
+        return tl.res
 
     def runscan(self):
         'Threaded convergence scan for sf x pitch phase space'
@@ -103,11 +114,11 @@ class ScanConverge(object):
                     self.conv_list.append(converge.Converge(self.salt, sf, l))
                     future = executor.submit(self.doconverge,self.conv_list[-1])
                     to_do.append(future)
-                    time.sleep(0.5)
+        #            time.sleep(0.5)
 
             for future in futures.as_completed(to_do):
                 res = future.result()
-                if my_debug:
+                if my_debug > 0:
                     msg = '{} result: {!r}'
                     print(msg.format(future, res))
                 self.data.append(res)

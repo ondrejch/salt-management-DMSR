@@ -64,7 +64,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                         (self.conv_enr, self.conv_rho, self.conv_rhoerr)
         return result
 
-    def iterate_rho(self):
+    def iterate_rho(self) -> bool:
         'Execute the convergence search https://en.wikipedia.org/wiki/Regula_falsi#Example_code'
         # Create and run the edge points
         rho0:float = +1.0
@@ -99,7 +99,10 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                     time.sleep(self.sleep_sec)  # Wait a minute for Serpent ...
 
             rho0 = rho(lat0.k)  # [pcm]
-            rho1 = rho(lat1.k)  # [pcm]            
+            rho1 = rho(lat1.k)  # [pcm]           
+            if self.enr_max > 0.98 and rho1 < 0.0:
+                print("ERROR: lattice " + repr(lat1) +" cannot get critical.")
+                return False
             enr0 = lat0.s.enr
             enr1 = lat1.s.enr
             rho0err = 1e5*lat0.kerr
@@ -108,6 +111,8 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                 self.enr_min /= 1.5
             if rho1 < 0.0:
                 self.enr_max *= 1.5
+                if self.enr_max > 0.99:     # Sanity check
+                    self.enr_max = 0.99
 
         self.rholist.append( self.RhoData(enr0, rho0, rho0err) )
         self.rholist.append( self.RhoData(enr1, rho1, rho1err) )
@@ -158,13 +163,15 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
                 if side == 1:
                     rho1 = (rho1-self.rho_tgt)/2.0 + self.rho_tgt
                 side = 1
-            if abs((rho0-self.rho_tgt)*(rho1-self.rho_tgt)) < self.eps_rho**2:
+#            if abs((rho0-self.rho_tgt)*(rho1-self.rho_tgt)) < self.eps_rho**2:
+            if abs(rhoi-self.rho_tgt) < self.eps_rho:
                 break   # Reactivities close, done
         self.conv_enr    = enri
         self.conv_rho    = rhoi
         self.conv_rhoerr = rhoierr
-        if my_debug:
+        if my_debug > 4:
             print('DONE: ',self)
+        return True
 
     def plot_iters(self, plot_file:str='rf_enr_iter.png'):
         'Plot how the iteration went'
@@ -223,7 +230,8 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             self.conv_enr    = self.rholist[-1][0]
             self.conv_rho    = self.rholist[-1][1]
             self.conv_rhoerr = self.rholist[-1][2]
-            print("*** READ :",self)
+            if my_debug:
+                print("*** READ :",self)
             return True
         else:
             return False

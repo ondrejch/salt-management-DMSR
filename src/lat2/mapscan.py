@@ -26,7 +26,7 @@ SALT_KEYS = ['flibe', 'lif', 'naf', 'nafbe12', 'nafbe30', 'nafrbf2', 'nafkf'] # 
 SALT_FRACTIONS  = [0.005,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.10,0.11,0.12,0.13,0.14,0.15,0.16,0.18,0.20,0.225,0.25,0.275,0.30,0.325,0.35,0.375,0.40,0.425,0.45,0.475,0.50,0.525,0.55]
 LATTICE_PITCHES = [1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,28.0,30.0,32.0,34.0,36.0,38.0,40.0,45.0,50.0,55.0,60.0]
 
-class LatticeData(object):
+class ConvergedPoint(object):
     'Class holding the calculated data'
     def __init__(self, salt:str='flibe', sf:float=0.1, l:float=20.0):
         self.salt:str       = salt      # Salt key
@@ -48,20 +48,20 @@ class ScanConverge(object):
         try:
            salt_formula = lattice.SALTS[salt]
         except:
-            ValueError("Salt "+salt+" is undefined.")
-        self.salt = salt
-        self.conv_list = []
-        self.sf_list = []
+            raise ValueError("Salt "+salt+" is undefined.")
+        self.salt      = salt       # Salt key
+        self.conv_list = []         # List of convergence objects, 1 per thread
+        self.data      = []         # List of ConvergedPoint results 
+        self.sf_list   = []         # Salt fractions to scan
         if sf_list:
             self.sf_list = sf_list
         else:
             self.sf_list = SALT_FRACTIONS
-        self.l_list = []
+        self.l_list    = []         # Channel pitches to scan
         if l_list:
             self.l_list = l_list
         else:
             self.l_list = LATTICE_PITCHES
-        self.data = []
 
         # Increase convergence by using old values to start regula falsi
         # https://stackoverflow.com/questions/29974122/interpolating-data-from-a-look-up-table#30057858
@@ -71,10 +71,10 @@ class ScanConverge(object):
         del old_LUT
         self.old_tree = cKDTree(self.LUTxy)
 
-    def doconverge(self, c) -> LatticeData:
+    def doconverge(self, c) -> ConvergedPoint:
         'Converge one lattice'
         tl = threading.local()
-        tl.res = LatticeData(self.salt, c.sf, c.l)
+        tl.res = ConvergedPoint(self.salt, c.sf, c.l)
         tl.is_converged:bool = False
         if not c.read_rhos_if_done():   # Was the enrichment not found already?
         #    c.cleanup_force_all()       # Wipe the directory
@@ -111,25 +111,82 @@ class ScanConverge(object):
             to_do = []
             for sf in self.sf_list:
                 for l in self.l_list:
-                    self.conv_list.append(converge.Converge(self.salt, sf, l))
-                    future = executor.submit(self.doconverge,self.conv_list[-1])
-                    to_do.append(future)
-        #            time.sleep(0.5)
+                    if not self.is_converged(sf, l):
+                        self.conv_list.append(converge.Converge(self.salt, sf, l))
+                        future = executor.submit(self.doconverge,self.conv_list[-1])
+                        to_do.append(future)
+                        time.sleep(0.5)
 
             for future in futures.as_completed(to_do):
                 res = future.result()
-                if my_debug > 0:
+                if my_debug:
                     msg = '{} result: {!r}'
                     print(msg.format(future, res))
                 self.data.append(res)
         if my_debug:
             print(self.data)
 
+    def is_converged(self, sf, l):
+        'Is this lattice already converged?'
+        if not self.data:
+            return False
+        for d in self.data:
+            if d.sf == sf and d.l == l:
+                return True
+        return False
+
+    def read_data(self, savefile=None) -> bool:
+        'Read converged lattices from savefile'
+        if not savefile:
+            c = converge.Converge(self.salt)    # Get the path
+            savefile = c.main_path + self.salt + "_converged.dat"
+        try:
+            fh = open(savefile, 'r')
+            for myline in fh.readlines():
+                myline  = myline.strip().split()
+                sf     = float(myline[0])
+                l      = float(myline[1])
+                cpt        = ConvergedPoint(self.salt, sf, l)
+                cpt.enr    = float(myline[2])
+                cpt.rho    = float(myline[3])
+                cpt.rhoerr = float(myline[4])
+                self.data.append(cpt)
+            fh.close()
+            return True
+        except:
+            return False
+
+    def save_data(self, savefile=None) -> bool:
+        'Save converged lattices to savefile'
+        if not self.data:
+            print("ERROR: No data to save!")
+            return False
+        if not savefile:
+            if self.conv_list:
+                savefile = self.conv_list[0].main_path + self.salt + "_converged.dat"
+            else:
+                c = converge.Converge(self.salt)    # Get the path
+                savefile = c.main_path + self.salt + "_converged.dat"
+        try:
+            fh = open(savefile, 'w')
+            for d in self.data:
+                fh.write("%8.6f\t%8.5f\t%14.12f\t%10.2f %6.1f\n" % \
+                    (d.sf, d.l, d.enr, d.rho, d.rhoerr) )
+            fh.close()
+        except IOError as e:
+            print("[ERROR] Unable to write to file: ", \
+                   self.deck_path + '/' + self.deck_name)
+            print(e)
+            return False
+        
 # ------------------------------------------------------------
 if __name__ == '__main__':
     print("This module handles phase space scanning.")
 #    input("Press Ctrl+C to quit, or enter else to test it.")
     m = ScanConverge()
+    m.read_data()
     m.runscan()
+    m.save_data()
+
 
 

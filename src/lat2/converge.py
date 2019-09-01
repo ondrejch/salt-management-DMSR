@@ -131,8 +131,11 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
             if my_debug > 2:
                 print("[DEBUG RF] ", rho0, enr0 , rho1, enr1)
             # Enrichment value for this iteration
-            enri = ((rho0-self.rho_tgt)*enr1 - (rho1-self.rho_tgt)*enr0) \
-                        / (rho0 - rho1)
+            d_rho = rho0 - rho1
+            if d_rho == 0.0:
+                print("ERROR: div by zero", self.salt, self.sf, self.l, enri)
+                return False
+            enri = ((rho0-self.rho_tgt)*enr1 - (rho1-self.rho_tgt)*enr0) / d_rho
             if my_debug:
                 print("[DEBUG RF] new enr: ", enri)
             if abs(enr1 - enr0) < self.eps_enr*abs(enr0+enr1):
@@ -195,7 +198,7 @@ Iteration boudaries %5.4f %5.4f, max iters: %d''' % \
 
     def read_rhos_if_done(self, save_file:str='converge_data.txt') -> bool:
         'Try to load previous search file'
-        if os.path.exists(self.iter_path + '/' + save_file):
+        if os.path.exists(self.iter_path + '/' + save_file) and os.path.getsize(self.iter_path + '/' + save_file) > 50:
             fh = open(self.iter_path + '/' + save_file, 'r')
         else:
             if my_debug:

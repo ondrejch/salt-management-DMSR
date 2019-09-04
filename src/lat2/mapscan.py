@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from concurrent import futures
 import threading
 import time
-import random
 import lattice
 import converge
 
@@ -22,7 +21,7 @@ my_debug:int = 1
 SALT_FRACTIONS  = [0.07,0.08]
 LATTICE_PITCHES = [10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0]
 
-SALT_KEYS = ['flibe', 'lif', 'naf', 'nafbe12', 'nafbe30', 'nafrbf2', 'nafkf'] # list(lattice.SALTS.keys())
+SALT_KEYS = ['flibe', 'lif', 'naf', 'nafbe12', 'nafbe30', 'nafrbf2', "nafzrf", 'nafkf'] # list(lattice.SALTS.keys())
 SALT_FRACTIONS  = [0.005,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.10,0.11,0.12,0.13,0.14,0.15,0.16,0.18,0.20,0.225,0.25,0.275,0.30,0.325,0.35,0.375,0.40,0.425,0.45,0.475,0.50,0.525,0.55]
 LATTICE_PITCHES = [1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0,24.0,25.0,26.0,28.0,30.0,32.0,34.0,36.0,38.0,40.0,45.0,50.0,55.0,60.0]
 
@@ -73,7 +72,7 @@ class ScanConverge(object):
 
     def doconverge(self, c) -> ConvergedPoint:
         'Converge one lattice'
-        tl = threading.local()
+        tl = threading.local()          # Prevent threads overwriting each others data
         tl.res = ConvergedPoint(self.salt, c.sf, c.l)
         tl.is_converged:bool = False
         if not c.read_rhos_if_done():   # Was the enrichment not found already?
@@ -83,11 +82,11 @@ class ScanConverge(object):
             tl.d1, tl.d2 = tl.dist.T                     # Distance from our point
             tl.v1, tl.v2 = self.LUTval[tl.ind].T         # Value - enrichment
             tl.v = (tl.d1)/(tl.d1 + tl.d2)*(tl.v2 - tl.v1) + tl.v1   # Linear interpolation
-            c.enr_min = tl.v *0.5                  # Set regula falsi min
-            c.enr_max = tl.v *1.8                  #                  max
-            if c.enr_max > 0.99:
+            c.enr_min = tl.v *0.5               # Set regula-falsi min
+            c.enr_max = tl.v *1.8               #                  max
+            if c.enr_max > 0.99:                # Sanity check
                 c.enr_max = 0.99
-            tl.is_converged = c.iterate_rho()                     # Start iterations
+            tl.is_converged = c.iterate_rho()   # Run iterations
             if tl.is_converged:
                 c.save_iters()
         else:
@@ -112,8 +111,8 @@ class ScanConverge(object):
             for sf in self.sf_list:
                 for l in self.l_list:
                     if not self.is_converged(sf, l):
-                        self.conv_list.append(converge.Converge(self.salt, sf, l))
-                        future = executor.submit(self.doconverge,self.conv_list[-1])
+                        self.conv_list.append(converge.Converge(self.salt, sf, l))   # Each point is a class on a list
+                        future = executor.submit(self.doconverge,self.conv_list[-1]) # -1: last on the list 
                         to_do.append(future)
                         time.sleep(0.5)
 
@@ -122,7 +121,7 @@ class ScanConverge(object):
                 if my_debug:
                     msg = '{} result: {!r}'
                     print(msg.format(future, res))
-                self.data.append(res)
+                self.data.append(res)                   # Record all results into a list
         if my_debug:
             print(self.data)
 
@@ -138,8 +137,8 @@ class ScanConverge(object):
     def read_data(self, savefile=None) -> bool:
         'Read converged lattices from savefile'
         if not savefile:
-            c = converge.Converge(self.salt)    # Get the path
-            savefile = c.main_path + self.salt + "_converged.dat"
+            c = converge.Converge(self.salt)    # Temp class just to get the main_path
+            savefile = c.main_path + "_converged.dat"
         try:
             fh = open(savefile, 'r')
             for myline in fh.readlines():
@@ -163,10 +162,10 @@ class ScanConverge(object):
             return False
         if not savefile:
             if self.conv_list:
-                savefile = self.conv_list[0].main_path + self.salt + "_converged.dat"
+                savefile = self.conv_list[0].main_path + "_converged.dat"
             else:
                 c = converge.Converge(self.salt)    # Get the path
-                savefile = c.main_path + self.salt + "_converged.dat"
+                savefile = c.main_path + "_converged.dat"
         try:
             fh = open(savefile, 'w')
             for d in self.data:

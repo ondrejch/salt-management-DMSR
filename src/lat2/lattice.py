@@ -23,6 +23,7 @@ SALTS = {
     "nafbe12": "74%NaF + 12%BeF2 + 14%UF4",
     "nafbe30": "58%NaF + 30%BeF2 + 12%UF4",
     "nafrbf2": "46%NaF + 33%RbF + 21%UF4",
+    "nafzrf" : "49%NaF + 38%ZrF4 + 13%UF4",
     "nafkf"  : "50.5%NaF + 21.5%KF + 28%UF4" }
 
 NUCLEAR_DATA_LIBS = {'ENDF7', 'ENDF8', 'JEFF33' }
@@ -230,14 +231,18 @@ rm {self.deck_name}.out
 # ------------------------------------------------------------
 if __name__ == '__main__':
     print("This module handles a simple lattice.")
-#    input("Press Ctrl+C to quit, or enter else to test it.")
+    input("Press Ctrl+C to quit, or enter else to test it.")
     l = Lattice()
-    print(l.get_deck())
+    print("***** Serpent deck: \n" +  l.get_deck() + "\n***** ")
 #    l.ompcores=32
-#    l.save_qsub_file()
-#    l.save_deck()
-#    l.run_deck()
-#    l.get_calculated_values()
+    l.deck_path = os.path.expanduser('~/tmp/lat_test')
+    l.save_qsub_file()
+    l.save_deck()
+    l.run_deck()
+    while not l.get_calculated_values():
+        print("Wating for Serpent ...")
+        time.sleep(5.0)
+    print(l.k, l.cr)
 
 
 
